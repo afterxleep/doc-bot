@@ -1,89 +1,66 @@
-# docbot
+# doc-bot
 
-[![npm version](https://img.shields.io/npm/v/docbot)](https://www.npmjs.com/package/docbot)
+[![npm version](https://img.shields.io/npm/v/@afterxleep/doc-bot)](https://www.npmjs.com/package/@afterxleep/doc-bot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A generic, open-source MCP (Model Context Protocol) server that provides intelligent documentation access for any project. Works with AI agents like Claude Code, Cursor, and any other MCP-compatible tools.
+A generic MCP (Model Context Protocol) server that provides intelligent documentation access for any project. Works with AI agents like Claude Code, Cursor, and any other MCP-compatible tools.
 
-## 🚀 Features
+## What is doc-bot?
 
-- **🔍 Smart Documentation Search**: Full-text search across all documentation
-- **🧠 Intelligent Inference**: Context-aware documentation suggestions based on your current work
-- **📋 Global Rules**: Always-apply documentation that's relevant to every interaction
-- **🎯 Contextual Docs**: File-specific documentation based on patterns and file types
-- **📦 Zero Config**: Works out of the box with a simple `docbot/` folder
-- **🔄 Hot Reload**: Automatically updates when documentation changes
-- **🛠️ Universal**: Works with any project, any language, any framework
+doc-bot is an intelligent documentation server that:
+- 🔍 **Searches** your project documentation instantly
+- 🧠 **Infers** relevant docs based on your current work
+- 📋 **Applies** global rules to every AI interaction
+- 🎯 **Suggests** contextual documentation based on file patterns
+- 🔄 **Updates** automatically when docs change
 
-## 📦 Installation & Usage
+## Installation
 
-### Quick Start
+### Quick Start (Recommended)
 
-1. **Install and run in your project:**
-   ```bash
-   # Navigate to your project directory
-   cd your-project
-   
-   # Run the server (installs automatically)
-   npx docbot
-   ```
+Navigate to your project directory and run:
 
-2. **Create your documentation structure:**
-   ```bash
-   mkdir docbot
-   echo '{"name": "My Project Documentation", "globalRules": []}' > docbot/manifest.json
-   echo "# Getting Started" > docbot/README.md
-   ```
+```bash
+npx @afterxleep/doc-bot
+```
 
-3. **Add to your Claude Code configuration:**
-   ```json
-   {
-     "mcpServers": {
-       "docs": {
-         "command": "npx",
-         "args": ["docbot"]
-       }
-     }
-   }
-   ```
-
-4. **Restart Claude Code and start using intelligent documentation!**
+That's it! The server will start and guide you through creating your first documentation.
 
 ### Global Installation
 
 ```bash
-# Install globally
-npm install -g docbot
-
-# Run in any project
-docbot
+npm install -g @afterxleep/doc-bot
+doc-bot
 ```
 
-## 📁 Project Structure
+## How to organize your documentation
 
-Create a `docbot/` folder in your project root:
+Create a `docs.ai/` folder in your project root:
 
 ```
 your-project/
-├── docbot/
-│   ├── manifest.json          # Configuration and rules
+├── docs.ai/
+│   ├── manifest.json          # Configuration file
 │   ├── core/
-│   │   ├── architecture.md    # Always-apply architecture guidelines
-│   │   ├── coding-standards.md # Coding standards for all files
-│   │   └── security.md        # Security guidelines
+│   │   ├── coding-standards.md # Always-apply coding standards
+│   │   └── security.md         # Security guidelines
 │   ├── guides/
-│   │   ├── testing.md         # Testing strategies
-│   │   ├── deployment.md      # Deployment procedures
-│   │   └── api-development.md # API development guide
+│   │   ├── testing.md          # Testing strategies
+│   │   └── api-development.md  # API development guide
 │   └── reference/
-│       ├── troubleshooting.md # Common issues and solutions
-│       └── best-practices.md  # Best practices by topic
+│       └── troubleshooting.md  # Common issues and solutions
 └── package.json
 ```
 
-## ⚙️ Configuration
+### Documentation types:
 
-### Manifest File (`docbot/manifest.json`)
+- **Core docs** (`core/`): Critical guidelines that should always be considered
+- **Guides** (`guides/`): Step-by-step instructions for specific tasks
+- **Reference** (`reference/`): Quick lookups and troubleshooting
+
+## The manifest file
+
+The `docs.ai/manifest.json` file controls how your documentation works:
 
 ```json
 {
@@ -98,262 +75,98 @@ your-project/
     "*.test.js": ["guides/testing.md"],
     "*.spec.js": ["guides/testing.md"],
     "src/components/*": ["guides/react-components.md"],
-    "src/api/*": ["guides/api-development.md"],
-    "*.md": ["guides/documentation.md"],
-    "package.json": ["guides/dependencies.md"]
+    "src/api/*": ["guides/api-development.md"]
   },
   "inference": {
     "keywords": {
       "testing": ["guides/testing.md"],
       "deployment": ["guides/deployment.md"],
-      "api": ["guides/api-development.md"],
-      "security": ["core/security.md"],
-      "performance": ["guides/performance.md"]
+      "api": ["guides/api-development.md"]
     },
     "patterns": {
       "describe(": ["guides/testing.md"],
       "it(": ["guides/testing.md"],
-      "fetch(": ["guides/api-development.md"],
-      "console.error": ["reference/troubleshooting.md"],
-      "try {": ["reference/error-handling.md"]
+      "fetch(": ["guides/api-development.md"]
     }
   }
 }
 ```
 
-### Configuration Options
+### Configuration explained:
 
-- **`globalRules`**: Documentation that applies to all interactions
-- **`contextualRules`**: Documentation triggered by specific file patterns
-- **`inference.keywords`**: Documentation triggered by keywords in queries
-- **`inference.patterns`**: Documentation triggered by code patterns
+- **`globalRules`**: Documents that apply to every AI interaction
+- **`contextualRules`**: Documents triggered by specific file patterns (e.g., test files → testing guide)
+- **`inference.keywords`**: Documents suggested when certain words appear in queries
+- **`inference.patterns`**: Documents suggested when certain code patterns are detected
 
-## 🔧 CLI Options
+## Development setup
 
-```bash
-docbot [options]
+### Running locally
 
-Options:
-  -p, --port <port>        Port to run server on (default: 3000)
-  -d, --docs <path>        Path to docs folder (default: ./docbot)
-  -c, --config <path>      Path to manifest file (default: ./docbot/manifest.json)
-  -v, --verbose           Enable verbose logging
-  -w, --watch             Watch for file changes
-  -h, --help              Show help
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/afterxleep/doc-bot.git
+   cd doc-bot
+   ```
 
-## 🎯 How It Works
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-### 1. Global Rules (Always Apply)
-Documents listed in `globalRules` are automatically included in every AI interaction:
+3. **Run the server:**
+   ```bash
+   npm start
+   ```
 
-```json
-{
-  "globalRules": [
-    "core/coding-standards.md",
-    "core/security.md"
-  ]
-}
-```
+4. **Run tests:**
+   ```bash
+   npm test
+   ```
 
-### 2. Contextual Rules (File-Based)
-When you're working on specific files, relevant documentation is automatically suggested:
+5. **Run with file watching:**
+   ```bash
+   npm start -- --watch
+   ```
 
-```json
-{
-  "contextualRules": {
-    "*.test.js": ["guides/testing.md"],
-    "src/components/*": ["guides/react-components.md"]
-  }
-}
-```
+### Connect to Claude Code
 
-### 3. Smart Inference
-The server analyzes your queries and code to suggest relevant documentation:
-
-- **Keywords**: "testing" → `guides/testing.md`
-- **Code Patterns**: `describe(` → `guides/testing.md`
-- **File Extensions**: `.py` → Python-related docs
-
-## 📖 Documentation Format
-
-### Frontmatter Support
-Add metadata to your documentation:
-
-```markdown
----
-title: Testing Guide
-description: Comprehensive testing strategies
-category: guides
-tags: [testing, jest, react]
-alwaysApply: false
----
-
-# Testing Guide
-
-Your documentation content here...
-```
-
-### Supported Formats
-- **Markdown** (`.md`)
-- **MDX** (`.mdx`)
-- **Cursor Rules** (`.mdc`)
-
-## 🛠️ Available Tools
-
-When using with Claude Code or other MCP clients:
-
-### `search_documentation`
-```javascript
-// Search all documentation
-search_documentation({ query: "testing best practices" })
-```
-
-### `get_relevant_docs`
-```javascript
-// Get context-aware suggestions
-get_relevant_docs({ 
-  context: {
-    query: "How to test React components",
-    filePath: "src/components/UserProfile.test.tsx",
-    codeSnippet: "describe('UserProfile', () => {"
-  }
-})
-```
-
-### `get_global_rules`
-```javascript
-// Get always-apply documentation
-get_global_rules()
-```
-
-### `get_file_docs`
-```javascript
-// Get file-specific documentation
-get_file_docs({ filePath: "src/api/users.js" })
-```
-
-## 🌟 Examples
-
-### React Project
-```json
-{
-  "globalRules": ["core/react-standards.md"],
-  "contextualRules": {
-    "src/components/*": ["guides/components.md"],
-    "*.test.tsx": ["guides/testing.md"]
-  },
-  "inference": {
-    "keywords": {
-      "hook": ["guides/hooks.md"],
-      "state": ["guides/state-management.md"]
-    },
-    "patterns": {
-      "useState": ["guides/hooks.md"],
-      "useEffect": ["guides/hooks.md"]
-    }
-  }
-}
-```
-
-### Node.js API Project
-```json
-{
-  "globalRules": ["core/api-standards.md", "core/security.md"],
-  "contextualRules": {
-    "routes/*": ["guides/routing.md"],
-    "middleware/*": ["guides/middleware.md"],
-    "*.test.js": ["guides/testing.md"]
-  },
-  "inference": {
-    "keywords": {
-      "authentication": ["guides/auth.md"],
-      "database": ["guides/database.md"]
-    },
-    "patterns": {
-      "app.get": ["guides/routing.md"],
-      "app.post": ["guides/routing.md"]
-    }
-  }
-}
-```
-
-## 🔄 Integration with IDEs
-
-### Claude Code
-1. Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+1. **Add to your Claude Code configuration** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
    ```json
    {
      "mcpServers": {
        "docs": {
          "command": "npx",
-         "args": ["docbot"]
+         "args": ["@afterxleep/doc-bot"]
        }
      }
    }
    ```
 
-### Cursor
-Configure MCP server integration (coming soon)
+2. **Restart Claude Code**
 
-### VS Code
-Use with Claude Code extension or MCP-compatible extensions
+3. **Test it:** Ask Claude something like "What documentation is available?"
 
-## 🧪 Testing Your Setup
+### CLI Options
 
-1. **Create test documentation:**
-   ```bash
-   mkdir docbot
-   echo '{"name": "Test Docs", "globalRules": ["test.md"]}' > docbot/manifest.json
-   echo "# Test Document\nThis is a test." > docbot/test.md
-   ```
-
-2. **Run the server:**
-   ```bash
-   npx docbot --verbose
-   ```
-
-3. **Test with Claude Code:**
-   - Ask: "What documentation is available?"
-   - Try: "Show me the global rules"
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Setup
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/docbot.git
-cd docbot
+doc-bot [options]
 
-# Install dependencies
-npm install
-
-# Run tests
-npm test
-
-# Run in development mode
-npm run dev
+Options:
+  -p, --port <port>        Port to run server on (default: 3000)
+  -d, --docs <path>        Path to docs folder (default: ./docs.ai)
+  -c, --config <path>      Path to manifest file (default: ./docs.ai/manifest.json)
+  -v, --verbose           Enable verbose logging
+  -w, --watch             Watch for file changes
+  -h, --help              Show help
 ```
 
-## 📄 License
+## License
 
 MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Links
 
-- Built on the [Model Context Protocol](https://github.com/modelcontextprotocol/specification)
-- Inspired by the need for intelligent, context-aware documentation
-- Thanks to the Claude Code and Cursor teams for MCP support
-
-## 🔗 Links
-
-- [npm package](https://www.npmjs.com/package/docbot)
-- [GitHub repository](https://github.com/yourusername/docbot)
+- [npm package](https://www.npmjs.com/package/@afterxleep/doc-bot)
+- [GitHub repository](https://github.com/afterxleep/doc-bot)
 - [Model Context Protocol](https://github.com/modelcontextprotocol/specification)
-- [Claude Code documentation](https://docs.anthropic.com/claude/docs/claude-code)
-
----
-
-**Made with ❤️ for developers who want intelligent documentation at their fingertips.**
