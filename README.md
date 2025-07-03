@@ -16,22 +16,23 @@ doc-bot is an intelligent documentation server that:
 
 ## Installation
 
-### Quick Start (Recommended)
+Add doc-bot to your Claude Code MCP configuration:
 
-Navigate to your project directory and run:
+1. **Add to Claude Code configuration** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+   ```json
+   {
+     "mcpServers": {
+       "docs": {
+         "command": "npx",
+         "args": ["@afterxleep/doc-bot"]
+       }
+     }
+   }
+   ```
 
-```bash
-npx @afterxleep/doc-bot
-```
+2. **Restart Claude Code**
 
-That's it! The server will start and guide you through creating your first documentation.
-
-### Global Installation
-
-```bash
-npm install -g @afterxleep/doc-bot
-doc-bot
-```
+3. **Create your documentation folder** (if it doesn't exist, doc-bot will show you how when you first use it)
 
 ## How to organize your documentation
 
@@ -129,23 +130,9 @@ The `docs.ai/manifest.json` file controls how your documentation works:
    npm start -- --watch
    ```
 
-### Connect to Claude Code
+### Testing your setup
 
-1. **Add to your Claude Code configuration** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-   ```json
-   {
-     "mcpServers": {
-       "docs": {
-         "command": "npx",
-         "args": ["@afterxleep/doc-bot"]
-       }
-     }
-   }
-   ```
-
-2. **Restart Claude Code**
-
-3. **Test it:** Ask Claude something like "What documentation is available?"
+Ask Claude something like "What documentation is available?" to test that doc-bot is working.
 
 ### CLI Options
 

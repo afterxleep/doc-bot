@@ -1,0 +1,28 @@
+{
+  "name": "doc-bot Internal Documentation",
+  "version": "1.0.0",
+  "description": "Internal documentation for doc-bot development",
+  "globalRules": [
+    "architecture.md"
+  ],
+  "contextualRules": {
+    "*.js": ["development.md"],
+    "package.json": ["development.md"],
+    "README.md": ["development.md"]
+  },
+  "inference": {
+    "keywords": {
+      "architecture": ["architecture.md"],
+      "development": ["development.md"],
+      "testing": ["development.md"],
+      "cli": ["development.md"],
+      "mcp": ["architecture.md"],
+      "inference": ["architecture.md"]
+    },
+    "patterns": {
+      "npm": ["development.md"],
+      "test": ["development.md"],
+      "MCP": ["architecture.md"]
+    }
+  }
+}
