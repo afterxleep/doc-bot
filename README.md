@@ -111,13 +111,25 @@ Run tests with: `npm test`
 
 ## Rule Enforcement
 
-Doc-bot ensures your rules are **always considered** through MCP system prompt injection:
+Doc-bot ensures your rules are **always considered** through multiple enforcement mechanisms:
 
-- **Global Rules**: Automatically injected into the agent's system prompt as critical requirements
-- **Contextual Rules**: Applied when working with matching files/patterns  
-- **Automatic Compliance**: Agent must check rules before generating any code
+### 🚨 Mandatory Rule Checking
+- **`check_project_rules` tool**: Must be called before ANY code generation
+- **Aggressive descriptions**: All tools emphasize mandatory rule compliance
+- **Rule reminders**: Every tool response includes compliance warnings
 
-The `docs://system-prompt` resource delivers your global rules directly to the agent's context, making rule violations impossible to ignore.
+### 🔄 Automatic Integration
+- **System prompt injection**: Global rules injected into agent's system context via `docs://system-prompt`
+- **Contextual rules**: Applied when working with matching files/patterns  
+- **Multiple touchpoints**: Rules enforced at every interaction level
+
+### ⚠️ Compliance Warnings
+All tool responses include explicit warnings that rules are:
+- **NON-NEGOTIABLE**: Must be followed without exception
+- **MANDATORY**: Violation will result in rejection
+- **CRITICAL**: Require acknowledgment before proceeding
+
+This multi-layered approach makes rule violations virtually impossible to ignore.
 
 ## The manifest file
 
