@@ -1,13 +1,28 @@
 const path = require('path');
+const { DocumentIndex } = require('./DocumentIndex');
 
 class InferenceEngine {
   constructor(documentationService, manifestLoader = null) {
     this.docService = documentationService;
     this.manifestLoader = manifestLoader;
+    this.documentIndex = new DocumentIndex();
+    this.isIndexBuilt = false;
   }
   
   async initialize() {
-    // Initialize any required data
+    // Build the document index with all available documents
+    await this.buildDocumentIndex();
+  }
+
+  async buildDocumentIndex() {
+    try {
+      const documents = await this.docService.getAllDocuments();
+      await this.documentIndex.buildIndexes(documents);
+      this.isIndexBuilt = true;
+    } catch (error) {
+      console.error('Error building document index:', error);
+      this.isIndexBuilt = false;
+    }
   }
   
   async getRelevantDocumentation(context) {
@@ -48,6 +63,25 @@ class InferenceEngine {
   }
   
   async getInferredDocs(context) {
+    // Ensure the index is built
+    if (!this.isIndexBuilt) {
+      await this.buildDocumentIndex();
+    }
+
+    // Use the smart DocumentIndex for inference
+    if (this.isIndexBuilt) {
+      const results = this.documentIndex.findRelevantDocs(context);
+      return results.map(result => ({
+        ...result.document,
+        inferenceScore: result.score
+      }));
+    }
+
+    // Fallback to legacy method if index building failed
+    return this.getLegacyInferredDocs(context);
+  }
+
+  async getLegacyInferredDocs(context) {
     const docs = [];
     
     // Keyword-based inference
@@ -181,7 +215,14 @@ class InferenceEngine {
     }
     
     if (inferredDocs.length > 0) {
-      confidence += Math.min(inferredDocs.length * 0.05, 0.2);
+      // If using DocumentIndex, factor in inference scores
+      if (this.isIndexBuilt && inferredDocs.some(doc => doc.inferenceScore)) {
+        const avgScore = inferredDocs.reduce((sum, doc) => sum + (doc.inferenceScore || 0), 0) / inferredDocs.length;
+        const normalizedScore = Math.min(avgScore / 20, 1.0); // Normalize to 0-1
+        confidence += normalizedScore * 0.3;
+      } else {
+        confidence += Math.min(inferredDocs.length * 0.05, 0.2);
+      }
     }
     
     // Reduce confidence if no matches found
