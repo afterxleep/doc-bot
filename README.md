@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@afterxleep/doc-bot)](https://www.npmjs.com/package/@afterxleep/doc-bot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A generic MCP (Model Context Protocol) server that provides intelligent documentation access for any project. Works with AI agents like Claude Code, Cursor, and any other MCP-compatible tools.
+A generic MCP (Model Context Protocol) server that provides intelligent documentation access for any project. Works with any MCP-compatible AI tools and IDEs.
 
 ## What is doc-bot?
 
@@ -16,23 +16,25 @@ doc-bot is an intelligent documentation server that:
 
 ## Installation
 
-Add doc-bot to your Claude Code MCP configuration:
+1. **Create your documentation folder** in your project root (see organization section below)
 
-1. **Add to Claude Code configuration** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+2. **Add doc-bot to your MCP-compatible AI tool configuration**:
+
+   **For Claude Code** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
    ```json
    {
      "mcpServers": {
        "docs": {
          "command": "npx",
-         "args": ["@afterxleep/doc-bot"]
+         "args": ["@afterxleep/doc-bot", "--docs", "./doc-bot"]
        }
      }
    }
    ```
 
-2. **Restart Claude Code**
+   **For Cursor or other MCP tools**: Add similar configuration pointing to your documentation folder
 
-3. **Create your documentation folder** (if it doesn't exist, doc-bot will show you how when you first use it)
+3. **Restart your AI tool**
 
 ## How to organize your documentation
 
@@ -53,9 +55,9 @@ your-project/
 └── package.json
 ```
 
-**Note:** You can use a different folder name by passing the `--docs` parameter:
-```bash
-npx @afterxleep/doc-bot --docs ./my-custom-docs
+**Note:** You can use any folder name - just specify it in your MCP configuration:
+```json
+"args": ["@afterxleep/doc-bot", "--docs", "./my-custom-docs"]
 ```
 
 ### Documentation types:
@@ -137,7 +139,7 @@ The `doc-bot/manifest.json` file controls how your documentation works:
 
 ### Testing your setup
 
-Ask Claude something like "What documentation is available?" to test that doc-bot is working.
+Ask your AI assistant something like "What documentation is available?" to test that doc-bot is working.
 
 ### CLI Options
 
@@ -145,9 +147,9 @@ Ask Claude something like "What documentation is available?" to test that doc-bo
 doc-bot [options]
 
 Options:
+  -d, --docs <path>        Path to docs folder (required)
+  -c, --config <path>      Path to manifest file (default: <docs-path>/manifest.json)
   -p, --port <port>        Port to run server on (default: 3000)
-  -d, --docs <path>        Path to docs folder (default: ./doc-bot)
-  -c, --config <path>      Path to manifest file (default: ./doc-bot/manifest.json)
   -v, --verbose           Enable verbose logging
   -w, --watch             Watch for file changes
   -h, --help              Show help

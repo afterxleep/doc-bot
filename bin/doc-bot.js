@@ -8,10 +8,10 @@ const { DocsServer } = require('../src/index.js');
 program
   .name('doc-bot')
   .description('Generic MCP server for intelligent documentation access')
-  .version('1.0.1')
+  .version('1.0.2')
   .option('-p, --port <port>', 'Port to run server on', '3000')
-  .option('-d, --docs <path>', 'Path to docs folder', './doc-bot')
-  .option('-c, --config <path>', 'Path to manifest file', './doc-bot/manifest.json')
+  .requiredOption('-d, --docs <path>', 'Path to docs folder')
+  .option('-c, --config <path>', 'Path to manifest file')
   .option('-v, --verbose', 'Enable verbose logging')
   .option('-w, --watch', 'Watch for file changes')
   .parse();
@@ -20,19 +20,19 @@ const options = program.opts();
 
 async function main() {
   const docsPath = path.resolve(options.docs);
-  const configPath = path.resolve(options.config);
+  const configPath = options.config ? path.resolve(options.config) : path.resolve(options.docs, 'manifest.json');
   
-  // Check if doc-bot folder exists
+  // Check if documentation folder exists
   if (!await fs.pathExists(docsPath)) {
     console.error(`❌ Documentation folder not found: ${docsPath}`);
     console.log('');
-    console.log('📖 To get started, create a doc-bot folder in your project:');
+    console.log('📖 To get started, create your documentation folder:');
     console.log('');
-    console.log('  mkdir doc-bot');
-    console.log('  echo \'{"name": "My Project Documentation", "globalRules": []}\' > doc-bot/manifest.json');
-    console.log('  echo "# Getting Started" > doc-bot/README.md');
+    console.log(`  mkdir ${path.basename(docsPath)}`);
+    console.log(`  echo '{"name": "My Project Documentation", "globalRules": []}' > ${path.basename(docsPath)}/manifest.json`);
+    console.log(`  echo "# Getting Started" > ${path.basename(docsPath)}/README.md`);
     console.log('');
-    console.log('Then run: npx @afterxleep/doc-bot');
+    console.log('Then configure your MCP client to use this folder.');
     process.exit(1);
   }
   
