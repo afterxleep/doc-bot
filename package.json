@@ -1,5 +1,5 @@
 {
-  "name": "doc-bot",
+  "name": "@afterxleep/doc-bot",
   "version": "1.0.0",
   "description": "Generic MCP server for intelligent documentation access in any project",
   "main": "src/index.js",
@@ -29,7 +29,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/afterxleep/doc-bot.git"
+    "url": "git+https://github.com/afterxleep/doc-bot.git"
   },
   "bugs": {
     "url": "https://github.com/afterxleep/doc-bot/issues"
