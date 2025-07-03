@@ -134,6 +134,20 @@ class DocsServer {
       return {
         tools: [
           {
+            name: 'check_project_rules',
+            description: '⚠️ MANDATORY: Must be called before generating ANY code. Returns critical project rules and coding standards that MUST be followed.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                task: {
+                  type: 'string',
+                  description: 'Brief description of the coding task about to be performed'
+                }
+              },
+              required: ['task']
+            }
+          },
+          {
             name: 'search_documentation',
             description: 'Search documentation by query',
             inputSchema: {
@@ -149,7 +163,7 @@ class DocsServer {
           },
           {
             name: 'get_relevant_docs',
-            description: 'Get context-aware documentation suggestions',
+            description: 'Get context-aware documentation suggestions including project rules that must be followed',
             inputSchema: {
               type: 'object',
               properties: {
@@ -168,7 +182,7 @@ class DocsServer {
           },
           {
             name: 'get_global_rules',
-            description: 'Get always-apply documentation rules',
+            description: 'Get critical project rules that must ALWAYS be followed when writing code',
             inputSchema: {
               type: 'object',
               properties: {}
@@ -198,6 +212,16 @@ class DocsServer {
       
       try {
         switch (name) {
+          case 'check_project_rules':
+            const task = args?.task || 'code generation';
+            const mandatoryRules = await this.getMandatoryRules(task);
+            return {
+              content: [{
+                type: 'text',
+                text: mandatoryRules
+              }]
+            };
+            
           case 'search_documentation':
             const query = args?.query;
             if (!query) {
@@ -300,6 +324,9 @@ class DocsServer {
       output += `\n${doc.content}\n\n---\n\n`;
     });
     
+    // Add rule reminder to all search results
+    output += '\n⚠️ REMINDER: Before implementing any code, use the check_project_rules tool to ensure compliance.\n';
+    
     return output;
   }
   
@@ -334,21 +361,28 @@ class DocsServer {
       output += `**Confidence:** ${relevant.confidence.toFixed(2)}\n\n`;
     }
     
+    // Add rule reminder for contextual docs
+    output += '\n⚠️ CRITICAL: These rules are MANDATORY and must be followed before generating code.\n';
+    
     return output;
   }
   
   formatGlobalRules(globalRules) {
     if (!globalRules || globalRules.length === 0) {
-      return 'No global rules defined.';
+      return '❌ WARNING: No global rules defined. Consider adding project rules for code consistency.';
     }
     
-    let output = '# Global Rules (Always Apply)\n\n';
-    output += 'These rules should be applied to all interactions:\n\n';
+    let output = '🚨 MANDATORY Global Rules (ALWAYS Apply) 🚨\n\n';
+    output += '⚠️ CRITICAL: These rules are NON-NEGOTIABLE and must be followed in ALL code generation:\n\n';
     
-    globalRules.forEach(rule => {
-      output += `## ${rule.metadata?.title || rule.fileName}\n`;
+    globalRules.forEach((rule, index) => {
+      output += `## ${index + 1}. ${rule.metadata?.title || rule.fileName}\n`;
       output += `${rule.content}\n\n`;
+      output += '---\n\n';
     });
+    
+    output += '✅ ACKNOWLEDGMENT REQUIRED: You must confirm compliance with these rules before proceeding.\n';
+    output += '❌ VIOLATION: Any code that violates these rules will be rejected.\n';
     
     return output;
   }
@@ -386,6 +420,30 @@ class DocsServer {
     prompt += '⚠️ VIOLATION OF THESE RULES IS NOT ACCEPTABLE. Always check compliance before responding.\n';
     
     return prompt;
+  }
+
+  async getMandatoryRules(task) {
+    const globalRules = await this.docService.getGlobalRules();
+    
+    if (!globalRules || globalRules.length === 0) {
+      return '❌ WARNING: No project rules defined. Proceeding without guidelines.';
+    }
+    
+    let output = '🚨 MANDATORY PROJECT RULES - MUST FOLLOW BEFORE CODING 🚨\n\n';
+    output += `Task: ${task}\n\n`;
+    output += '⚠️ CRITICAL: These rules are NON-NEGOTIABLE and must be followed:\n\n';
+    
+    globalRules.forEach((rule, index) => {
+      output += `## ${index + 1}. ${rule.metadata?.title || rule.fileName}\n`;
+      output += `${rule.content}\n\n`;
+      output += '---\n\n';
+    });
+    
+    output += '✅ CONFIRMATION REQUIRED: You MUST acknowledge these rules before generating code.\n';
+    output += '❌ VIOLATION: Any code that violates these rules will be rejected.\n\n';
+    output += '🔄 Next step: Generate code that strictly follows ALL the above rules.\n';
+    
+    return output;
   }
   
   async start() {
