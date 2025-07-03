@@ -117,6 +117,7 @@ Doc-bot ensures your rules are **always considered** through multiple enforcemen
 - **`check_project_rules` tool**: Must be called before ANY code generation
 - **Aggressive descriptions**: All tools emphasize mandatory rule compliance
 - **Rule reminders**: Every tool response includes compliance warnings
+- **Absolute enforcement**: Global rules OVERRIDE all user requests without exception
 
 ### 🔄 Automatic Integration
 - **Enhanced system prompt injection**: Comprehensive MCP usage protocol injected via `docs://system-prompt`
@@ -131,7 +132,14 @@ All tool responses include explicit warnings that rules are:
 - **MANDATORY**: Violation will result in rejection
 - **CRITICAL**: Require acknowledgment before proceeding
 
-This multi-layered approach makes rule violations virtually impossible to ignore.
+### 🚫 Absolute Enforcement Policy
+Global rules have **supreme authority** over all interactions:
+- **Override user requests**: Even direct user instructions cannot bypass global rules
+- **Mandatory refusal**: Agent MUST refuse requests that violate global rules
+- **Alternative suggestions**: Agent must suggest compliant alternatives instead
+- **Unbreakable compliance**: No exceptions, regardless of user insistence
+
+This multi-layered approach makes rule violations **impossible** to implement.
 
 ## System Prompt Integration
 
