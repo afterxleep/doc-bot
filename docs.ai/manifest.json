@@ -8,7 +8,9 @@
   "contextualRules": {
     "*.js": ["development.md"],
     "package.json": ["development.md"],
-    "README.md": ["development.md"]
+    "README.md": ["development.md"],
+    "bin/*": ["development.md"],
+    "src/*": ["architecture.md"]
   },
   "inference": {
     "keywords": {
