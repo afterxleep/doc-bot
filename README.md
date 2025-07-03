@@ -109,6 +109,16 @@ Run tests with: `npm test`
 
 **👀 See `examples/` folder for complete example files with proper frontmatter and content structure.**
 
+## Rule Enforcement
+
+Doc-bot ensures your rules are **always considered** through MCP system prompt injection:
+
+- **Global Rules**: Automatically injected into the agent's system prompt as critical requirements
+- **Contextual Rules**: Applied when working with matching files/patterns  
+- **Automatic Compliance**: Agent must check rules before generating any code
+
+The `docs://system-prompt` resource delivers your global rules directly to the agent's context, making rule violations impossible to ignore.
+
 ## The manifest file
 
 The `doc-bot/manifest.json` file controls how your documentation works:

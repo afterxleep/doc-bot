@@ -68,6 +68,12 @@ class DocsServer {
             name: 'Documentation Manifest',
             description: 'Project documentation configuration',
             mimeType: 'application/json'
+          },
+          {
+            uri: 'docs://system-prompt',
+            name: 'System Prompt Injection',
+            description: 'Critical rules that must be considered before generating any code',
+            mimeType: 'text/plain'
           }
         ]
       };
@@ -105,6 +111,16 @@ class DocsServer {
               uri,
               mimeType: 'application/json',
               text: JSON.stringify(manifest, null, 2)
+            }]
+          };
+
+        case 'docs://system-prompt':
+          const systemPrompt = await this.generateSystemPrompt();
+          return {
+            contents: [{
+              uri,
+              mimeType: 'text/plain',
+              text: systemPrompt
             }]
           };
           
@@ -350,6 +366,26 @@ class DocsServer {
     });
     
     return output;
+  }
+
+  async generateSystemPrompt() {
+    const globalRules = await this.docService.getGlobalRules();
+    
+    if (!globalRules || globalRules.length === 0) {
+      return 'No global documentation rules defined.';
+    }
+    
+    let prompt = '# CRITICAL: Project Documentation Rules\n\n';
+    prompt += 'IMPORTANT: You MUST follow these rules before generating ANY code:\n\n';
+    
+    globalRules.forEach((rule, index) => {
+      prompt += `## Rule ${index + 1}: ${rule.metadata?.title || rule.fileName}\n`;
+      prompt += `${rule.content}\n\n`;
+    });
+    
+    prompt += '⚠️ VIOLATION OF THESE RULES IS NOT ACCEPTABLE. Always check compliance before responding.\n';
+    
+    return prompt;
   }
   
   async start() {
