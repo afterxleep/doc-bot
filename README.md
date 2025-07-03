@@ -119,7 +119,9 @@ Doc-bot ensures your rules are **always considered** through multiple enforcemen
 - **Rule reminders**: Every tool response includes compliance warnings
 
 ### 🔄 Automatic Integration
-- **System prompt injection**: Global rules injected into agent's system context via `docs://system-prompt`
+- **Enhanced system prompt injection**: Comprehensive MCP usage protocol injected via `docs://system-prompt`
+- **Documentation discovery**: Available topics automatically extracted and presented to agent
+- **Tool usage instructions**: Explicit requirements for when and how to use each MCP tool
 - **Contextual rules**: Applied when working with matching files/patterns  
 - **Multiple touchpoints**: Rules enforced at every interaction level
 
@@ -130,6 +132,27 @@ All tool responses include explicit warnings that rules are:
 - **CRITICAL**: Require acknowledgment before proceeding
 
 This multi-layered approach makes rule violations virtually impossible to ignore.
+
+## System Prompt Integration
+
+The `docs://system-prompt` resource automatically injects comprehensive instructions into the AI agent's system context:
+
+### 📋 MCP Usage Protocol
+- Explicit instructions to **ALWAYS** call `check_project_rules` before code generation
+- **NEVER generate code without checking documentation** requirement
+- Mandatory acknowledgment of rule compliance
+
+### 🏷️ Automatic Topic Discovery
+- Extracts available documentation topics from your project
+- Presents them to the agent for context awareness
+- Includes topics from metadata, filenames, and content analysis
+
+### 🛠️ Tool Usage Requirements
+- Specifies when and how to use each MCP tool
+- Maps tools to specific use cases (file-specific docs, search, etc.)
+- Ensures comprehensive documentation coverage
+
+The system prompt is regenerated on each request to reflect current documentation state.
 
 ## The manifest file
 

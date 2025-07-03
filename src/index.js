@@ -404,22 +404,114 @@ class DocsServer {
 
   async generateSystemPrompt() {
     const globalRules = await this.docService.getGlobalRules();
+    const allDocs = await this.docService.getAllDocuments();
     
-    if (!globalRules || globalRules.length === 0) {
-      return 'No global documentation rules defined.';
+    let prompt = '# CRITICAL: Project Documentation and MCP Server Integration\n\n';
+    
+    // Add MCP server usage instructions
+    prompt += '## 🔧 MANDATORY: MCP Server Usage Protocol\n\n';
+    prompt += 'You have access to a doc-bot MCP server with the following MANDATORY requirements:\n\n';
+    prompt += '### 🚨 BEFORE ANY CODE GENERATION:\n';
+    prompt += '1. **ALWAYS** call `check_project_rules` tool first to get critical project rules\n';
+    prompt += '2. **NEVER generate code without checking project documentation**\n';
+    prompt += '3. **REQUIRED** to acknowledge rule compliance before proceeding\n\n';
+    
+    prompt += '### 📚 Available Documentation Resources:\n';
+    if (allDocs && allDocs.length > 0) {
+      const docTopics = this.extractDocumentationTopics(allDocs);
+      prompt += 'This project has documentation covering:\n';
+      docTopics.forEach(topic => {
+        prompt += `- ${topic}\n`;
+      });
+      prompt += '\n';
     }
     
-    let prompt = '# CRITICAL: Project Documentation Rules\n\n';
-    prompt += 'IMPORTANT: You MUST follow these rules before generating ANY code:\n\n';
+    prompt += '### 🛠️ Required MCP Tool Usage:\n';
+    prompt += '- Use `check_project_rules` before ANY code generation\n';
+    prompt += '- Use `get_relevant_docs` when working with specific files/patterns\n';
+    prompt += '- Use `search_documentation` to find specific guidance\n';
+    prompt += '- Use `get_global_rules` for comprehensive rule review\n\n';
     
-    globalRules.forEach((rule, index) => {
-      prompt += `## Rule ${index + 1}: ${rule.metadata?.title || rule.fileName}\n`;
-      prompt += `${rule.content}\n\n`;
-    });
+    // Add project-specific rules
+    if (globalRules && globalRules.length > 0) {
+      prompt += '## 📋 Project-Specific Rules (NON-NEGOTIABLE)\n\n';
+      prompt += 'IMPORTANT: You MUST follow these rules before generating ANY code:\n\n';
+      
+      globalRules.forEach((rule, index) => {
+        prompt += `### Rule ${index + 1}: ${rule.metadata?.title || rule.fileName}\n`;
+        prompt += `${rule.content}\n\n`;
+      });
+    }
     
-    prompt += '⚠️ VIOLATION OF THESE RULES IS NOT ACCEPTABLE. Always check compliance before responding.\n';
+    prompt += '---\n\n';
+    prompt += '⚠️ **CRITICAL COMPLIANCE REQUIREMENTS:**\n';
+    prompt += '- VIOLATION OF THESE RULES IS NOT ACCEPTABLE\n';
+    prompt += '- ALWAYS use MCP tools before coding\n';
+    prompt += '- ACKNOWLEDGE rule compliance before responding\n';
+    prompt += '- NEVER assume - always check documentation\n';
     
     return prompt;
+  }
+
+  extractDocumentationTopics(docs) {
+    const topics = new Set();
+    
+    docs.forEach(doc => {
+      // Add topics from metadata
+      if (doc.metadata?.topics) {
+        doc.metadata.topics.forEach(topic => topics.add(topic));
+      }
+      
+      // Add topics from keywords
+      if (doc.metadata?.keywords) {
+        doc.metadata.keywords.forEach(keyword => topics.add(keyword));
+      }
+      
+      // Add filename-based topics
+      const fileName = doc.fileName.replace(/\.(md|txt)$/, '');
+      const fileTopics = fileName.split(/[-_]/).map(part => 
+        part.charAt(0).toUpperCase() + part.slice(1)
+      );
+      fileTopics.forEach(topic => topics.add(topic));
+      
+      // Add content-based topics (simple heuristic)
+      if (doc.content) {
+        const contentTopics = this.extractContentTopics(doc.content);
+        contentTopics.forEach(topic => topics.add(topic));
+      }
+    });
+    
+    return Array.from(topics).slice(0, 10); // Limit to top 10 topics
+  }
+
+  extractContentTopics(content) {
+    const topics = new Set();
+    
+    // Extract from headers
+    const headers = content.match(/^#+\s+(.+)$/gm);
+    if (headers) {
+      headers.forEach(header => {
+        const topic = header.replace(/^#+\s+/, '').trim();
+        if (topic.length > 3 && topic.length < 50) {
+          topics.add(topic);
+        }
+      });
+    }
+    
+    // Extract common programming topics
+    const programmingPatterns = [
+      'Swift', 'SwiftUI', 'iOS', 'macOS', 'Architecture', 'Testing',
+      'Performance', 'Security', 'Privacy', 'Patterns', 'Components',
+      'API', 'Database', 'UI', 'UX', 'Analytics', 'Configuration'
+    ];
+    
+    programmingPatterns.forEach(pattern => {
+      if (content.toLowerCase().includes(pattern.toLowerCase())) {
+        topics.add(pattern);
+      }
+    });
+    
+    return Array.from(topics);
   }
 
   async getMandatoryRules(task) {
