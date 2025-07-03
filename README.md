@@ -36,11 +36,11 @@ Add doc-bot to your Claude Code MCP configuration:
 
 ## How to organize your documentation
 
-Create a `docs.ai/` folder in your project root:
+Create a `doc-bot/` folder in your project root:
 
 ```
 your-project/
-├── docs.ai/
+├── doc-bot/
 │   ├── manifest.json          # Configuration file
 │   ├── core/
 │   │   ├── coding-standards.md # Always-apply coding standards
@@ -53,6 +53,11 @@ your-project/
 └── package.json
 ```
 
+**Note:** You can use a different folder name by passing the `--docs` parameter:
+```bash
+npx @afterxleep/doc-bot --docs ./my-custom-docs
+```
+
 ### Documentation types:
 
 - **Core docs** (`core/`): Critical guidelines that should always be considered
@@ -61,7 +66,7 @@ your-project/
 
 ## The manifest file
 
-The `docs.ai/manifest.json` file controls how your documentation works:
+The `doc-bot/manifest.json` file controls how your documentation works:
 
 ```json
 {
@@ -141,8 +146,8 @@ doc-bot [options]
 
 Options:
   -p, --port <port>        Port to run server on (default: 3000)
-  -d, --docs <path>        Path to docs folder (default: ./docs.ai)
-  -c, --config <path>      Path to manifest file (default: ./docs.ai/manifest.json)
+  -d, --docs <path>        Path to docs folder (default: ./doc-bot)
+  -c, --config <path>      Path to manifest file (default: ./doc-bot/manifest.json)
   -v, --verbose           Enable verbose logging
   -w, --watch             Watch for file changes
   -h, --help              Show help
