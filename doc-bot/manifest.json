@@ -7,24 +7,11 @@
   ],
   "contextualRules": {
     "*.js": ["development.md"],
-    "package.json": ["development.md"],
+    "package.json": ["development.md", "publishing.md"],
     "README.md": ["development.md"],
     "bin/*": ["development.md"],
-    "src/*": ["architecture.md"]
-  },
-  "inference": {
-    "keywords": {
-      "architecture": ["architecture.md"],
-      "development": ["development.md"],
-      "testing": ["development.md"],
-      "cli": ["development.md"],
-      "mcp": ["architecture.md"],
-      "inference": ["architecture.md"]
-    },
-    "patterns": {
-      "npm": ["development.md"],
-      "test": ["development.md"],
-      "MCP": ["architecture.md"]
-    }
+    "src/*": ["architecture.md"],
+    "PUBLISH.md": ["publishing.md"],
+    "publishing.md": ["publishing.md"]
   }
 }
