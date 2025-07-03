@@ -1,4 +1,6 @@
 // Quick test script to verify server functionality
+// This script tests the doc-bot server with the example documentation files
+// Run with: node test-server.js
 const path = require('path');
 const { DocsServer } = require('./src/index.js');
 
@@ -6,8 +8,8 @@ async function test() {
   console.log('🧪 Testing doc-bot...');
   
   const server = new DocsServer({
-    docsPath: path.join(__dirname, 'examples/sample-project/docs.ai'),
-    configPath: path.join(__dirname, 'examples/sample-project/docs.ai/manifest.json'),
+    docsPath: path.join(__dirname, 'examples/documentation-files'),
+    configPath: path.join(__dirname, 'examples/documentation-files/manifest.json'),
     verbose: true
   });
   
@@ -29,12 +31,12 @@ async function test() {
     const globalRules = await server.docService.getGlobalRules();
     console.log(`Found ${globalRules.length} global rules`);
     
-    // Test inference
-    console.log('\n🧠 Testing inference engine...');
+    // Test inference (now with automatic indexing)
+    console.log('\n🧠 Testing automatic inference engine...');
     const relevant = await server.inferenceEngine.getRelevantDocumentation({
-      query: 'how to write unit tests',
+      query: 'testing jest react components',
       filePath: 'src/components/UserProfile.test.tsx',
-      codeSnippet: 'describe("UserProfile", () => {'
+      codeSnippet: 'describe("UserProfile", () => { it("should render", () => {}); })'
     });
     console.log(`Inference confidence: ${relevant.confidence.toFixed(2)}`);
     console.log(`Global rules: ${relevant.globalRules.length}`);
