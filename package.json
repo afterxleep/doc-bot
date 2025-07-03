@@ -25,16 +25,16 @@
     "intelligent",
     "inference"
   ],
-  "author": "Your Name",
+  "author": "Daniel Loren <daniel@afterxleep.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/doc-bot.git"
+    "url": "https://github.com/afterxleep/doc-bot.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/doc-bot/issues"
+    "url": "https://github.com/afterxleep/doc-bot/issues"
   },
-  "homepage": "https://github.com/yourusername/doc-bot#readme",
+  "homepage": "https://github.com/afterxleep/doc-bot#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.7.0",
     "commander": "^12.0.0",
