@@ -1,0 +1,22 @@
+# MANDATORY: DOC-BOT INTEGRATION RULE
+# Add this to your agent configuration (CLAUDE.md, .cursorrules, copilot-instructions.md, etc.)
+
+## DOC-BOT PRIORITY PROTOCOL
+
+**DETECTION**: If this project has `doc-bot/` folder OR doc-bot MCP server available:
+
+**MANDATORY ACTIONS**:
+1. Code generation keywords (write, create, implement, build, add, code, function, class, component, method, develop, generate, make) → Call `check_project_rules` FIRST
+2. Project questions (how, what, why, architecture, approach, pattern, feature + "this project"/"this codebase"/"here"/"our") → Call `search_documentation` FIRST  
+3. Documentation queries (documentation, available, capabilities, help, rules, standards) → Call `get_global_rules` FIRST
+4. File-specific work (file, directory, working on, specific, [filename], path) → Call `get_relevant_docs` FIRST
+
+**ENFORCEMENT**:
+- NEVER generate code without checking project rules
+- NEVER answer project questions from general knowledge alone
+- Project documentation overrides standard practices
+- Use doc-bot tools BEFORE providing any project-related response
+
+**FAILURE RECOVERY**: If you catch yourself answering without doc-bot tools, STOP, call appropriate tool, re-answer based on tool response.
+
+Test: Ask "What documentation is available?" - agent should call get_global_rules immediately.
