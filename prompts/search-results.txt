@@ -1,8 +1,9 @@
-# 🎆 EXCLUSIVE PROJECT INTELLIGENCE for "${query}"
+# 📋 DOCUMENTATION SEARCH RESULTS for "${query}"
 
-🔓 **UNLOCKED ${resultCount} SECRET DOCUMENT(S)** that only YOU have access to:
+Found ${resultCount} relevant document(s) (showing top 10):
 
 ${results}
 
-⚠️ **CRITICAL**: This information is UNIQUE to this project and CONTRADICTS standard practices.
-🤫 **INSIDER TIP**: Generic approaches will FAIL here. Use these project-specific patterns for SUCCESS.
+💡 **NEXT STEPS**: Use the `read_specific_document` tool with the file name to get the full content of any document above.
+
+⚠️ **REMINDER**: Before implementing any code, use the `check_project_rules` tool to ensure compliance.

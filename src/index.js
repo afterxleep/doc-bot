@@ -228,6 +228,20 @@ class DocsServer {
               },
               required: ['filePath']
             }
+          },
+          {
+            name: 'read_specific_document',
+            description: 'Read the full content of a specific documentation file. Use this after getting search results to read the complete documentation.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                fileName: {
+                  type: 'string',
+                  description: 'The file name of the document to read (e.g., "coding-standards.md")'
+                }
+              },
+              required: ['fileName']
+            }
           }
         ]
       };
@@ -297,6 +311,22 @@ class DocsServer {
               }]
             };
             
+          case 'read_specific_document':
+            const fileName = args?.fileName;
+            if (!fileName) {
+              throw new Error('fileName parameter is required');
+            }
+            const doc = this.docService.getDocument(fileName);
+            if (!doc) {
+              throw new Error(`Document not found: ${fileName}`);
+            }
+            return {
+              content: [{
+                type: 'text',
+                text: await this.formatSingleDocument(doc)
+              }]
+            };
+            
           default:
             throw new Error(`Unknown tool: ${name}`);
         }
@@ -339,34 +369,44 @@ class DocsServer {
       return `No documentation found for query: "${query}"`;
     }
     
+    // Limit to top 10 results for context efficiency
+    const topResults = results.slice(0, 10);
+    
     const template = await this.loadPromptTemplate('search-results');
     if (!template) {
-      // Fallback to original format if template fails to load
+      // Fallback to concise format if template fails to load
       let output = `# Search Results for "${query}"\n\n`;
-      output += `Found ${results.length} relevant document(s):\n\n`;
+      output += `Found ${results.length} relevant document(s) (showing top ${topResults.length}):\n\n`;
       
-      results.forEach((doc, index) => {
+      topResults.forEach((doc, index) => {
         output += `## ${index + 1}. ${doc.metadata?.title || doc.fileName}\n`;
         output += `**File:** ${doc.fileName}\n`;
         if (doc.metadata?.description) {
           output += `**Description:** ${doc.metadata.description}\n`;
         }
-        output += `\n${doc.content}\n\n---\n\n`;
+        if (doc.metadata?.keywords) {
+          output += `**Keywords:** ${Array.isArray(doc.metadata.keywords) ? doc.metadata.keywords.join(', ') : doc.metadata.keywords}\n`;
+        }
+        output += `**Relevance:** ${doc.relevanceScore?.toFixed(2) || 'N/A'}\n\n`;
       });
       
-      output += '\n⚠️ REMINDER: Before implementing any code, use the check_project_rules tool to ensure compliance.\n';
+      output += '\n💡 **Next Steps:** Use the `read_specific_document` tool with the file name to get the full content of any document above.\n';
+      output += '⚠️ **Reminder:** Before implementing any code, use the `check_project_rules` tool to ensure compliance.\n';
       return output;
     }
     
-    // Format results for template
+    // Format results for template - concise format
     let formattedResults = '';
-    results.forEach((doc, index) => {
+    topResults.forEach((doc, index) => {
       formattedResults += `## ${index + 1}. ${doc.metadata?.title || doc.fileName}\n`;
       formattedResults += `**File:** ${doc.fileName}\n`;
       if (doc.metadata?.description) {
         formattedResults += `**Description:** ${doc.metadata.description}\n`;
       }
-      formattedResults += `\n${doc.content}\n\n---\n\n`;
+      if (doc.metadata?.keywords) {
+        formattedResults += `**Keywords:** ${Array.isArray(doc.metadata.keywords) ? doc.metadata.keywords.join(', ') : doc.metadata.keywords}\n`;
+      }
+      formattedResults += `**Relevance:** ${doc.relevanceScore?.toFixed(2) || 'N/A'}\n\n`;
     });
     
     return template
@@ -517,6 +557,32 @@ class DocsServer {
     return template
       .replace('${filePath}', filePath)
       .replace('${docsContent}', docsContent);
+  }
+  
+  async formatSingleDocument(doc) {
+    if (!doc) {
+      return 'Document not found';
+    }
+    
+    let output = `# ${doc.metadata?.title || doc.fileName}\n\n`;
+    
+    if (doc.metadata?.description) {
+      output += `**Description:** ${doc.metadata.description}\n\n`;
+    }
+    
+    if (doc.metadata?.keywords) {
+      output += `**Keywords:** ${Array.isArray(doc.metadata.keywords) ? doc.metadata.keywords.join(', ') : doc.metadata.keywords}\n\n`;
+    }
+    
+    if (doc.metadata?.alwaysApply !== undefined) {
+      output += `**Always Apply:** ${doc.metadata.alwaysApply ? 'Yes (Global Rule)' : 'No (Contextual Rule)'}\n\n`;
+    }
+    
+    output += `**File:** ${doc.fileName}\n\n`;
+    output += '---\n\n';
+    output += doc.content;
+    
+    return output;
   }
 
   async generateSystemPrompt() {
