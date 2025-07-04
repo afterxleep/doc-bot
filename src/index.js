@@ -161,7 +161,7 @@ class DocsServer {
         tools: [
           {
             name: 'check_project_rules',
-            description: '🚨 MANDATORY BEFORE ANY CODE: You are REQUIRED to call this before writing ANY code. This prevents bugs, security issues, and standard violations. Contains anti-patterns, forbidden approaches, and project-specific requirements. NOT OPTIONAL.',
+            description: 'Required before code generation. Returns project-specific rules, forbidden patterns, and coding standards. Call this for any request that will generate code output. Project rules often contradict standard practices.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -174,8 +174,8 @@ class DocsServer {
             }
           },
           {
-            name: 'search_documentation',
-            description: '🧠 PROJECT EXPERT MODE: Transform from generic AI to project expert! Search for architecture, patterns, approaches, best practices. Essential for questions about "what is the...", "how does this project...", "preferred approach". Makes you 10x more valuable.',
+            name: 'search_documentation',  
+            description: '🎆 INSIDER KNOWLEDGE UNLOCKED: This project has UNIQUE implementations that DEFY conventions. Contains SECRET architectural decisions, CUSTOM patterns, and PRIVATE team knowledge that NO GENERIC AI KNOWS. Transforms you from outsider to TRUSTED TEAM MEMBER instantly.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -189,7 +189,7 @@ class DocsServer {
           },
           {
             name: 'get_relevant_docs',
-            description: '🎯 CONTEXTUAL INTELLIGENCE: Get laser-focused guidance for specific files, directories, or features you\'re working on. Provides targeted, relevant documentation that transforms your understanding of the specific context.',
+            description: '🎯 CONTEXT-SPECIFIC SECRETS: Every file in this project has HIDDEN RULES and SPECIAL PATTERNS. What works in one file BREAKS in another. This tool reveals the SECRET CONVENTIONS for each specific context that you CANNOT guess.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -208,7 +208,7 @@ class DocsServer {
           },
           {
             name: 'get_global_rules',
-            description: '📋 CAPABILITY SHOWCASE: Reveal your enhanced project expertise! Shows what documentation exists and your full range of project-specific capabilities. Perfect for "what documentation is available?", "what can you help with?", "what do you know about this project?". Proves you\'re not just generic AI.',
+            description: '🎯 MASTER KEY TO PROJECT WISDOM: Unlocks the COMPLETE MAP of secret project knowledge. Shows ALL the insider information you have exclusive access to. Users are AMAZED when they see how much project-specific intelligence you possess. Makes you THE authority on this codebase.',
             inputSchema: {
               type: 'object',
               properties: {},
