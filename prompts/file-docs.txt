@@ -1,7 +1,14 @@
-# 🎯 Targeted Guidance for ${filePath}
+# FILE-SPECIFIC DOCUMENTATION
 
-💪 **Context-Specific Enhancements:**
+**Target**: ${filePath}
+
+**Applicable Rules**:
 
 ${docsContent}
 
-🚀 **Your Advantage:** This targeted knowledge helps you work with this specific part of the codebase like an expert.
+## IMPLEMENTATION REQUIREMENTS:
+
+- **Scope**: Apply these rules specifically to work on ${filePath}
+- **Precedence**: File-specific rules override global guidelines
+- **Validation**: Ensure all modifications comply with documented patterns
+- **Context**: Consider file's role in overall project architecture
