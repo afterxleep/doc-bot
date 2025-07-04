@@ -1,8 +1,9 @@
 ---
+alwaysApply: false
 title: "API Development Guide"
 description: "Best practices for building REST APIs"
 keywords: ["api", "rest", "express", "nodejs", "endpoints", "middleware"]
-category: "guides"
+filePatterns: ["**/routes/**", "**/api/**", "**/controllers/**", "server.js", "app.js"]
 ---
 
 # API Development Guide
