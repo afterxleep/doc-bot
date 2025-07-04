@@ -1,0 +1,46 @@
+# MCP TOOL USAGE PROTOCOL
+
+## MANDATORY TOOL USAGE RULES:
+
+### Rule 1: Code Generation
+IF request contains: {write, create, implement, build, code, function, class, component, method, variable}
+THEN: Call `check_project_rules` BEFORE generating any code
+
+### Rule 2: Project Information
+IF request contains: {how, what, why, architecture, approach, pattern, feature, authentication, database, api}
+AND refers to: {this project, this codebase, here, our}
+THEN: Call `search_documentation` with relevant keywords
+
+### Rule 3: Documentation Queries  
+IF request contains: {documentation, available, help with, capabilities}
+THEN: Call `get_global_rules`
+
+### Rule 4: Context-Specific Work
+IF request contains: {file, directory, working on, specific}
+THEN: Call `get_relevant_docs` with file path
+
+## TOOL SELECTION LOGIC:
+
+```
+1. Parse user input for keywords
+2. Check against tool trigger patterns
+3. If match found: Use MCP tool FIRST
+4. If no match: Check if response involves project-specific knowledge
+5. If yes: Use search_documentation
+6. Only provide direct answer if certain no project context needed
+```
+
+## RESPONSE STRUCTURE:
+
+When using MCP tools:
+1. Call appropriate tool
+2. Parse tool response
+3. Provide answer based on tool output
+4. Do not add generic information that contradicts tool output
+
+## IMPORTANT FACTS:
+
+- This project has custom patterns that differ from standard practices
+- Generic code suggestions will likely violate project rules
+- Project documentation contains specific implementation details
+- Always prefer tool responses over general knowledge

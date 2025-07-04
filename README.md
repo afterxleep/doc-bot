@@ -17,6 +17,75 @@ doc-bot is an intelligent documentation server that:
 - 🤖 **Detects** code patterns, frameworks, and keywords automatically
 - 🔄 **Updates** automatically when docs change
 
+## Why MCP Instead of Static Rules?
+
+Traditional AI assistants use static rule files (like Cursor Rules or Copilot's .github/copilot-instructions.md) that have significant limitations. doc-bot's MCP approach offers powerful advantages:
+
+### 🚀 Dynamic Search vs Static Rules
+
+**Static Systems:**
+- All rules must fit in a single file or limited token window
+- AI reads everything, even irrelevant rules
+- No way to search or filter documentation
+- Rules compete for precious context space
+
+**MCP with doc-bot:**
+- AI searches for exactly what it needs
+- Unlimited documentation size - only relevant parts are retrieved
+- Smart keyword and pattern matching
+- Context window used efficiently
+
+### 🧠 Contextual Intelligence
+
+**Static Systems:**
+- Same rules applied everywhere
+- No awareness of what you're working on
+- Can't provide specific help for your current task
+
+**MCP with doc-bot:**
+- AI searches for relevant documentation based on your query
+- Context-aware suggestions from your actual questions
+- Different documentation retrieved for different tasks
+- Intelligent inference from keywords and search terms
+
+### 📈 Scalability Without Limits
+
+**Static Systems:**
+- Limited by token count (typically 2-4k tokens)
+- Adding more rules means removing others
+- Documentation competes with your actual code for context
+
+**MCP with doc-bot:**
+- Store thousands of documentation files
+- No token limit - documentation lives outside the context
+- AI retrieves only what's needed
+- Your context window stays free for actual work
+
+### 🔄 Live Updates
+
+**Static Systems:**
+- Changes require restarting your AI/IDE
+- No way to know if rules are current
+- Manual synchronization across tools
+
+**MCP with doc-bot:**
+- Hot reload on documentation changes
+- Always serves the latest version
+- Single source of truth for all AI tools
+
+### 🎯 Smart Discovery
+
+**Static Systems:**
+- AI doesn't know what documentation exists
+- Users must know to ask specific questions
+- No exploration or discovery capabilities
+
+**MCP with doc-bot:**
+- AI can list all available documentation
+- Discovers relevant docs automatically
+- Suggests documentation based on context
+- Searchable knowledge base
+
 ## Installation
 
 1. **Create your documentation folder** in your project root (see organization section below)
@@ -88,7 +157,6 @@ alwaysApply: false
 title: "Testing Guide"
 description: "How to write and run tests"
 keywords: ["testing", "jest", "tdd", "unit-tests"]
-filePatterns: ["*.js"]
 ---
 
 # Testing Guide
@@ -109,8 +177,7 @@ doc-bot uses frontmatter in your markdown files to automatically detect and cate
 ### Frontmatter Fields:
 
 - **`alwaysApply: true`** - Global rules applied to every AI interaction
-- **`alwaysApply: false`** - Contextual rules applied based on file patterns
-- **`filePatterns: ["*.js"]`** - When to apply contextual rules (only needed for `alwaysApply: false`)
+- **`alwaysApply: false`** - Contextual rules searched and applied based on relevance
 - **`keywords: ["list", "of", "keywords"]`** - For smart indexing and search
 - **`title`** and **`description`** - Standard metadata
 
@@ -119,7 +186,7 @@ doc-bot uses frontmatter in your markdown files to automatically detect and cate
 doc-bot automatically analyzes your documentation to provide smart suggestions:
 
 - **Keyword-based search** from frontmatter metadata
-- **Context-aware suggestions** based on file patterns
+- **Multi-term search** with fuzzy matching capabilities
 - **Smart inference** from documentation content
 - **Automatic indexing** - no manual configuration needed
 
@@ -133,7 +200,6 @@ alwaysApply: false
 title: "React Component Guidelines"
 description: "Best practices for building React components"
 keywords: ["react", "components", "hooks", "jsx"]
-filePatterns: ["*.js"]
 ---
 
 # React Component Guidelines

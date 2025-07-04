@@ -94,12 +94,12 @@ class DocumentationService {
       return [];
     }
     
-    const searchTerm = query.toLowerCase();
+    const searchTerms = this.parseQuery(query);
     const results = [];
     
     for (const doc of this.documents.values()) {
-      const score = this.calculateRelevanceScore(doc, searchTerm);
-      if (score > 0) {
+      const score = this.calculateAdvancedRelevanceScore(doc, searchTerms, query);
+      if (score > 0.1) { // Minimum relevance threshold
         results.push({
           ...doc,
           relevanceScore: score
@@ -111,39 +111,139 @@ class DocumentationService {
     return results.sort((a, b) => b.relevanceScore - a.relevanceScore);
   }
   
-  calculateRelevanceScore(doc, searchTerm) {
-    let score = 0;
+  parseQuery(query) {
+    // Split by spaces and remove common stop words
+    const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'how', 'what', 'where', 'when']);
+    return query.toLowerCase()
+      .split(/\s+/)
+      .map(term => term.replace(/[^a-z0-9]/g, '')) // Remove punctuation
+      .filter(term => term.length > 1 && !stopWords.has(term));
+  }
+  
+  calculateAdvancedRelevanceScore(doc, searchTerms, originalQuery) {
+    let totalScore = 0;
     const content = doc.content.toLowerCase();
     const title = (doc.metadata?.title || doc.fileName).toLowerCase();
+    const description = (doc.metadata?.description || '').toLowerCase();
     
-    // Title matches get highest score
-    if (title.includes(searchTerm)) {
-      score += 10;
+    // Exact phrase match bonus (highest priority)
+    if (content.includes(originalQuery.toLowerCase()) || title.includes(originalQuery.toLowerCase())) {
+      totalScore += 20;
     }
     
-    // Content matches
-    const contentMatches = (content.match(new RegExp(searchTerm, 'g')) || []).length;
-    score += contentMatches * 2;
+    let matchedTerms = 0;
+    const termScores = [];
     
-    // Keyword matches in metadata
-    if (doc.metadata?.keywords) {
-      const keywords = Array.isArray(doc.metadata.keywords) 
-        ? doc.metadata.keywords 
-        : [doc.metadata.keywords];
+    for (const term of searchTerms) {
+      let termScore = 0;
       
-      for (const keyword of keywords) {
-        if (keyword.toLowerCase().includes(searchTerm)) {
-          score += 5;
+      // Title matches (highest weight)
+      if (title.includes(term)) {
+        termScore += 15;
+        matchedTerms++;
+      }
+      
+      // Description matches (high weight)
+      if (description.includes(term)) {
+        termScore += 10;
+        matchedTerms++;
+      }
+      
+      // Keyword exact matches (very high weight)
+      if (doc.metadata?.keywords) {
+        const keywords = Array.isArray(doc.metadata.keywords) 
+          ? doc.metadata.keywords 
+          : [doc.metadata.keywords];
+        
+        for (const keyword of keywords) {
+          const keywordLower = keyword.toLowerCase();
+          if (keywordLower === term) {
+            termScore += 12; // Exact keyword match
+            matchedTerms++;
+          } else if (keywordLower.includes(term) || term.includes(keywordLower)) {
+            termScore += 8; // Partial keyword match
+            matchedTerms++;
+          }
         }
+      }
+      
+      // Content matches with frequency weighting
+      const contentMatches = (content.match(new RegExp(this.escapeRegExp(term), 'g')) || []).length;
+      if (contentMatches > 0) {
+        termScore += Math.min(contentMatches * 2, 10); // Cap at 10 to prevent spam
+        matchedTerms++;
+      }
+      
+      // Fuzzy matching for typos (lower weight)
+      if (termScore === 0) {
+        const fuzzyScore = this.calculateFuzzyMatch(term, [title, description, content.substring(0, 500)].join(' '));
+        termScore += fuzzyScore;
+        if (fuzzyScore > 0) matchedTerms++;
+      }
+      
+      termScores.push(termScore);
+    }
+    
+    // Calculate final score
+    totalScore += termScores.reduce((sum, score) => sum + score, 0);
+    
+    // Bonus for matching multiple terms
+    const termCoverage = matchedTerms / searchTerms.length;
+    totalScore *= (0.5 + termCoverage); // 50% base + coverage bonus
+    
+    // Bonus for shorter documents (more focused)
+    const docLength = content.length;
+    if (docLength < 2000) {
+      totalScore *= 1.1;
+    }
+    
+    // Normalize score (0-100 scale)
+    return Math.min(totalScore / 10, 100);
+  }
+  
+  escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+  
+  calculateFuzzyMatch(term, text) {
+    // Simple fuzzy matching - check for partial matches
+    const words = text.toLowerCase().split(/\s+/);
+    let maxScore = 0;
+    
+    for (const word of words) {
+      if (word.includes(term) || term.includes(word)) {
+        maxScore = Math.max(maxScore, 2);
+      } else if (this.levenshteinDistance(term, word) <= 2 && Math.min(term.length, word.length) > 3) {
+        maxScore = Math.max(maxScore, 1);
       }
     }
     
-    // Category matches
-    if (doc.metadata?.category?.toLowerCase().includes(searchTerm)) {
-      score += 3;
+    return maxScore;
+  }
+  
+  levenshteinDistance(str1, str2) {
+    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+    
+    for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+    for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+    
+    for (let j = 1; j <= str2.length; j++) {
+      for (let i = 1; i <= str1.length; i++) {
+        const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[j][i] = Math.min(
+          matrix[j][i - 1] + 1,
+          matrix[j - 1][i] + 1,
+          matrix[j - 1][i - 1] + indicator
+        );
+      }
     }
     
-    return score;
+    return matrix[str2.length][str1.length];
+  }
+  
+  calculateRelevanceScore(doc, searchTerm) {
+    // Legacy method - keep for backward compatibility
+    return this.calculateAdvancedRelevanceScore(doc, [searchTerm], searchTerm);
   }
   
   async getGlobalRules() {
