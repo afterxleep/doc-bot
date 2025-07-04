@@ -4,11 +4,12 @@ const { program } = require('commander');
 const path = require('path');
 const fs = require('fs-extra');
 const { DocsServer } = require('../src/index.js');
+const packageJson = require('../package.json');
 
 program
   .name('doc-bot')
   .description('Generic MCP server for intelligent documentation access')
-  .version('1.5.0')
+  .version(packageJson.version)
   .option('-d, --docs <path>', 'Path to docs folder', 'doc-bot')
   .option('-c, --config <path>', 'Path to manifest file')
   .option('-v, --verbose', 'Enable verbose logging')
