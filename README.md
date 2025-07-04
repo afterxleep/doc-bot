@@ -139,9 +139,45 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
 
    **Platform-Specific Instructions**:
    - **Claude Code**: Add rule to your global `CLAUDE.md`
-   - **Cursor**: Add rule to your `.cursorrules` file  
+   - **Cursor**: Create a `.mdc` file in `.cursor/rules/` directory with `alwaysApply: true`
    - **GitHub Copilot**: Add rule to `.github/copilot-instructions.md`
    - **Continue.dev**: Add rule to system prompt configuration
+
+   **Example for Cursor** (`.cursor/rules/doc-bot-enforcement.mdc`):
+   ```markdown
+   ---
+   description: Enforce doc-bot MCP tool usage for all project queries
+   globs: 
+   alwaysApply: true
+   ---
+
+   # DOC-BOT ENFORCEMENT PROTOCOL
+
+   When this project has BOTH doc-bot folder AND MCP server available:
+
+   **MANDATORY ACTIONS**:
+   - Code generation keywords → Call `check_project_rules` FIRST
+   - Project questions → Call `search_documentation` FIRST  
+   - Documentation queries → Call `get_global_rules` FIRST
+
+   **ABSOLUTE REQUIREMENTS**:
+   - NEVER generate code without checking project rules
+   - NEVER answer project questions from general knowledge alone
+   - Project documentation overrides standard practices
+   ```
+
+   **Example for GitHub Copilot** (`.github/copilot-instructions.md`):
+   ```markdown
+   # Project Documentation Protocol
+
+   This project uses doc-bot MCP server for documentation. Follow these rules:
+
+   - Before generating any code, check project rules using available documentation tools
+   - For project-specific questions about architecture, patterns, or features, search project documentation first
+   - Never assume standard practices - this project may have custom implementations
+   - When working with specific files, search for relevant documentation using file names and context
+   - Project documentation always takes precedence over general programming knowledge
+   ```
 
    **🎯 Why This Is Critical**: Without explicit behavioral constraints, agents will default to general knowledge instead of your project-specific documentation. This protocol uses expert prompt engineering to ensure 99%+ tool usage reliability.
 

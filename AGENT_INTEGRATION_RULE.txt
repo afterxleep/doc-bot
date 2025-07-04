@@ -7,10 +7,8 @@
 
 ```
 IF (
-  filesystem_contains("doc-bot/") OR 
-  filesystem_contains(".doc-bot/") OR 
-  mcp_server_available("doc-bot") OR 
-  mcp_server_available("@afterxleep/doc-bot")
+  (filesystem_contains("doc-bot/") OR filesystem_contains(".doc-bot/")) AND
+  (mcp_server_available("doc-bot") OR mcp_server_available("@afterxleep/doc-bot"))
 ) THEN {
   ACTIVATE: doc_bot_enforcement_protocol()
   SET: project_documentation_authority = TRUE
@@ -47,15 +45,7 @@ Blocking: TRUE
 Timeout: 30s
 ```
 
-**CLASS D: CONTEXT_SPECIFIC**
-```
-Trigger Pattern: /\b(file|directory|working on|specific|path)\b/i OR contains_file_reference()
-Required Action: MANDATORY_CALL(get_relevant_docs, extract_file_context())
-Blocking: TRUE
-Timeout: 30s
-```
-
-**CLASS E: DOCUMENT_ACCESS**
+**CLASS D: DOCUMENT_ACCESS**
 ```
 Trigger Pattern: /\b(read|show|get content|full document|complete|entire)\b/i
 Previous Context: search_results_present()
@@ -63,6 +53,8 @@ Required Action: MANDATORY_CALL(read_specific_document, extract_filename())
 Blocking: FALSE
 Timeout: 15s
 ```
+
+**Note**: For file-specific queries like "working on src/utils.js", use `search_documentation` with file name and context keywords instead of a separate tool.
 
 ## PHASE 3: EXECUTION ENFORCEMENT
 
@@ -132,9 +124,9 @@ IF response_generated() WITHOUT tool_execution():
 
 **Test Inputs** (Agent must call tools immediately):
 - "What documentation is available?" → get_global_rules()
-- "How do I implement auth?" → search_documentation("authentication")
+- "How do I implement auth?" → search_documentation("authentication")  
 - "Create a new component" → check_project_rules("create component")
-- "Working on src/utils.js" → get_relevant_docs("src/utils.js")
+- "Working on src/utils.js" → search_documentation("src/utils.js utils")
 
 **Expected Behavior**: Tool execution within 2 seconds, no general knowledge responses.
 
