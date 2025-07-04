@@ -319,7 +319,7 @@ class DocsServer {
     
     watcher.on('change', async (filePath) => {
       if (this.options.verbose) {
-        console.log(`📄 Documentation updated: ${path.relative(process.cwd(), filePath)}`);
+        console.error(`📄 Documentation updated: ${path.relative(process.cwd(), filePath)}`);
       }
       
       // Reload manifest if config changed
@@ -757,11 +757,11 @@ class DocsServer {
     await this.server.connect(transport);
     
     if (this.options.verbose) {
-      console.log('🔧 Server initialized with MCP transport');
+      console.error('🔧 Server initialized with MCP transport');
       if (this.manifestLoader) {
-        console.log('📄 Using manifest.json for additional configuration');
+        console.error('📄 Using manifest.json for additional configuration');
       } else {
-        console.log('🚀 Using frontmatter-based configuration (no manifest needed)');
+        console.error('🚀 Using frontmatter-based configuration (no manifest needed)');
       }
     }
   }

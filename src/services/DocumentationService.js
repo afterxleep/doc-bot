@@ -24,7 +24,7 @@ class DocumentationService {
   async loadDocuments() {
     try {
       if (!await fs.pathExists(this.docsPath)) {
-        console.warn(`Documentation path does not exist: ${this.docsPath}`);
+        // Silently return if path doesn't exist - this is normal for MCP servers
         return;
       }
       
@@ -75,7 +75,7 @@ class DocumentationService {
           content: match[2]
         };
       } catch (error) {
-        console.warn('Failed to parse frontmatter:', error);
+        // Silently skip files with invalid frontmatter
       }
     }
     

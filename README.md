@@ -95,7 +95,7 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
    ```json
    {
      "mcpServers": {
-       "docbot": {
+       "doc-bot": {
          "command": "npx",
          "args": ["@afterxleep/doc-bot"]
        }
@@ -103,13 +103,25 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
    }
    ```
 
-   **Note:** By default, doc-bot looks for a `.doc-bot` folder. To use a different folder:
+   **Custom docs folder:**
    ```json
    {
      "mcpServers": {
-       "docbot": {
+       "doc-bot": {
          "command": "npx",
          "args": ["@afterxleep/doc-bot", "--docs", "./my-custom-docs"]
+       }
+     }
+   }
+   ```
+
+   **With verbose logging (for debugging):**
+   ```json
+   {
+     "mcpServers": {
+       "doc-bot": {
+         "command": "npx",
+         "args": ["@afterxleep/doc-bot", "--verbose"]
        }
      }
    }
@@ -310,7 +322,7 @@ doc-bot --config ./manifest.json
      "mcpServers": {
        "doc-bot": {
          "command": "node",
-         "args": ["/path/to/doc-bot/bin/doc-bot.js", "--watch"]
+         "args": ["/path/to/doc-bot/bin/doc-bot.js", "--verbose", "--watch"]
        }
      }
    }

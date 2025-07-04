@@ -41,7 +41,9 @@ async function main() {
   
   // Manifest is now optional - only create if explicitly requested
   if (options.config && !await fs.pathExists(configPath)) {
-    console.log('📝 Creating default manifest.json...');
+    if (options.verbose) {
+      console.error('📝 Creating default manifest.json...');
+    }
     const defaultManifest = {
       name: 'Project Documentation',
       version: '1.0.0',
@@ -58,33 +60,25 @@ async function main() {
     watch: options.watch
   });
   
-  console.log('🚀 Starting doc-bot...');
-  console.log(`📁 Documentation: ${docsPath}`);
-  if (await fs.pathExists(configPath)) {
-    console.log(`⚙️  Configuration: ${configPath}`);
-  } else {
-    console.log(`⚙️  Configuration: Auto-generated from frontmatter`);
-  }
-  
-  if (options.watch) {
-    console.log('👀 Watching for file changes...');
+  if (options.verbose) {
+    console.error('🚀 Starting doc-bot...');
+    console.error(`📁 Documentation: ${docsPath}`);
+    if (await fs.pathExists(configPath)) {
+      console.error(`⚙️  Configuration: ${configPath}`);
+    } else {
+      console.error(`⚙️  Configuration: Auto-generated from frontmatter`);
+    }
+    
+    if (options.watch) {
+      console.error('👀 Watching for file changes...');
+    }
   }
   
   await server.start();
-  console.log('✅ Server started successfully!');
-  console.log('');
-  console.log('📋 Add this to your Claude Code configuration:');
-  console.log('');
-  console.log('{');
-  console.log('  "mcpServers": {');
-  console.log('    "docs": {');
-  console.log(`      "command": "npx",`);
-  console.log(`      "args": ["doc-bot", "--docs", "${docsPath}"]`);
-  console.log('    }');
-  console.log('  }');
-  console.log('}');
-  console.log('');
-  console.log('🔄 Then restart Claude Code');
+  
+  if (options.verbose) {
+    console.error('✅ Server started successfully!');
+  }
 }
 
 main().catch(error => {
