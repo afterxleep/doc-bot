@@ -133,9 +133,7 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
 
 4. **Ensure Agent Compliance** (Essential): Add the expert-engineered integration protocol to guarantee your agent uses doc-bot:
 
-   **⚡ Quick Setup**: Copy the production-ready rule from [`AGENT_INTEGRATION_RULE.txt`](./AGENT_INTEGRATION_RULE.txt) into your agent configuration.
-
-   **📚 Complete Protocol**: For mission-critical environments, implement the full [`DOC_BOT_AGENT_RULE.md`](./DOC_BOT_AGENT_RULE.md) protocol with multi-phase validation and constraint enforcement.
+   **⚡ Setup**: Copy the rule from [`AGENT_INTEGRATION_RULE.txt`](./AGENT_INTEGRATION_RULE.txt) into your agent configuration.
 
    **Platform-Specific Instructions**:
    - **Claude Code**: Add rule to your global `CLAUDE.md`
@@ -179,7 +177,7 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
    - Project documentation always takes precedence over general programming knowledge
    ```
 
-   **🎯 Why This Is Critical**: Without explicit behavioral constraints, agents will default to general knowledge instead of your project-specific documentation. This protocol uses expert prompt engineering to ensure 99%+ tool usage reliability.
+   **🎯 Why This Matters**: Without this rule, agents will default to general knowledge instead of your project documentation.
 
 ## How to organize your documentation
 

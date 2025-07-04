@@ -60,7 +60,6 @@
     "prompts/",
     "README.md",
     "LICENSE",
-    "DOC_BOT_AGENT_RULE.md",
     "AGENT_INTEGRATION_RULE.txt"
   ]
 }
