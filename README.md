@@ -99,7 +99,7 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
      "mcpServers": {
        "doc-bot": {
          "command": "npx",
-         "args": ["@afterxleep/doc-bot"]
+         "args": ["@afterxleep/doc-bot@latest"]
        }
      }
    }
@@ -111,7 +111,7 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
      "mcpServers": {
        "doc-bot": {
          "command": "npx",
-         "args": ["@afterxleep/doc-bot", "--docs", "./my-custom-docs"]
+         "args": ["@afterxleep/doc-bot@latest", "--docs", "./my-custom-docs"]
        }
      }
    }
@@ -123,7 +123,7 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
      "mcpServers": {
        "doc-bot": {
          "command": "npx",
-         "args": ["@afterxleep/doc-bot", "--verbose"]
+         "args": ["@afterxleep/doc-bot@latest", "--verbose"]
        }
      }
    }
