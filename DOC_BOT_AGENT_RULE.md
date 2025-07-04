@@ -18,16 +18,19 @@ This protocol ensures 100% reliability in agent-to-MCP tool integration through 
 ### Detection Algorithm:
 ```pseudocode
 FUNCTION detect_doc_bot_environment():
-  environment_indicators = [
+  folder_exists = [
     filesystem.exists("doc-bot/"),
-    filesystem.exists(".doc-bot/"),
+    filesystem.exists(".doc-bot/")
+  ]
+  
+  mcp_available = [
     mcp_server.is_available("doc-bot"),
     mcp_server.is_available("@afterxleep/doc-bot"),
     package_json.contains("@afterxleep/doc-bot"),
     config.mcp_servers.contains("doc-bot")
   ]
   
-  IF any(environment_indicators):
+  IF any(folder_exists) AND any(mcp_available):
     RETURN TRUE
   ELSE:
     RETURN FALSE
@@ -100,21 +103,7 @@ behavior:
   caching: enabled (5min TTL)
 ```
 
-#### **CLASS D: CONTEXT_SPECIFIC (Priority: HIGH)**
-```yaml
-patterns:
-  primary: /\b(file|directory|working on|specific|path|folder|src\/|lib\/|test\/|config\/)\b/i
-  file_references: /[a-zA-Z0-9_-]+\.[a-zA-Z0-9]+/
-  path_references: /[a-zA-Z0-9_-]+\/[a-zA-Z0-9_\/-]+/
-
-behavior:
-  tool_call: get_relevant_docs
-  parameters: extract_file_context(user_input)
-  blocking: TRUE
-  timeout: 20000ms
-```
-
-#### **CLASS E: DOCUMENT_ACCESS (Priority: LOW)**
+#### **CLASS D: DOCUMENT_ACCESS (Priority: LOW)**
 ```yaml
 patterns:
   primary: /\b(read|show|get content|full document|complete|entire|details of|contents of)\b/i
