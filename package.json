@@ -59,6 +59,7 @@
     "bin/",
     "prompts/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "AGENT_INTEGRATION_RULE.txt"
   ]
 }

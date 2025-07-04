@@ -13,7 +13,6 @@
 | `check_project_rules` | Code generation keywords | ANY code output | Execute before code generation |
 | `search_documentation` | Project-specific questions | Feature/architecture queries | Execute for project context |
 | `get_global_rules` | Documentation discovery | Rule/capability queries | Execute for overview |
-| `get_relevant_docs` | File-specific context | Targeted work | Execute for context |
 | `read_specific_document` | Document access | Full content needs | Execute after search results |
 
 ## KEYWORD MAPPING:
@@ -32,9 +31,9 @@
 **Keywords**: documentation, available, capabilities, help with, what exists, rules, standards
 **Action**: Execute `get_global_rules` for comprehensive overview
 
-### Context-Specific Triggers:
-**Keywords**: working on, this file, specific file, directory, component path, file patterns
-**Action**: Execute `get_relevant_docs` with file context
+### File Context Triggers:
+**Keywords**: working on, this file, specific file, directory, component path
+**Action**: Execute `search_documentation` with file name and context keywords
 
 ## EXECUTION ALGORITHM:
 
@@ -71,9 +70,9 @@ Action: get_global_rules()
 Reason: Documentation discovery request
 
 Input: "I'm working on src/components/Header.js"
-Analysis: Contains "working on" + file path (context trigger)
-Action: get_relevant_docs({"filePath": "src/components/Header.js"})
-Reason: File-specific context requirement
+Analysis: Contains "working on" + file path (file context trigger)
+Action: search_documentation("src/components/Header.js component")
+Reason: File-specific context search requirement
 ```
 
 ## COMPLIANCE PROTOCOL:

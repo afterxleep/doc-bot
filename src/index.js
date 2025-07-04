@@ -188,25 +188,6 @@ class DocsServer {
             }
           },
           {
-            name: 'get_relevant_docs',
-            description: '🎯 CONTEXT-SPECIFIC SECRETS: Every file in this project has HIDDEN RULES and SPECIAL PATTERNS. What works in one file BREAKS in another. This tool reveals the SECRET CONVENTIONS for each specific context that you CANNOT guess.',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                context: {
-                  type: 'object',
-                  description: 'Context for getting relevant documentation',
-                  properties: {
-                    query: { type: 'string', description: 'What you\'re trying to accomplish' },
-                    filePath: { type: 'string', description: 'File path you\'re working on' },
-                    codeSnippet: { type: 'string', description: 'Code snippet for context' }
-                  }
-                }
-              },
-              required: ['context']
-            }
-          },
-          {
             name: 'get_global_rules',
             description: '🎯 MASTER KEY TO PROJECT WISDOM: Unlocks the COMPLETE MAP of secret project knowledge. Shows ALL the insider information you have exclusive access to. Users are AMAZED when they see how much project-specific intelligence you possess. Makes you THE authority on this codebase.',
             inputSchema: {
@@ -273,19 +254,6 @@ class DocsServer {
               content: [{
                 type: 'text',
                 text: await this.formatSearchResults(results, query)
-              }]
-            };
-            
-          case 'get_relevant_docs':
-            const context = args?.context;
-            if (!context) {
-              throw new Error('Context parameter is required');
-            }
-            const relevant = await this.inferenceEngine.getRelevantDocumentation(context);
-            return {
-              content: [{
-                type: 'text',
-                text: await this.formatRelevantDocs(relevant)
               }]
             };
             
@@ -415,83 +383,6 @@ class DocsServer {
       .replace('${results}', formattedResults);
   }
   
-  async formatRelevantDocs(relevant) {
-    const template = await this.loadPromptTemplate('relevant-docs');
-    if (!template) {
-      // Fallback to original format
-      let output = '# Relevant Documentation\n\n';
-      
-      if (relevant.globalRules?.length > 0) {
-        output += '## 🌟 Global Rules (Always Apply)\n\n';
-        relevant.globalRules.forEach(rule => {
-          output += `### ${rule.metadata?.title || rule.fileName}\n`;
-          output += `${rule.content}\n\n`;
-        });
-      }
-      
-      if (relevant.contextualDocs?.length > 0) {
-        output += '## 📂 Contextual Documentation\n\n';
-        relevant.contextualDocs.forEach(doc => {
-          output += `### ${doc.metadata?.title || doc.fileName}\n`;
-          output += `${doc.content}\n\n`;
-        });
-      }
-      
-      if (relevant.inferredDocs?.length > 0) {
-        output += '## 🧠 Inferred Documentation\n\n';
-        relevant.inferredDocs.forEach(doc => {
-          output += `### ${doc.metadata?.title || doc.fileName}\n`;
-          output += `${doc.content}\n\n`;
-        });
-      }
-      
-      if (relevant.confidence !== undefined) {
-        output += `**Confidence:** ${relevant.confidence.toFixed(2)}\n\n`;
-      }
-      
-      output += '\n⚠️ CRITICAL: These rules are MANDATORY and must be followed before generating code.\n';
-      return output;
-    }
-    
-    // Build sections for template
-    let globalRulesSection = '';
-    if (relevant.globalRules?.length > 0) {
-      globalRulesSection = '## 🌟 Global Rules (Always Apply)\n\n';
-      relevant.globalRules.forEach(rule => {
-        globalRulesSection += `### ${rule.metadata?.title || rule.fileName}\n`;
-        globalRulesSection += `${rule.content}\n\n`;
-      });
-    }
-    
-    let contextualDocsSection = '';
-    if (relevant.contextualDocs?.length > 0) {
-      contextualDocsSection = '## 📂 Contextual Documentation\n\n';
-      relevant.contextualDocs.forEach(doc => {
-        contextualDocsSection += `### ${doc.metadata?.title || doc.fileName}\n`;
-        contextualDocsSection += `${doc.content}\n\n`;
-      });
-    }
-    
-    let inferredDocsSection = '';
-    if (relevant.inferredDocs?.length > 0) {
-      inferredDocsSection = '## 🧠 Inferred Documentation\n\n';
-      relevant.inferredDocs.forEach(doc => {
-        inferredDocsSection += `### ${doc.metadata?.title || doc.fileName}\n`;
-        inferredDocsSection += `${doc.content}\n\n`;
-      });
-    }
-    
-    let confidenceSection = '';
-    if (relevant.confidence !== undefined) {
-      confidenceSection = `**Confidence:** ${relevant.confidence.toFixed(2)}\n\n`;
-    }
-    
-    return template
-      .replace('${globalRulesSection}', globalRulesSection)
-      .replace('${contextualDocsSection}', contextualDocsSection)
-      .replace('${inferredDocsSection}', inferredDocsSection)
-      .replace('${confidenceSection}', confidenceSection);
-  }
   
   async formatGlobalRules(globalRules) {
     if (!globalRules || globalRules.length === 0) {
