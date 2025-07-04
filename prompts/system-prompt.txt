@@ -14,6 +14,8 @@
 | `search_documentation` | Project-specific questions | Feature/architecture queries | Execute for project context |
 | `get_global_rules` | Documentation discovery | Rule/capability queries | Execute for overview |
 | `read_specific_document` | Document access | Full content needs | Execute after search results |
+| `create_or_update_rule` | Rule creation/learning | New knowledge capture | Execute to document patterns/rules |
+| `refresh_documentation` | Manual refresh | File detection issues | Execute after manual file additions |
 
 ## KEYWORD MAPPING:
 
@@ -34,6 +36,16 @@
 ### File Context Triggers:
 **Keywords**: working on, this file, specific file, directory, component path
 **Action**: Execute `search_documentation` with file name and context keywords
+
+### Documentation Creation Triggers:
+**Keywords**: document, create rule, add rule, save knowledge, capture pattern, remember, note this, new rule
+**Context Indicators**: "we should document", "this should be a rule", "add to documentation", "create guideline"
+**Action**: Execute `create_or_update_rule` to capture new knowledge
+
+### Documentation Refresh Triggers:
+**Keywords**: refresh, reload, update index, detect files, manual files, can't find, document not found
+**Context Indicators**: "added files manually", "files not showing up", "refresh documentation", "reload docs"
+**Action**: Execute `refresh_documentation` to reindex files
 
 ## EXECUTION ALGORITHM:
 
@@ -73,6 +85,16 @@ Input: "I'm working on src/components/Header.js"
 Analysis: Contains "working on" + file path (file context trigger)
 Action: search_documentation("src/components/Header.js component")
 Reason: File-specific context search requirement
+
+Input: "We should document this pattern - always use TypeScript interfaces for API responses"
+Analysis: Contains "should document" + "pattern" (documentation creation trigger)
+Action: create_or_update_rule({fileName: "api-patterns.md", title: "API Response Patterns", content: "Always use TypeScript interfaces for API responses", alwaysApply: true})
+Reason: New knowledge capture requirement
+
+Input: "I added files manually but they're not showing up in search"
+Analysis: Contains "added files manually" + "not showing up" (refresh trigger)
+Action: refresh_documentation()
+Reason: Manual file detection issue
 ```
 
 ## COMPLIANCE PROTOCOL:

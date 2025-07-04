@@ -134,6 +134,7 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
 4. **Ensure Agent Compliance** (Essential): Add the expert-engineered integration protocol to guarantee your agent uses doc-bot:
 
    **⚡ Setup**: Copy the rule from [`AGENT_INTEGRATION_RULE.txt`](./AGENT_INTEGRATION_RULE.txt) into your agent configuration.
+   **🎯 Why This Matters**: Without this rule, agents may default to general knowledge instead of your doc-bot documentation.
 
    **Platform-Specific Instructions**:
    - **Claude Code**: Add rule to your global `CLAUDE.md`
@@ -141,7 +142,7 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
    - **GitHub Copilot**: Add rule to `.github/copilot-instructions.md`
    - **Continue.dev**: Add rule to system prompt configuration
 
-   **🎯 Why This Matters**: Without this rule, agents may default to general knowledge instead of your doc-bot documentation.
+   
 
 ## How to organize your documentation
 

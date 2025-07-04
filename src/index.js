@@ -223,6 +223,50 @@ class DocsServer {
               },
               required: ['fileName']
             }
+          },
+          {
+            name: 'create_or_update_rule',
+            description: 'Create a new documentation rule or update an existing one. Use this to add new project knowledge or update existing documentation based on learnings.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                fileName: {
+                  type: 'string',
+                  description: 'File name for the rule (e.g., "react-patterns.md"). If file exists, it will be updated.'
+                },
+                title: {
+                  type: 'string',
+                  description: 'Title of the documentation rule'
+                },
+                description: {
+                  type: 'string',
+                  description: 'Brief description of what this rule covers'
+                },
+                keywords: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Keywords for search indexing (e.g., ["react", "patterns", "components"])'
+                },
+                alwaysApply: {
+                  type: 'boolean',
+                  description: 'Whether this rule should always apply (true for global rules, false for contextual)'
+                },
+                content: {
+                  type: 'string',
+                  description: 'The markdown content of the rule'
+                }
+              },
+              required: ['fileName', 'title', 'content', 'alwaysApply']
+            }
+          },
+          {
+            name: 'refresh_documentation',
+            description: 'Manually refresh the documentation index to detect new or changed files. Use this after manually adding files to the docs folder.',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+              additionalProperties: false
+            }
           }
         ]
       };
@@ -292,6 +336,40 @@ class DocsServer {
               content: [{
                 type: 'text',
                 text: await this.formatSingleDocument(doc)
+              }]
+            };
+
+          case 'create_or_update_rule':
+            const { fileName: ruleFileName, title, description, keywords, alwaysApply, content } = args || {};
+            
+            if (!ruleFileName || !title || !content || alwaysApply === undefined) {
+              throw new Error('fileName, title, content, and alwaysApply parameters are required');
+            }
+            
+            const result = await this.createOrUpdateRule({
+              fileName: ruleFileName,
+              title,
+              description,
+              keywords,
+              alwaysApply,
+              content
+            });
+            
+            return {
+              content: [{
+                type: 'text',
+                text: result
+              }]
+            };
+
+          case 'refresh_documentation':
+            await this.docService.reload();
+            const docCount = this.docService.documents.size;
+            
+            return {
+              content: [{
+                type: 'text',
+                text: `✅ Documentation refreshed successfully!\n\n**Files indexed:** ${docCount}\n**Last updated:** ${new Date().toLocaleString()}\n\n💡 All manually added files should now be available for search and reading.`
               }]
             };
             
@@ -474,6 +552,55 @@ class DocsServer {
     output += doc.content;
     
     return output;
+  }
+
+  async createOrUpdateRule({ fileName, title, description, keywords, alwaysApply, content }) {
+    const fs = require('fs-extra');
+    const path = require('path');
+    
+    try {
+      // Ensure the docs directory exists
+      await fs.ensureDir(this.options.docsPath);
+      
+      // Create the full file path
+      const filePath = path.join(this.options.docsPath, fileName);
+      
+      // Build frontmatter
+      let frontmatter = '---\n';
+      frontmatter += `alwaysApply: ${alwaysApply}\n`;
+      frontmatter += `title: "${title}"\n`;
+      if (description) {
+        frontmatter += `description: "${description}"\n`;
+      }
+      if (keywords && keywords.length > 0) {
+        frontmatter += `keywords: [${keywords.map(k => `"${k}"`).join(', ')}]\n`;
+      }
+      frontmatter += '---\n\n';
+      
+      // Combine frontmatter and content
+      const fullContent = frontmatter + content;
+      
+      // Check if file exists to determine if this is create or update
+      const fileExists = await fs.pathExists(filePath);
+      const action = fileExists ? 'updated' : 'created';
+      
+      // Write the file
+      await fs.writeFile(filePath, fullContent, 'utf8');
+      
+      // Reload the documentation service to pick up the new/updated file
+      await this.docService.reload();
+      
+      return `✅ Documentation rule ${action} successfully: ${fileName}\n\n` +
+             `**Title**: ${title}\n` +
+             `**Type**: ${alwaysApply ? 'Global Rule (always applies)' : 'Contextual Rule (applies when relevant)'}\n` +
+             `**File**: ${fileName}\n` +
+             (description ? `**Description**: ${description}\n` : '') +
+             (keywords && keywords.length > 0 ? `**Keywords**: ${keywords.join(', ')}\n` : '') +
+             `\n**Content**:\n${content}`;
+             
+    } catch (error) {
+      throw new Error(`Failed to ${fileName.includes('/') ? 'create' : 'update'} rule: ${error.message}`);
+    }
   }
 
   async generateSystemPrompt() {
