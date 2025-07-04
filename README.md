@@ -131,6 +131,36 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
 
 3. **Restart your AI tool**
 
+4. **Ensure Agent Compliance** (Highly Recommended): Add the integration rule to guarantee your agent uses doc-bot:
+
+   **For Claude Code** - Add to your global `CLAUDE.md`:
+   ```markdown
+   # MANDATORY: DOC-BOT INTEGRATION RULE
+   
+   **DETECTION**: If this project has `doc-bot/` folder OR doc-bot MCP server available:
+   
+   **MANDATORY ACTIONS**:
+   1. Code generation keywords → Call `check_project_rules` FIRST
+   2. Project questions → Call `search_documentation` FIRST  
+   3. Documentation queries → Call `get_global_rules` FIRST
+   4. File-specific work → Call `get_relevant_docs` FIRST
+   
+   **ENFORCEMENT**:
+   - NEVER generate code without checking project rules
+   - NEVER answer project questions from general knowledge alone
+   - Project documentation overrides standard practices
+   ```
+
+   **For Cursor** - Add to your `.cursorrules` file:
+   ```
+   @doc-bot: Use doc-bot MCP tools for ALL project queries and code generation. 
+   Call check_project_rules before code, search_documentation for project questions.
+   ```
+
+   **For Other IDEs**: Copy the rule from [`AGENT_INTEGRATION_RULE.txt`](./AGENT_INTEGRATION_RULE.txt)
+
+   **Why This Matters**: Without explicit instruction, agents may try to answer from general knowledge instead of using your project-specific documentation. This rule ensures doc-bot is always prioritized.
+
 ## How to organize your documentation
 
 Create a `doc-bot/` folder in your project root with markdown files using frontmatter:
