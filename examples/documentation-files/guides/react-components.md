@@ -1,8 +1,9 @@
 ---
+alwaysApply: false
 title: "React Component Guidelines"
 description: "Best practices for building React components"
 keywords: ["react", "components", "hooks", "jsx", "props", "state"]
-category: "guides"
+filePatterns: ["*.jsx", "*.tsx", "src/components/**", "src/pages/**"]
 ---
 
 # React Component Guidelines

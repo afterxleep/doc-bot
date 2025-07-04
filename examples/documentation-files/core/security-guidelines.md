@@ -1,8 +1,8 @@
 ---
+alwaysApply: true
 title: "Security Guidelines"
 description: "Security best practices and guidelines for the project"
 keywords: ["security", "authentication", "authorization", "encryption", "xss", "csrf"]
-category: "core"
 ---
 
 # Security Guidelines
