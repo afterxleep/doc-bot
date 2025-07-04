@@ -9,7 +9,7 @@ program
   .name('doc-bot')
   .description('Generic MCP server for intelligent documentation access')
   .version('1.5.0')
-  .option('-d, --docs <path>', 'Path to docs folder', '.doc-bot')
+  .option('-d, --docs <path>', 'Path to docs folder', 'doc-bot')
   .option('-c, --config <path>', 'Path to manifest file')
   .option('-v, --verbose', 'Enable verbose logging')
   .option('-w, --watch', 'Watch for file changes')
@@ -34,7 +34,7 @@ async function main() {
     console.log('   alwaysApply: true   (for global rules)');
     console.log('   alwaysApply: false  (for contextual rules)');
     console.log('');
-    console.log('💡 Tip: By default, doc-bot looks for a .doc-bot folder.');
+    console.log('💡 Tip: By default, doc-bot looks for a doc-bot folder.');
     console.log('   Use --docs to specify a different folder.');
     process.exit(1);
   }

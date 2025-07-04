@@ -11,8 +11,8 @@ const fs = require('fs').promises;
 class DocsServer {
   constructor(options = {}) {
     this.options = {
-      docsPath: options.docsPath || './.doc-bot',
-      configPath: options.configPath || './.doc-bot/manifest.json', // Optional, for backward compatibility
+      docsPath: options.docsPath || './doc-bot',
+      configPath: options.configPath || './doc-bot/manifest.json', // Optional, for backward compatibility
       verbose: options.verbose || false,
       watch: options.watch || false,
       ...options

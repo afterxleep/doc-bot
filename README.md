@@ -308,7 +308,7 @@ doc-bot --config ./manifest.json
    ```json
    {
      "mcpServers": {
-       "docs": {
+       "doc-bot": {
          "command": "node",
          "args": ["/path/to/doc-bot/bin/doc-bot.js", "--watch"]
        }
