@@ -7,7 +7,10 @@
     "doc-bot": "bin/doc-bot.js"
   },
   "scripts": {
-    "start": "node src/index.js",
+    "start": "node bin/doc-bot.js --docs ./doc-bot --verbose",
+    "start:watch": "node bin/doc-bot.js --docs ./doc-bot --verbose --watch",
+    "start:examples": "node bin/doc-bot.js --docs ./examples/documentation-files --verbose",
+    "dev": "node bin/doc-bot.js --docs ./doc-bot --verbose --watch",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

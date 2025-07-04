@@ -1,0 +1,7 @@
+# 🎯 Targeted Guidance for ${filePath}
+
+💪 **Context-Specific Enhancements:**
+
+${docsContent}
+
+🚀 **Your Advantage:** This targeted knowledge helps you work with this specific part of the codebase like an expert.

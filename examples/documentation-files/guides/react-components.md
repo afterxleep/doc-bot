@@ -2,7 +2,6 @@
 title: "React Component Guidelines"
 description: "Best practices for building React components"
 keywords: ["react", "components", "hooks", "jsx", "props", "state"]
-tags: ["react", "frontend", "components"]
 category: "guides"
 ---
 

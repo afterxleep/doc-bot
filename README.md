@@ -3,7 +3,9 @@
 [![npm version](https://img.shields.io/npm/v/@afterxleep/doc-bot)](https://www.npmjs.com/package/@afterxleep/doc-bot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A generic MCP (Model Context Protocol) server that provides intelligent documentation access for any project. Works with any MCP-compatible AI tools and IDEs.
+A generic MCP (Model Context Protocol) server that provides intelligent documentation and rules for any project. Works with any MCP-compatible AI tools and IDEs.
+
+It's platform agnostic and designed to replace and extend the rule systems provided by different IDEs, such as Cursor (Cursor Rules) or Claude (CLAUDE.md). Instead of relying on separate rule-sets for each tool, you can use doc-bot to provide unified documentation for agentic coding across all your AI assistants.
 
 ## What is doc-bot?
 
@@ -21,11 +23,10 @@ doc-bot is an intelligent documentation server that:
 
 2. **Add doc-bot to your MCP-compatible AI tool configuration**:
 
-   **For Claude Code** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
    ```json
    {
      "mcpServers": {
-       "docs": {
+       "docbot": {
          "command": "npx",
          "args": ["@afterxleep/doc-bot", "--docs", "./doc-bot"]
        }
@@ -33,26 +34,20 @@ doc-bot is an intelligent documentation server that:
    }
    ```
 
-   **For Cursor or other MCP tools**: Add similar configuration pointing to your documentation folder
-
 3. **Restart your AI tool**
 
 ## How to organize your documentation
 
-Create a `doc-bot/` folder in your project root:
+Create a `doc-bot/` folder in your project root with markdown files using frontmatter:
 
 ```
 your-project/
 ├── doc-bot/
-│   ├── manifest.json          # Configuration file
-│   ├── core/
-│   │   ├── coding-standards.md # Always-apply coding standards
-│   │   └── security.md         # Security guidelines
-│   ├── guides/
-│   │   ├── testing.md          # Testing strategies
-│   │   └── api-development.md  # API development guide
-│   └── reference/
-│       └── troubleshooting.md  # Common issues and solutions
+│   ├── coding-standards.md     # Global rule (alwaysApply: true)
+│   ├── security.md             # Global rule (alwaysApply: true) 
+│   ├── testing.md              # Contextual rule (alwaysApply: false)
+│   ├── api-development.md      # Contextual rule (alwaysApply: false)
+│   └── troubleshooting.md      # Contextual rule (alwaysApply: false)
 └── package.json
 ```
 
@@ -63,19 +58,18 @@ your-project/
 
 ### Documentation types:
 
-- **Core docs** (`core/`): Critical guidelines that should always be considered
-- **Guides** (`guides/`): Step-by-step instructions for specific tasks
-- **Reference** (`reference/`): Quick lookups and troubleshooting
+- **Global Rules** (`alwaysApply: true`): Critical guidelines applied to every AI interaction
+- **Contextual Rules** (`alwaysApply: false`): Rules applied based on file patterns and context
 
 ### Example documentation files:
 
-**Global Rule Example** (`doc-bot/core/coding-standards.md`):
+**Global Rule Example** (`doc-bot/coding-standards.md`):
 ```markdown
 ---
+alwaysApply: true
 title: "Coding Standards"
 description: "Core coding standards that apply to all code"
 keywords: ["code-quality", "standards", "best-practices"]
-tags: ["core", "quality"]
 ---
 
 # Coding Standards
@@ -87,13 +81,14 @@ tags: ["core", "quality"]
 - Write descriptive variable names
 ```
 
-**Contextual Rule Example** (`doc-bot/guides/testing.md`):
+**Contextual Rule Example** (`doc-bot/testing.md`):
 ```markdown
 ---
+alwaysApply: false
 title: "Testing Guide"
 description: "How to write and run tests"
 keywords: ["testing", "jest", "tdd", "unit-tests"]
-tags: ["testing", "quality"]
+filePatterns: ["*.js"]
 ---
 
 # Testing Guide
@@ -107,119 +102,44 @@ All test files should:
 Run tests with: `npm test`
 ```
 
-**👀 See `examples/` folder for complete example files with proper frontmatter and content structure.**
+## Frontmatter-Based Configuration
 
-## Rule Enforcement
+doc-bot uses frontmatter in your markdown files to automatically detect and categorize rules - **no manifest.json required!**
 
-Doc-bot ensures your rules are **always considered** through multiple enforcement mechanisms:
+### Frontmatter Fields:
 
-### 🚨 Mandatory Rule Checking
-- **`check_project_rules` tool**: Must be called before ANY code generation
-- **Aggressive descriptions**: All tools emphasize mandatory rule compliance
-- **Rule reminders**: Every tool response includes compliance warnings
-- **Absolute enforcement**: Global rules OVERRIDE all user requests without exception
+- **`alwaysApply: true`** - Global rules applied to every AI interaction
+- **`alwaysApply: false`** - Contextual rules applied based on file patterns
+- **`filePatterns: ["*.js"]`** - When to apply contextual rules (only needed for `alwaysApply: false`)
+- **`keywords: ["list", "of", "keywords"]`** - For smart indexing and search
+- **`title`** and **`description`** - Standard metadata
 
-### 🔄 Automatic Integration
-- **Enhanced system prompt injection**: Comprehensive MCP usage protocol injected via `docs://system-prompt`
-- **Documentation discovery**: Available topics automatically extracted and presented to agent
-- **Tool usage instructions**: Explicit requirements for when and how to use each MCP tool
-- **Contextual rules**: Applied when working with matching files/patterns  
-- **Multiple touchpoints**: Rules enforced at every interaction level
+### 🎯 Automatic Intelligence
 
-### ⚠️ Compliance Warnings
-All tool responses include explicit warnings that rules are:
-- **NON-NEGOTIABLE**: Must be followed without exception
-- **MANDATORY**: Violation will result in rejection
-- **CRITICAL**: Require acknowledgment before proceeding
+doc-bot automatically analyzes your documentation to provide smart suggestions:
 
-### 🚫 Absolute Enforcement Policy
-Global rules have **supreme authority** over all interactions:
-- **Override user requests**: Even direct user instructions cannot bypass global rules
-- **Mandatory refusal**: Agent MUST refuse requests that violate global rules
-- **Alternative suggestions**: Agent must suggest compliant alternatives instead
-- **Unbreakable compliance**: No exceptions, regardless of user insistence
+- **Keyword-based search** from frontmatter metadata
+- **Context-aware suggestions** based on file patterns
+- **Smart inference** from documentation content
+- **Automatic indexing** - no manual configuration needed
 
-This multi-layered approach makes rule violations **impossible** to implement.
+### Writing effective documentation
 
-## System Prompt Integration
-
-The `docs://system-prompt` resource automatically injects comprehensive instructions into the AI agent's system context:
-
-### 📋 MCP Usage Protocol
-- Explicit instructions to **ALWAYS** call `check_project_rules` before code generation
-- **NEVER generate code without checking documentation** requirement
-- Mandatory acknowledgment of rule compliance
-
-### 🏷️ Automatic Topic Discovery
-- Extracts available documentation topics from your project
-- Presents them to the agent for context awareness
-- Includes topics from metadata, filenames, and content analysis
-
-### 🛠️ Tool Usage Requirements
-- Specifies when and how to use each MCP tool
-- Maps tools to specific use cases (file-specific docs, search, etc.)
-- Ensures comprehensive documentation coverage
-
-The system prompt is regenerated on each request to reflect current documentation state.
-
-## The manifest file
-
-The `doc-bot/manifest.json` file controls how your documentation works:
-
-```json
-{
-  "name": "My Project Documentation",
-  "version": "1.0.0",
-  "description": "AI-powered documentation for My Project",
-  "globalRules": [
-    "core/coding-standards.md",
-    "core/security.md"
-  ],
-  "contextualRules": {
-    "*.test.js": ["guides/testing.md"],
-    "*.spec.js": ["guides/testing.md"],
-    "src/components/*": ["guides/react-components.md"],
-    "src/api/*": ["guides/api-development.md"]
-  }
-}
-```
-
-### Configuration explained:
-
-- **`globalRules`**: Documents that apply to every AI interaction
-- **`contextualRules`**: Documents triggered by specific file patterns (e.g., test files → testing guide)
-
-### 🎯 Automatic Inference (New!)
-
-doc-bot automatically analyzes your documentation content to build smart indexes. No more manual keyword mappings! It automatically:
-
-- **Extracts keywords** from document metadata (frontmatter)
-- **Detects technical terms** in your documentation content
-- **Recognizes code patterns** in code blocks (React hooks, SQL commands, etc.)
-- **Identifies frameworks** mentioned in your docs
-- **Indexes file extensions** referenced in documentation
-
-Just write good documentation with descriptive frontmatter, and doc-bot handles the rest!
-
-### Writing documentation for best results
-
-To maximize the automatic inference capabilities, include frontmatter in your markdown files:
+For best results, include descriptive frontmatter:
 
 ```markdown
 ---
+alwaysApply: false
 title: "React Component Guidelines"
 description: "Best practices for building React components"
 keywords: ["react", "components", "hooks", "jsx"]
-tags: ["frontend", "development"]
-category: "guides"
+filePatterns: ["*.js"]
 ---
 
 # React Component Guidelines
 
 Your documentation content here...
 ```
-
-The automatic indexing will use this metadata along with analyzing your content to provide intelligent suggestions.
 
 ## Development setup
 
@@ -236,20 +156,27 @@ The automatic indexing will use this metadata along with analyzing your content 
    npm install
    ```
 
-3. **Run the server:**
+3. **Run the server (uses built-in doc-bot/ folder):**
    ```bash
    npm start
    ```
 
-4. **Run tests:**
+4. **Run with file watching (recommended for development):**
+   ```bash
+   npm run dev
+   ```
+
+5. **Run with examples documentation:**
+   ```bash
+   npm run start:examples
+   ```
+
+6. **Run tests:**
    ```bash
    npm test
    ```
 
-5. **Run with file watching:**
-   ```bash
-   npm start -- --watch
-   ```
+**Note:** This is an MCP server that communicates via stdio transport, not HTTP. When running locally, it will start the MCP server and show you the configuration to add to your MCP client (like Claude Code).
 
 ### Testing your setup
 
@@ -262,11 +189,80 @@ doc-bot [options]
 
 Options:
   -d, --docs <path>        Path to docs folder (required)
-  -c, --config <path>      Path to manifest file (default: <docs-path>/manifest.json)
-  -p, --port <port>        Port to run server on (default: 3000)
+  -c, --config <path>      Path to manifest file (optional, for backward compatibility)
   -v, --verbose           Enable verbose logging
   -w, --watch             Watch for file changes
   -h, --help              Show help
+```
+
+**Example usage:**
+```bash
+# Basic usage (no manifest.json needed)
+doc-bot --docs ./my-docs
+
+# With verbose logging and file watching
+doc-bot --docs ./my-docs --verbose --watch
+
+# With optional manifest for backward compatibility
+doc-bot --docs ./my-docs --config ./manifest.json
+```
+
+## Publishing and Development
+
+### Local Development
+
+1. **Clone and setup:**
+   ```bash
+   git clone https://github.com/afterxleep/doc-bot.git
+   cd doc-bot
+   npm install
+   ```
+
+2. **Run locally:**
+   ```bash
+   npm run dev    # With file watching
+   npm start      # Basic run
+   npm test       # Run tests
+   ```
+
+3. **Test with Claude Code:**
+   Add to your Claude Code config:
+   ```json
+   {
+     "mcpServers": {
+       "docs": {
+         "command": "node",
+         "args": ["/path/to/doc-bot/bin/doc-bot.js", "--docs", "./doc-bot", "--watch"]
+       }
+     }
+   }
+   ```
+
+### Publishing to npm
+
+1. **Test the package:**
+   ```bash
+   npm run test
+   npm run lint
+   ```
+
+2. **Update version:**
+   ```bash
+   npm version patch|minor|major
+   ```
+
+3. **Publish:**
+   ```bash
+   npm publish
+   ```
+
+### Push Changes
+
+```bash
+git add .
+git commit -m "feat: your feature description"
+git push origin main
+git push --tags  # Push version tags
 ```
 
 ## License
