@@ -97,7 +97,19 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
      "mcpServers": {
        "docbot": {
          "command": "npx",
-         "args": ["@afterxleep/doc-bot", "--docs", "./doc-bot"]
+         "args": ["@afterxleep/doc-bot"]
+       }
+     }
+   }
+   ```
+
+   **Note:** By default, doc-bot looks for a `.doc-bot` folder. To use a different folder:
+   ```json
+   {
+     "mcpServers": {
+       "docbot": {
+         "command": "npx",
+         "args": ["@afterxleep/doc-bot", "--docs", "./my-custom-docs"]
        }
      }
    }
@@ -107,11 +119,11 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
 
 ## How to organize your documentation
 
-Create a `doc-bot/` folder in your project root with markdown files using frontmatter:
+Create a `.doc-bot/` folder in your project root with markdown files using frontmatter:
 
 ```
 your-project/
-├── doc-bot/
+├── .doc-bot/
 │   ├── coding-standards.md     # Global rule (alwaysApply: true)
 │   ├── security.md             # Global rule (alwaysApply: true) 
 │   ├── testing.md              # Contextual rule (alwaysApply: false)
@@ -120,10 +132,7 @@ your-project/
 └── package.json
 ```
 
-**Note:** You can use any folder name - just specify it in your MCP configuration:
-```json
-"args": ["@afterxleep/doc-bot", "--docs", "./my-custom-docs"]
-```
+**Note:** The `.doc-bot` folder is the default location. You can use any folder name by specifying it with the `--docs` option.
 
 ### Documentation types:
 
@@ -132,7 +141,7 @@ your-project/
 
 ### Example documentation files:
 
-**Global Rule Example** (`doc-bot/coding-standards.md`):
+**Global Rule Example** (`.doc-bot/coding-standards.md`):
 ```markdown
 ---
 alwaysApply: true
@@ -150,7 +159,7 @@ keywords: ["code-quality", "standards", "best-practices"]
 - Write descriptive variable names
 ```
 
-**Contextual Rule Example** (`doc-bot/testing.md`):
+**Contextual Rule Example** (`.doc-bot/testing.md`):
 ```markdown
 ---
 alwaysApply: false
@@ -254,7 +263,7 @@ Ask your AI assistant something like "What documentation is available?" to test 
 doc-bot [options]
 
 Options:
-  -d, --docs <path>        Path to docs folder (required)
+  -d, --docs <path>        Path to docs folder (default: .doc-bot)
   -c, --config <path>      Path to manifest file (optional, for backward compatibility)
   -v, --verbose           Enable verbose logging
   -w, --watch             Watch for file changes
@@ -263,14 +272,17 @@ Options:
 
 **Example usage:**
 ```bash
-# Basic usage (no manifest.json needed)
+# Basic usage with default .doc-bot folder
+doc-bot
+
+# Specify a custom docs folder
 doc-bot --docs ./my-docs
 
 # With verbose logging and file watching
-doc-bot --docs ./my-docs --verbose --watch
+doc-bot --verbose --watch
 
 # With optional manifest for backward compatibility
-doc-bot --docs ./my-docs --config ./manifest.json
+doc-bot --config ./manifest.json
 ```
 
 ## Publishing and Development
@@ -298,7 +310,7 @@ doc-bot --docs ./my-docs --config ./manifest.json
      "mcpServers": {
        "docs": {
          "command": "node",
-         "args": ["/path/to/doc-bot/bin/doc-bot.js", "--docs", "./doc-bot", "--watch"]
+         "args": ["/path/to/doc-bot/bin/doc-bot.js", "--watch"]
        }
      }
    }
