@@ -1,8 +1,9 @@
 ---
+alwaysApply: false
 title: "Testing Guide"
 description: "Comprehensive testing strategies and best practices"
 keywords: ["testing", "jest", "react-testing-library", "unit-tests", "integration-tests", "tdd"]
-category: "guides"
+filePatterns: ["*.test.js", "*.spec.js", "**/__tests__/**"]
 ---
 
 # Testing Guide

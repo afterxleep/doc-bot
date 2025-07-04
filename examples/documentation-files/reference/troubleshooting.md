@@ -1,8 +1,9 @@
 ---
+alwaysApply: false
 title: "Troubleshooting Guide"
 description: "Common issues and their solutions"
 keywords: ["troubleshooting", "debugging", "errors", "problems", "solutions"]
-category: "reference"
+filePatterns: ["*.js", "*.ts", "*.jsx", "*.tsx"]
 ---
 
 # Troubleshooting Guide

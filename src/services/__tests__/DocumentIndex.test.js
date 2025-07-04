@@ -549,7 +549,6 @@ const [state, setState] = useState();
         `,
         metadata: {
           keywords: ['react', 'testing'],
-          tags: ['frontend', 'testing'],
           category: 'development'
         }
       };
