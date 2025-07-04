@@ -13,7 +13,6 @@ describe('DocumentIndex', () => {
         metadata: {
           title: 'React Component Guide',
           keywords: ['react', 'components', 'jsx'],
-          tags: ['frontend', 'ui'],
           category: 'development'
         }
       },
@@ -23,7 +22,6 @@ describe('DocumentIndex', () => {
         metadata: {
           title: 'Testing Guide',
           keywords: ['testing', 'jest', 'unit-tests'],
-          tags: ['quality', 'testing'],
           category: 'development'
         }
       }
@@ -94,37 +92,7 @@ describe('DocumentIndex', () => {
       expect(pythonEntries.some(entry => entry.document === document)).toBe(true);
     });
 
-    it('should index tags in topic index', async () => {
-      const document = {
-        fileName: 'test.md',
-        metadata: {
-          tags: ['frontend', 'ui', 'design']
-        }
-      };
 
-      await documentIndex.indexDocument(document);
-
-      expect(documentIndex.topicIndex.has('frontend')).toBe(true);
-      expect(documentIndex.topicIndex.has('ui')).toBe(true);
-      expect(documentIndex.topicIndex.has('design')).toBe(true);
-      const frontendEntries = documentIndex.topicIndex.get('frontend');
-      expect(frontendEntries.some(entry => entry.document === document)).toBe(true);
-    });
-
-    it('should handle single tag as string', async () => {
-      const document = {
-        fileName: 'test.md',
-        metadata: {
-          tags: 'database'
-        }
-      };
-
-      await documentIndex.indexDocument(document);
-
-      expect(documentIndex.topicIndex.has('database')).toBe(true);
-      const databaseEntries = documentIndex.topicIndex.get('database');
-      expect(databaseEntries.some(entry => entry.document === document)).toBe(true);
-    });
 
     it('should index category in topic index', async () => {
       const document = {
@@ -246,42 +214,7 @@ describe('DocumentIndex', () => {
       expect(result[0].score).toBe(10); // High score for exact keyword match
     });
 
-    it('should find documents by topic match', async () => {
-      // Create a fresh index with no content to test exact scoring
-      const testIndex = new DocumentIndex();
-      const testDoc = {
-        fileName: 'clean-test.md',
-        metadata: { tags: ['frontend'] }
-      };
-      await testIndex.indexDocument(testDoc);
-      
-      const context = { query: 'frontend' };
-      const result = testIndex.findRelevantDocs(context);
-      
-      expect(result.length).toBe(1);
-      expect(result[0].document.fileName).toBe('clean-test.md');
-      expect(result[0].score).toBe(5); // Medium score for topic match
-    });
 
-    it('should combine scores for multiple matches', async () => {
-      // Create a fresh index with no content to test exact scoring
-      const testIndex = new DocumentIndex();
-      const testDoc = {
-        fileName: 'clean-test.md',
-        metadata: { 
-          keywords: ['react'],
-          tags: ['frontend'] 
-        }
-      };
-      await testIndex.indexDocument(testDoc);
-      
-      const context = { query: 'react frontend' };
-      const result = testIndex.findRelevantDocs(context);
-      
-      expect(result.length).toBe(1);
-      expect(result[0].document.fileName).toBe('clean-test.md');
-      expect(result[0].score).toBe(15); // 10 (keyword) + 5 (topic)
-    });
 
     it('should handle case-insensitive queries', () => {
       const context = { query: 'REACT Components' };
@@ -681,7 +614,6 @@ Files: *.test.js
         `,
         metadata: {
           keywords: ['react', 'testing'],
-          tags: ['frontend'],
           category: 'testing'
         }
       };
@@ -710,7 +642,7 @@ Files: *.test.js
       const docs = [
         {
           fileName: 'high-relevance.md',
-          metadata: { keywords: ['javascript', 'react'], tags: ['frontend'] },
+          metadata: { keywords: ['javascript', 'react'] },
           content: '```javascript\nconst [state] = useState();\n```'
         },
         {
@@ -720,7 +652,7 @@ Files: *.test.js
         },
         {
           fileName: 'low-relevance.md',
-          metadata: { tags: ['backend'] },
+          metadata: { category: 'backend' },
           content: 'Server-side development'
         }
       ];
@@ -788,7 +720,7 @@ Files: *.test.js
         fileName: 'duplicate-test.md',
         metadata: { 
           keywords: ['react', 'react'], // Duplicate keywords
-          tags: ['frontend', 'frontend'] // Duplicate tags
+          category: 'frontend' // Category
         },
         content: 'React React React' // Repeated content
       };

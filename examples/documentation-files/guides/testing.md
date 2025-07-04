@@ -2,7 +2,6 @@
 title: "Testing Guide"
 description: "Comprehensive testing strategies and best practices"
 keywords: ["testing", "jest", "react-testing-library", "unit-tests", "integration-tests", "tdd"]
-tags: ["testing", "quality", "jest"]
 category: "guides"
 ---
 

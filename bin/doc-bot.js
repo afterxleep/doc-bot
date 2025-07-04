@@ -8,8 +8,7 @@ const { DocsServer } = require('../src/index.js');
 program
   .name('doc-bot')
   .description('Generic MCP server for intelligent documentation access')
-  .version('1.0.2')
-  .option('-p, --port <port>', 'Port to run server on', '3000')
+  .version('1.5.0')
   .requiredOption('-d, --docs <path>', 'Path to docs folder')
   .option('-c, --config <path>', 'Path to manifest file')
   .option('-v, --verbose', 'Enable verbose logging')
@@ -29,26 +28,25 @@ async function main() {
     console.log('📖 To get started, create your documentation folder:');
     console.log('');
     console.log(`  mkdir ${path.basename(docsPath)}`);
-    console.log(`  echo '{"name": "My Project Documentation", "globalRules": []}' > ${path.basename(docsPath)}/manifest.json`);
-    console.log(`  echo "# Getting Started" > ${path.basename(docsPath)}/README.md`);
+    console.log(`  echo "---\nalwaysApply: true\ntitle: Getting Started\n---\n# Getting Started\nThis is your project documentation." > ${path.basename(docsPath)}/getting-started.md`);
+    console.log('');
+    console.log('📋 Use frontmatter in your markdown files:');
+    console.log('   alwaysApply: true   (for global rules)');
+    console.log('   alwaysApply: false  (for contextual rules)');
+    console.log('   filePatterns: ["*.js", "src/**/*"]  (when to apply contextual rules)');
     console.log('');
     console.log('Then configure your MCP client to use this folder.');
     process.exit(1);
   }
   
-  // Check if manifest exists, create default if not
-  if (!await fs.pathExists(configPath)) {
+  // Manifest is now optional - only create if explicitly requested
+  if (options.config && !await fs.pathExists(configPath)) {
     console.log('📝 Creating default manifest.json...');
     const defaultManifest = {
       name: 'Project Documentation',
       version: '1.0.0',
-      description: 'AI-powered documentation',
-      globalRules: [],
-      contextualRules: {},
-      inference: {
-        keywords: {},
-        patterns: {}
-      }
+      description: 'AI-powered documentation (auto-generated from frontmatter)',
+      note: 'This manifest is auto-generated. Configure rules using frontmatter in your markdown files.'
     };
     await fs.writeJSON(configPath, defaultManifest, { spaces: 2 });
   }
@@ -62,7 +60,11 @@ async function main() {
   
   console.log('🚀 Starting doc-bot...');
   console.log(`📁 Documentation: ${docsPath}`);
-  console.log(`⚙️  Configuration: ${configPath}`);
+  if (await fs.pathExists(configPath)) {
+    console.log(`⚙️  Configuration: ${configPath}`);
+  } else {
+    console.log(`⚙️  Configuration: Auto-generated from frontmatter`);
+  }
   
   if (options.watch) {
     console.log('👀 Watching for file changes...');

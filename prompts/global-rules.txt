@@ -1,0 +1,11 @@
+🌟 **Project Excellence Standards** 🌟
+
+💪 **Your Core Capabilities:** These proven patterns make your code exceptional:
+
+${rulesContent}
+
+🚀 **Success Multiplier:** Following these standards results in:
+✅ Code that passes reviews immediately
+✅ Solutions that integrate seamlessly
+✅ Features that work reliably in production
+✅ Contributions that earn team appreciation
