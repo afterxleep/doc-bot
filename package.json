@@ -1,6 +1,6 @@
 {
   "name": "@afterxleep/doc-bot",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Generic MCP server for intelligent documentation access in any project",
   "main": "src/index.js",
   "bin": {
