@@ -57,6 +57,7 @@
   "files": [
     "src/",
     "bin/",
+    "prompts/",
     "README.md",
     "LICENSE"
   ]
