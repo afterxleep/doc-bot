@@ -42,7 +42,6 @@ This guide covers React components, hooks, and best practices.
         metadata: {
           title: 'React Component Guide',
           keywords: ['react', 'components', 'hooks', 'useState', 'useEffect'],
-          tags: ['frontend', 'javascript'],
           category: 'development'
         },
         lastModified: new Date()
@@ -69,7 +68,6 @@ Best practices for testing React components.
         metadata: {
           title: 'Testing Guide',
           keywords: ['testing', 'jest', 'react-testing-library'],
-          tags: ['testing', 'quality'],
           category: 'development'
         },
         lastModified: new Date()
@@ -98,7 +96,6 @@ Building REST APIs with Express.js.
         metadata: {
           title: 'API Development Guide',
           keywords: ['api', 'express', 'nodejs', 'rest'],
-          tags: ['backend', 'api'],
           category: 'development'
         },
         lastModified: new Date()

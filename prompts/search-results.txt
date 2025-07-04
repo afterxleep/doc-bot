@@ -1,0 +1,7 @@
+# 🔍 Search Results for "${query}"
+
+Found ${resultCount} relevant document(s) to boost your capabilities:
+
+${results}
+
+🚀 **Pro Tip:** Use `check_project_rules` before coding to generate perfect, compliant code on the first try.

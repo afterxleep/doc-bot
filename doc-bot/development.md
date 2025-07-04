@@ -1,3 +1,11 @@
+---
+alwaysApply: false
+title: "Development Guide"
+description: "Development setup, testing, and workflow for doc-bot project"
+keywords: ["development", "testing", "workflow", "setup", "CLI"]
+filePatterns: ["*.js"]
+---
+
 # Development Guide
 
 ## Project Structure

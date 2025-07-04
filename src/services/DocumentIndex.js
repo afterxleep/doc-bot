@@ -28,16 +28,7 @@ class DocumentIndex {
       }
     }
 
-    // Index topics from tags and category (if present)
-    if (document.metadata?.tags) {
-      const tags = Array.isArray(document.metadata.tags) 
-        ? document.metadata.tags 
-        : [document.metadata.tags];
-      
-      for (const tag of tags) {
-        this.addToIndex(this.topicIndex, tag.toLowerCase(), document, 5);
-      }
-    }
+    // Index topics from category (if present)
 
     if (document.metadata?.category) {
       this.addToIndex(this.topicIndex, document.metadata.category.toLowerCase(), document, 5);

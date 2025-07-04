@@ -1,3 +1,11 @@
+---
+alwaysApply: false
+title: "Doc-Bot Architecture"
+description: "Technical architecture and components of the doc-bot MCP server"
+keywords: ["architecture", "MCP", "server", "components", "technical"]
+filePatterns: ["*.js"]
+---
+
 # Architecture
 
 ## Core Components

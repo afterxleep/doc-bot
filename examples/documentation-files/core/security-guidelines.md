@@ -2,7 +2,6 @@
 title: "Security Guidelines"
 description: "Security best practices and guidelines for the project"
 keywords: ["security", "authentication", "authorization", "encryption", "xss", "csrf"]
-tags: ["security", "core", "safety"]
 category: "core"
 ---
 

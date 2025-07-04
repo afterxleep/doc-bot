@@ -2,7 +2,6 @@
 title: "Coding Standards"
 description: "Core coding standards that apply to all code in the project"
 keywords: ["code-quality", "standards", "best-practices", "javascript", "typescript"]
-tags: ["core", "quality", "standards"]
 category: "core"
 ---
 

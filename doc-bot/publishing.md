@@ -1,9 +1,9 @@
 ---
+alwaysApply: false
 title: "Publishing Guide"
 description: "How to publish doc-bot to npm"
 keywords: ["publishing", "npm", "deployment", "release"]
-tags: ["development", "publishing"]
-category: "development"
+filePatterns: ["*.js"]
 ---
 
 # Publishing doc-bot to npm

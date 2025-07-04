@@ -2,7 +2,6 @@
 title: "API Development Guide"
 description: "Best practices for building REST APIs"
 keywords: ["api", "rest", "express", "nodejs", "endpoints", "middleware"]
-tags: ["api", "backend", "express"]
 category: "guides"
 ---
 

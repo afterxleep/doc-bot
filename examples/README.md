@@ -28,7 +28,6 @@ Each example file shows how to use frontmatter for automatic indexing:
 title: "Clear, descriptive title"
 description: "Brief description of the content"
 keywords: ["relevant", "searchable", "terms"]
-tags: ["category", "type"]
 category: "core|guides|reference"
 ---
 ```

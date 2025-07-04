@@ -1,0 +1,8 @@
+# 🎯 Contextual Intelligence
+
+${globalRulesSection}
+${contextualDocsSection}
+${inferredDocsSection}
+${confidenceSection}
+
+💪 **Your Enhanced Capabilities:** These insights enable you to generate code that perfectly fits this project's architecture and standards.

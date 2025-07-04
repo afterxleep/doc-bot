@@ -6,7 +6,7 @@ const yaml = require('yaml');
 class DocumentationService {
   constructor(docsPath, manifestLoader = null) {
     this.docsPath = docsPath;
-    this.manifestLoader = manifestLoader;
+    this.manifestLoader = manifestLoader; // Keep for backward compatibility but not required
     this.documents = new Map();
     this.lastScanned = null;
   }
@@ -138,38 +138,20 @@ class DocumentationService {
       }
     }
     
-    // Category/tag matches
+    // Category matches
     if (doc.metadata?.category?.toLowerCase().includes(searchTerm)) {
       score += 3;
-    }
-    
-    if (doc.metadata?.tags) {
-      const tags = Array.isArray(doc.metadata.tags) 
-        ? doc.metadata.tags 
-        : [doc.metadata.tags];
-      
-      for (const tag of tags) {
-        if (tag.toLowerCase().includes(searchTerm)) {
-          score += 2;
-        }
-      }
     }
     
     return score;
   }
   
   async getGlobalRules() {
-    if (!this.manifestLoader) {
-      return [];
-    }
-    
-    const manifest = await this.manifestLoader.load();
-    const globalRulePaths = manifest.globalRules || [];
-    
     const globalRules = [];
-    for (const rulePath of globalRulePaths) {
-      const doc = this.documents.get(rulePath);
-      if (doc) {
+    
+    // Find all documents with alwaysApply: true in frontmatter
+    for (const doc of this.documents.values()) {
+      if (doc.metadata?.alwaysApply === true) {
         globalRules.push(doc);
       }
     }
@@ -178,21 +160,19 @@ class DocumentationService {
   }
   
   async getContextualDocs(filePath) {
-    if (!this.manifestLoader) {
-      return [];
-    }
-    
-    const manifest = await this.manifestLoader.load();
-    const contextualRules = manifest.contextualRules || {};
-    
     const matchingDocs = [];
     
-    for (const [pattern, docPaths] of Object.entries(contextualRules)) {
-      if (this.matchesPattern(filePath, pattern)) {
-        for (const docPath of docPaths) {
-          const doc = this.documents.get(docPath);
-          if (doc) {
+    // Find documents with alwaysApply: false and matching patterns
+    for (const doc of this.documents.values()) {
+      if (doc.metadata?.alwaysApply === false || doc.metadata?.alwaysApply === undefined) {
+        // Check if document has file patterns in frontmatter
+        const patterns = doc.metadata?.filePatterns || doc.metadata?.applies || [];
+        const patternArray = Array.isArray(patterns) ? patterns : [patterns];
+        
+        for (const pattern of patternArray) {
+          if (pattern && this.matchesPattern(filePath, pattern)) {
             matchingDocs.push(doc);
+            break; // Don't add the same doc multiple times
           }
         }
       }
@@ -228,20 +208,6 @@ class DocumentationService {
     return results;
   }
   
-  getDocumentsByTag(tag) {
-    const results = [];
-    
-    for (const doc of this.documents.values()) {
-      const tags = doc.metadata?.tags || [];
-      const tagArray = Array.isArray(tags) ? tags : [tags];
-      
-      if (tagArray.includes(tag)) {
-        results.push(doc);
-      }
-    }
-    
-    return results;
-  }
 }
 
 module.exports = { DocumentationService };
