@@ -79,12 +79,14 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
 - AI doesn't know what documentation exists
 - Users must know to ask specific questions
 - No exploration or discovery capabilities
+- AI agents rely on basic grep searches through codebases to infer project patterns
 
 **MCP with doc-bot:**
 - AI can list all available documentation
 - Discovers relevant docs automatically
 - Suggests documentation based on context
-- Searchable knowledge base
+- Searchable knowledge base with intelligent ranking
+- No need for AI to grep through your codebase - dedicated search engine
 
 ## Installation
 
