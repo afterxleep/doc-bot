@@ -1,13 +1,12 @@
 # AGENT INTEGRATION PROTOCOL: DOC-BOT MCP ENFORCEMENT
 # ============================================================
-# EXPERT-ENGINEERED RULE FOR RELIABLE AGENT BEHAVIOR
 # Add this to your agent configuration (CLAUDE.md, .cursorrules, copilot-instructions.md, etc.)
 
 ## PHASE 1: ENVIRONMENT DETECTION
 
 ```
 IF (
-  (filesystem_contains("doc-bot/") OR filesystem_contains(".doc-bot/")) AND
+  (filesystem_contains("doc-bot/") AND
   (mcp_server_available("doc-bot") OR mcp_server_available("@afterxleep/doc-bot"))
 ) THEN {
   ACTIVATE: doc_bot_enforcement_protocol()
