@@ -1,46 +1,78 @@
-# MCP TOOL USAGE PROTOCOL
+# MCP TOOL EXECUTION PROTOCOL
 
-## MANDATORY TOOL USAGE RULES:
+## CONDITIONAL LOGIC RULES:
 
-### Rule 1: Code Generation
-IF request contains: {write, create, implement, build, code, function, class, component, method, variable}
-THEN: Call `check_project_rules` BEFORE generating any code
-
-### Rule 2: Project Information
-IF request contains: {how, what, why, architecture, approach, pattern, feature, authentication, database, api}
-AND refers to: {this project, this codebase, here, our}
-THEN: Call `search_documentation` with relevant keywords
-
-### Rule 3: Documentation Queries  
-IF request contains: {documentation, available, help with, capabilities}
-THEN: Call `get_global_rules`
-
-### Rule 4: Context-Specific Work
-IF request contains: {file, directory, working on, specific}
-THEN: Call `get_relevant_docs` with file path
-
-## TOOL SELECTION LOGIC:
-
+### Rule 1: Code Generation Detection
 ```
-1. Parse user input for keywords
-2. Check against tool trigger patterns
-3. If match found: Use MCP tool FIRST
-4. If no match: Check if response involves project-specific knowledge
-5. If yes: Use search_documentation
-6. Only provide direct answer if certain no project context needed
+IF input_contains(write, create, implement, build, code, function, class, component, method, variable, generate, make, develop, add)
+THEN execute_tool(check_project_rules, task_description)
+REQUIRED: Before any code output
 ```
 
-## RESPONSE STRUCTURE:
+### Rule 2: Project Information Detection
+```
+IF input_contains(how, what, why, architecture, approach, pattern, feature, authentication, database, api, testing)
+AND context_contains(this project, this codebase, here, our, [project_name])
+THEN execute_tool(search_documentation, extracted_keywords)
+REQUIRED: For project-specific queries
+```
 
-When using MCP tools:
-1. Call appropriate tool
-2. Parse tool response
-3. Provide answer based on tool output
-4. Do not add generic information that contradicts tool output
+### Rule 3: Documentation Discovery Detection
+```
+IF input_contains(documentation, available, help with, capabilities, rules, standards, what exists)
+THEN execute_tool(get_global_rules)
+REQUIRED: For documentation overview
+```
 
-## IMPORTANT FACTS:
+### Rule 4: Context-Specific Detection
+```
+IF input_contains(file, directory, working on, specific, [filename], path)
+THEN execute_tool(get_relevant_docs, file_context)
+REQUIRED: For file-specific work
+```
 
-- This project has custom patterns that differ from standard practices
-- Generic code suggestions will likely violate project rules
-- Project documentation contains specific implementation details
-- Always prefer tool responses over general knowledge
+### Rule 5: Document Reading Detection
+```
+IF input_contains(read, show, get content, full document)
+OR previous_response_contains(search results)
+THEN execute_tool(read_specific_document, filename)
+REQUIRED: For complete document access
+```
+
+## EXECUTION ALGORITHM:
+
+```
+STEP 1: input_analysis(user_query)
+STEP 2: keyword_extraction(input_analysis)
+STEP 3: rule_matching(keyword_extraction)
+STEP 4: tool_execution(matched_rule)
+STEP 5: response_generation(tool_output)
+STEP 6: validation(response, project_rules)
+```
+
+## RESPONSE PROTOCOL:
+
+### Tool-Based Response:
+1. **Execute Tool**: Call appropriate MCP tool first
+2. **Parse Output**: Extract relevant information from tool response
+3. **Generate Answer**: Base response on tool output only
+4. **Validate**: Ensure consistency with project documentation
+
+### Fallback Response:
+1. **Context Check**: Verify if response requires project knowledge
+2. **Tool Selection**: Use search_documentation if uncertain
+3. **Generic Response**: Only if certain no project context needed
+
+## VALIDATION REQUIREMENTS:
+
+- **Tool Precedence**: Tool responses override general knowledge
+- **Accuracy**: Do not add information beyond tool output
+- **Completeness**: Use tools for all project-related queries
+- **Consistency**: Ensure responses align with project standards
+
+## OPERATIONAL CONSTRAINTS:
+
+- **Custom Patterns**: Project implements non-standard practices
+- **Rule Compliance**: Generated code must follow project rules
+- **Documentation Authority**: Project docs are the authoritative source
+- **Context Awareness**: Always consider project-specific context

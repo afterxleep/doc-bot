@@ -1,8 +1,13 @@
-# 🎯 Contextual Intelligence
+# CONTEXTUAL DOCUMENTATION
 
 ${globalRulesSection}
 ${contextualDocsSection}
 ${inferredDocsSection}
 ${confidenceSection}
 
-💪 **Your Enhanced Capabilities:** These insights enable you to generate code that perfectly fits this project's architecture and standards.
+## IMPLEMENTATION GUIDANCE:
+
+**Context**: The above documentation applies to your current working context
+**Usage**: Apply these patterns and rules to all generated code
+**Priority**: Context-specific rules take precedence over general guidelines
+**Validation**: Verify generated code complies with all listed requirements

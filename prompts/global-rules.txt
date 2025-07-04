@@ -1,11 +1,19 @@
-🌟 **Project Excellence Standards** 🌟
+# PROJECT STANDARDS AND GUIDELINES
 
-💪 **Your Core Capabilities:** These proven patterns make your code exceptional:
+**Global Rules**: The following standards apply to all code generation:
 
 ${rulesContent}
 
-🚀 **Success Multiplier:** Following these standards results in:
-✅ Code that passes reviews immediately
-✅ Solutions that integrate seamlessly
-✅ Features that work reliably in production
-✅ Contributions that earn team appreciation
+## COMPLIANCE BENEFITS:
+
+- **Code Quality**: Adherence ensures consistent, maintainable code
+- **Integration**: Standards facilitate seamless component integration
+- **Reliability**: Proven patterns reduce production issues
+- **Review Process**: Compliant code passes reviews efficiently
+
+## IMPLEMENTATION NOTES:
+
+- Apply these rules to all generated code
+- Verify compliance before submitting responses
+- Reference specific rules when making recommendations
+- Prioritize project standards over generic best practices

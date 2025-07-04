@@ -1,69 +1,84 @@
-# MCP DOCUMENTATION TOOLS - USAGE PROTOCOL
+# MCP DOCUMENTATION PROTOCOL
 
-You have access to MCP documentation tools that provide project-specific information. This project uses custom patterns that differ from standard practices.
+## SYSTEM CONFIGURATION:
 
-## AVAILABLE DOCUMENTATION:
-${availableTopics}
+- **Tool Access**: MCP documentation tools are available for project-specific information
+- **Context**: This project implements custom patterns that differ from standard practices
+- **Documentation Coverage**: ${availableTopics}
 
-## TOOL USAGE RULES:
+## TOOL EXECUTION MATRIX:
 
-### 1. `check_project_rules`
-**Purpose**: Returns project-specific coding standards and forbidden patterns
-**Required for**: ANY code generation request
-**Trigger keywords**: write, create, implement, build, add, code, function, class, component, method, develop, generate, make
-**Usage**: Must be called BEFORE writing any code
+| Tool | Trigger Pattern | Required For | Implementation |
+|------|----------------|-------------|--------------|
+| `check_project_rules` | Code generation keywords | ANY code output | Execute before code generation |
+| `search_documentation` | Project-specific questions | Feature/architecture queries | Execute for project context |
+| `get_global_rules` | Documentation discovery | Rule/capability queries | Execute for overview |
+| `get_relevant_docs` | File-specific context | Targeted work | Execute for context |
+| `read_specific_document` | Document access | Full content needs | Execute after search results |
 
-### 2. `search_documentation`  
-**Purpose**: Search project documentation for architecture, features, and implementation details
-**Required for**: Project-specific questions
-**Trigger keywords**: how, what, why, architecture, approach, pattern, feature, authentication, database, API, testing
-**Context indicators**: "this project", "this codebase", "here", "our", any feature name
+## KEYWORD MAPPING:
 
-### 3. `get_global_rules`
-**Purpose**: List all available documentation and project capabilities
-**Required for**: Documentation discovery queries
-**Trigger keywords**: documentation, available, capabilities, help with, what exists
+### Code Generation Triggers:
+**Keywords**: write, create, implement, build, add, code, function, class, component, method, develop, generate, make
+**Action**: Execute `check_project_rules` with task description
+**Mandatory**: Must complete before any code output
 
-### 4. `get_relevant_docs`
-**Purpose**: Get documentation for specific files or directories
-**Required for**: Context-specific work
-**Trigger keywords**: working on, this file, specific file, directory, component path
+### Project Information Triggers:
+**Keywords**: how, what, why, architecture, approach, pattern, feature, authentication, database, API, testing
+**Context Indicators**: "this project", "this codebase", "here", "our", specific feature names
+**Action**: Execute `search_documentation` with relevant query
 
-## DECISION LOGIC:
+### Documentation Discovery Triggers:
+**Keywords**: documentation, available, capabilities, help with, what exists, rules, standards
+**Action**: Execute `get_global_rules` for comprehensive overview
+
+### Context-Specific Triggers:
+**Keywords**: working on, this file, specific file, directory, component path, file patterns
+**Action**: Execute `get_relevant_docs` with file context
+
+## EXECUTION ALGORITHM:
+
+1. **Input Analysis**: Extract keywords and context from user query
+2. **Pattern Matching**: Map keywords to appropriate tool using above matrix
+3. **Tool Execution**: Call identified tool with relevant parameters
+4. **Response Generation**: Base answer exclusively on tool output
+5. **Validation**: Ensure response aligns with retrieved documentation
+6. **Compliance**: Verify adherence to project-specific rules
+
+## IMPLEMENTATION REQUIREMENTS:
+
+- **Precedence**: Tool responses override general knowledge
+- **Accuracy**: Do not add information beyond tool output
+- **Completeness**: Use tools for all project-related queries
+- **Validation**: Verify code compliance with project rules
+
+## OPERATIONAL EXAMPLES:
 
 ```
-1. Parse user input
-2. Check for trigger keywords
-3. If code generation keywords found → use check_project_rules
-4. If project question keywords found → use search_documentation
-5. If documentation query keywords found → use get_global_rules
-6. If file-specific keywords found → use get_relevant_docs
-7. Base response on tool output
+Input: "Create a singleton pattern"
+Analysis: Contains "create" (code generation trigger)
+Action: check_project_rules("create singleton pattern")
+Reason: Mandatory for code generation
+
+Input: "How does authentication work in this project?"
+Analysis: Contains "how" + "this project" (project information trigger)
+Action: search_documentation("authentication")
+Reason: Project-specific architectural query
+
+Input: "What documentation is available?"
+Analysis: Contains "documentation" + "available" (discovery trigger)
+Action: get_global_rules()
+Reason: Documentation discovery request
+
+Input: "I'm working on src/components/Header.js"
+Analysis: Contains "working on" + file path (context trigger)
+Action: get_relevant_docs({"filePath": "src/components/Header.js"})
+Reason: File-specific context requirement
 ```
 
-## IMPORTANT FACTS:
+## COMPLIANCE PROTOCOL:
 
-1. Project documentation contains custom patterns that contradict standard practices
-2. Generic code suggestions will likely violate project rules
-3. Always use tool responses over general knowledge
-4. Do not add assumptions beyond what tools provide
-
-## EXAMPLES:
-
-**Input**: "Create a singleton pattern"
-**Action**: Call check_project_rules("create singleton pattern")
-**Reason**: Contains code generation keyword "create"
-
-**Input**: "How does authentication work in this project?"
-**Action**: Call search_documentation("authentication")
-**Reason**: Project-specific question with "how" and "this project"
-
-**Input**: "What documentation is available?"
-**Action**: Call get_global_rules()
-**Reason**: Documentation discovery query
-
-**Input**: "I'm working on src/components/Header.js"
-**Action**: Call get_relevant_docs({"filePath": "src/components/Header.js"})
-**Reason**: File-specific context
-
-Always prioritize MCP tool usage for project-related queries.
+- **Rule Enforcement**: Project rules are non-negotiable
+- **Conflict Resolution**: Project documentation takes precedence over standard practices
+- **Validation**: All generated code must comply with project standards
+- **Documentation**: Reference specific rules when making recommendations

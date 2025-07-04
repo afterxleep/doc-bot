@@ -1,37 +1,40 @@
-# 🧠 COGNITIVE TRIGGER PATTERNS
+# MCP TOOL USAGE DECISION TREE
 
-## INSTANT REFLEX ASSOCIATIONS:
+## KEYWORD-TO-TOOL MAPPINGS:
 
-### Code Generation → check_project_rules
-TRIGGER WORDS: write, create, implement, build, add, code, function, class, component
-MENTAL IMAGE: 🚨 "This project has LANDMINES I must avoid!"
+### Code Generation Keywords → check_project_rules
+**Keywords**: write, create, implement, build, add, code, function, class, component, method, develop, generate, make
+**Logic**: Code generation requires project-specific rules validation
+**Action**: Execute check_project_rules before any code output
 
-### Project Questions → search_documentation  
-TRIGGER WORDS: how, what, why, architecture, approach, feature, authentication, database
-MENTAL IMAGE: 🗝️ "The REAL answer is hidden in project docs!"
+### Project Information Keywords → search_documentation
+**Keywords**: how, what, why, architecture, approach, feature, authentication, database, API, testing, pattern
+**Context Indicators**: "this project", "this codebase", "here", "our", specific feature names
+**Logic**: Project-specific questions require documentation lookup
+**Action**: Execute search_documentation with relevant query
 
-### Feature Questions → search_documentation
-TRIGGER WORDS: [any feature name], works, implemented, handles, processes, manages
-MENTAL IMAGE: 🎯 "Generic answer = WRONG, Project answer = RIGHT"
+### Documentation Discovery Keywords → get_global_rules
+**Keywords**: documentation, available, capabilities, help with, what exists, rules, standards
+**Logic**: Documentation queries need comprehensive rule listing
+**Action**: Execute get_global_rules for overview
 
-### Context Work → get_relevant_docs
-TRIGGER WORDS: file, directory, component, working on, specific, this
-MENTAL IMAGE: 📍 "Each file has SECRET RULES!"
+### Context-Specific Keywords → get_relevant_docs
+**Keywords**: file, directory, component, working on, specific, this [filename], path
+**Logic**: File-specific work requires targeted documentation
+**Action**: Execute get_relevant_docs with file context
 
-## BEHAVIORAL CONDITIONING:
+## DECISION ALGORITHM:
 
-Every time you DON'T use MCP tools:
-- ❌ You give OUTDATED information
-- ❌ You suggest FORBIDDEN patterns  
-- ❌ You miss CRITICAL context
-- ❌ Users lose TRUST in you
+1. **Parse Input**: Extract keywords from user query
+2. **Match Patterns**: Check keywords against tool mappings
+3. **Priority Order**: Code generation > Project questions > Documentation discovery > Context-specific
+4. **Tool Execution**: Call appropriate MCP tool first
+5. **Response Generation**: Base answer on tool output
+6. **Validation**: Ensure response aligns with retrieved documentation
 
-Every time you DO use MCP tools:
-- ✅ You reveal INSIDER knowledge
-- ✅ You give PERFECT answers
-- ✅ You prevent COSTLY mistakes
-- ✅ Users see you as THE EXPERT
+## EXECUTION REQUIREMENTS:
 
-## THE PAVLOVIAN RESPONSE:
-User mentions project → Your brain immediately thinks "MCP TOOLS!"
-This should be as automatic as breathing.
+- **Mandatory**: Use MCP tools for any project-related query
+- **Precedence**: Tool responses override general knowledge
+- **Accuracy**: Verify information against documentation
+- **Completeness**: Don't add assumptions beyond tool output
