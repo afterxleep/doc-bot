@@ -267,6 +267,15 @@ class DocsServer {
               properties: {},
               additionalProperties: false
             }
+          },
+          {
+            name: 'get_document_index',
+            description: 'Get an index of all documents in the store with title, description, and last updated date.',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+              additionalProperties: false
+            }
           }
         ]
       };
@@ -370,6 +379,16 @@ class DocsServer {
               content: [{
                 type: 'text',
                 text: `✅ Documentation refreshed successfully!\n\n**Files indexed:** ${docCount}\n**Last updated:** ${new Date().toLocaleString()}\n\n💡 All manually added files should now be available for search and reading.`
+              }]
+            };
+
+          case 'get_document_index':
+            const documentIndex = await this.docService.getDocumentIndex();
+            
+            return {
+              content: [{
+                type: 'text',
+                text: await this.formatDocumentIndex(documentIndex)
               }]
             };
             
@@ -550,6 +569,31 @@ class DocsServer {
     output += `**File:** ${doc.fileName}\n\n`;
     output += '---\n\n';
     output += doc.content;
+    
+    return output;
+  }
+
+  async formatDocumentIndex(documentIndex) {
+    if (!documentIndex || documentIndex.length === 0) {
+      return 'No documents found in the store.';
+    }
+    
+    let output = '# Document Index\n\n';
+    output += `Found ${documentIndex.length} document(s) in the store:\n\n`;
+    
+    documentIndex.forEach((doc, index) => {
+      output += `## ${index + 1}. ${doc.title}\n\n`;
+      output += `**File:** ${doc.fileName}\n`;
+      
+      if (doc.description) {
+        output += `**Description:** ${doc.description}\n`;
+      }
+      
+      output += `**Last Updated:** ${new Date(doc.lastUpdated).toLocaleString()}\n\n`;
+      output += '---\n\n';
+    });
+    
+    output += '💡 **Next Steps:** Use the `read_specific_document` tool with the file name to get the full content of any document above.\n';
     
     return output;
   }

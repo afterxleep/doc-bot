@@ -308,6 +308,22 @@ class DocumentationService {
     return results;
   }
   
+  async getDocumentIndex() {
+    const index = [];
+    
+    for (const doc of this.documents.values()) {
+      index.push({
+        title: doc.metadata?.title || doc.fileName,
+        description: doc.metadata?.description || '',
+        fileName: doc.fileName,
+        lastUpdated: doc.lastModified.toISOString()
+      });
+    }
+    
+    // Sort by title for consistent ordering
+    return index.sort((a, b) => a.title.localeCompare(b.title));
+  }
+  
 }
 
 module.exports = { DocumentationService };
