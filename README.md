@@ -112,6 +112,8 @@ IDE's use static rule files (like Cursor Rules or Copilot's .github/copilot-inst
      }
    }
    ```
+   Note: If a relative path does not work, you can use VSCode `${workspaceFolder}`environment variable `${workspaceFolder}/my-custom-docs`
+
 
    **With verbose logging (for debugging):**
    ```json
