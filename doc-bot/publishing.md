@@ -2,102 +2,228 @@
 alwaysApply: false
 title: "Publishing Guide"
 description: "How to publish doc-bot to npm"
-keywords: ["publishing", "npm", "deployment", "release"]
-filePatterns: ["*.js"]
+keywords: ["publishing", "npm", "release", "deployment", "versioning"]
 ---
 
-# Publishing doc-bot to npm
+# Publishing Guide
 
-## ✅ Completed Steps
+How to publish doc-bot to npm registry.
 
-1. **✅ Project renamed** to `doc-bot`
-2. **✅ Moved** to `/Users/daniel/Developer/doc-bot`
-3. **✅ Git repository** initialized and configured
-4. **✅ GitHub repository** created at https://github.com/afterxleep/doc-bot
-5. **✅ Code pushed** to GitHub
-6. **✅ Package.json** updated with correct author and repository URLs
-7. **✅ Automated indexing system** implemented with TDD approach
-8. **✅ Documentation and examples** updated to reflect new features
+## Prerequisites
 
-## 🚀 Publishing Process
+1. npm account with publish permissions for `@afterxleep/doc-bot`
+2. Authenticated npm CLI: `npm login`
+3. Clean git working directory
+4. All tests passing
+5. Documentation up to date
 
-### 1. Login to npm
+## Publishing Process
+
+### 1. Pre-publish Checklist
+
+- [ ] All tests pass: `npm test`
+- [ ] Linting passes: `npm run lint`
+- [ ] Documentation is updated
+- [ ] CHANGELOG is updated (if applicable)
+- [ ] Version number is updated in `package.json`
+- [ ] No uncommitted changes: `git status`
+
+### 2. Version Update
+
+Update the version in `package.json` following semantic versioning:
+
 ```bash
-cd /Users/daniel/Developer/doc-bot
-npm login
-```
-Enter your npm credentials when prompted.
+# Patch release (bug fixes)
+npm version patch
 
-### 2. Verify package details
-```bash
-npm run test  # Run tests (if they pass)
-npm run lint  # Check code quality
-```
+# Minor release (new features, backward compatible)
+npm version minor
 
-### 3. Publish to npm
-```bash
-npm publish
-```
+# Major release (breaking changes)
+npm version major
 
-### 4. Verify publication
-```bash
-npm view doc-bot
-```
-
-### 5. Test installation
-```bash
-# In a different directory
-npx doc-bot --help
+# Or manually edit package.json
 ```
 
-## 📦 What Gets Published
+Current version: `0.9.0` → Next: `0.9.1` (patch)
 
-The package includes:
-- `src/` - Core MCP server code
-- `bin/` - CLI executable
-- `README.md` - Comprehensive documentation
+### 3. Final Testing
+
+Run a final test to ensure everything works:
+
+```bash
+# Install dependencies
+npm install
+
+# Run tests
+NODE_OPTIONS=--experimental-vm-modules npm test
+
+# Run linter
+npm run lint
+
+# Test the CLI locally
+node bin/doc-bot.js --help
+```
+
+### 4. Build Verification
+
+Verify what will be published:
+
+```bash
+# Dry run to see what files will be included
+npm publish --dry-run
+```
+
+Expected files to be published:
+- `src/` - All source files
+- `bin/` - CLI executables
+- `prompts/` - Agent optimization templates
+- `README.md` - Package documentation
 - `LICENSE` - MIT license
-- `package.json` - Package configuration
+- `AGENT_INTEGRATION_RULE.txt` - Agent enforcement rules
+- `package.json` - Package manifest
 
-## 🎯 After Publishing
+### 5. Publish to npm
 
-### Usage Instructions for Users
 ```bash
-# Quick start in any project
-npx doc-bot
+# Publish with public access (required for scoped packages)
+npm publish --access public
+```
+
+### 6. Git Tag and Push
+
+After successful publish:
+
+```bash
+# Create git tag
+git tag v0.9.1
+
+# Push commits and tags
+git push origin main --tags
+```
+
+### 7. Create GitHub Release
+
+1. Go to https://github.com/afterxleep/doc-bot/releases
+2. Click "Create a new release"
+3. Select the tag (e.g., `v0.9.1`)
+4. Add release notes highlighting:
+   - New features
+   - Bug fixes
+   - Breaking changes (if any)
+   - Migration guide (if needed)
+
+### 8. Verify Publication
+
+```bash
+# Check npm registry
+npm view @afterxleep/doc-bot
+
+# Test installation
+npx @afterxleep/doc-bot@latest --help
 
 # Or install globally
-npm install -g doc-bot
-doc-bot
+npm install -g @afterxleep/doc-bot@latest
 ```
 
-### Claude Code Configuration
-```json
-{
-  "mcpServers": {
-    "docs": {
-      "command": "npx",
-      "args": ["doc-bot"]
-    }
-  }
-}
+## Version History
+
+- `0.1.0` - Initial release
+- `0.2.0` - Added watch mode
+- `0.3.0` - Improved error handling
+- `0.4.0` - Enhanced inference engine
+- `0.5.0` - Added tool support
+- `0.6.0` - Performance improvements
+- `0.7.0` - Added agent integration
+- `0.8.0` - Enhanced documentation features
+- `0.9.0` - ES modules migration, removed manifest support
+- `0.9.1` - Documentation updates (upcoming)
+
+## Troubleshooting
+
+### Authentication Issues
+
+```bash
+# Check authentication
+npm whoami
+
+# Re-authenticate if needed
+npm login
 ```
 
-## 🔗 Links
+### Permission Denied
 
-- **GitHub Repository**: https://github.com/afterxleep/doc-bot
-- **npm Package**: https://www.npmjs.com/package/doc-bot (after publishing)
+Ensure you have publish rights:
+```bash
+npm owner ls @afterxleep/doc-bot
+```
 
-## 🎉 Project Summary
+### Version Already Exists
 
-**doc-bot** is now ready for publication! It's a complete, generic MCP server that:
+If version already exists:
+1. Update to next version
+2. Commit changes
+3. Try publishing again
 
-- ✅ Works with any project (language/framework agnostic)
-- ✅ Provides intelligent documentation access via MCP protocol
-- ✅ Supports smart inference based on context
-- ✅ Zero configuration - works out of the box
-- ✅ Integrates with Claude Code, Cursor, and other MCP-compatible tools
-- ✅ Open source (MIT license)
-- ✅ Professional documentation and examples
+### Build Failures
 
-The transformation from DuckDuckGo-specific to generic open-source tool is complete!
+1. Clear npm cache: `npm cache clean --force`
+2. Remove node_modules: `rm -rf node_modules`
+3. Reinstall: `npm install`
+4. Try publishing again
+
+## Post-Publish
+
+After publishing:
+
+1. **Announce the Release**
+   - Update project README if needed
+   - Post in relevant channels/forums
+   - Update documentation site
+
+2. **Monitor Issues**
+   - Check GitHub issues for problems
+   - Monitor npm download stats
+   - Respond to user feedback
+
+3. **Plan Next Version**
+   - Create milestone for next release
+   - Triage feature requests
+   - Plan breaking changes carefully
+
+## Emergency Procedures
+
+### Unpublishing (within 72 hours)
+
+```bash
+# Only for serious issues (security, broken package)
+npm unpublish @afterxleep/doc-bot@0.9.1
+```
+
+### Deprecating a Version
+
+```bash
+# Mark version as deprecated
+npm deprecate @afterxleep/doc-bot@0.9.1 "Critical bug, please upgrade to 0.9.2"
+```
+
+## Best Practices
+
+1. **Test in Production-like Environment**
+   - Test with `npm pack` and install locally
+   - Test in fresh directory/container
+
+2. **Semantic Versioning**
+   - Patch: Bug fixes only
+   - Minor: New features, backward compatible
+   - Major: Breaking changes
+
+3. **Clear Communication**
+   - Document breaking changes
+   - Provide migration guides
+   - Update examples
+
+4. **Regular Releases**
+   - Don't accumulate too many changes
+   - Release early and often
+   - Keep changes focused

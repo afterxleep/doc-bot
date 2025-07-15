@@ -189,6 +189,7 @@ alwaysApply: false
 title: "Testing Guide"
 description: "How to write and run tests"
 keywords: ["testing", "jest", "tdd", "unit-tests"]
+filePatterns: ["*.test.js", "*.spec.js", "__tests__/**/*"]
 ---
 
 # Testing Guide
@@ -211,7 +212,9 @@ doc-bot uses frontmatter in your markdown files to automatically detect and cate
 - **`alwaysApply: true`** - Global rules applied to every AI interaction
 - **`alwaysApply: false`** - Contextual rules searched and applied based on relevance
 - **`keywords: ["list", "of", "keywords"]`** - For smart indexing and search
+- **`filePatterns: ["*.js", "src/**/*.ts"]`** - Apply docs to specific files (see below)
 - **`title`** and **`description`** - Standard metadata
+- **`confidence: 0.9`** - Relevance confidence score (0-1)
 
 ### 🎯 Automatic Intelligence
 
@@ -238,6 +241,31 @@ keywords: ["react", "components", "hooks", "jsx"]
 
 Your documentation content here...
 ```
+
+### File Pattern Matching
+
+doc-bot supports contextual documentation using file patterns. Documentation can be targeted to specific files:
+
+```markdown
+---
+alwaysApply: false
+title: "React Testing Guide"
+keywords: ["testing", "jest", "react"]
+filePatterns: ["*.test.jsx", "*.test.tsx", "__tests__/**/*"]
+---
+
+# React Testing Guide
+
+This documentation appears only when working with test files...
+```
+
+**Pattern Examples:**
+- `*.js` - All JavaScript files
+- `src/**/*.ts` - TypeScript files in src directory
+- `[Tt]est.js` - Test.js or test.js
+- `*.{jsx,tsx}` - React component files
+
+When AI requests documentation for a specific file (e.g., `Button.test.jsx`), only docs with matching patterns are returned.
 
 ## Development setup
 
