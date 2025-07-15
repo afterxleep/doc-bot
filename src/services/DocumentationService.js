@@ -1,7 +1,7 @@
-const fs = require('fs-extra');
-const path = require('path');
-const glob = require('glob');
-const yaml = require('yaml');
+import fs from 'fs-extra';
+import path from 'path';
+import { glob } from 'glob';
+import yaml from 'yaml';
 
 class DocumentationService {
   constructor(docsPath, manifestLoader = null) {
@@ -326,4 +326,4 @@ class DocumentationService {
   
 }
 
-module.exports = { DocumentationService };
+export { DocumentationService };

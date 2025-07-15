@@ -1,13 +1,17 @@
-const { InferenceEngine } = require('../InferenceEngine');
-const { DocumentationService } = require('../DocumentationService');
-const { ManifestLoader } = require('../ManifestLoader');
-const fs = require('fs-extra');
-const path = require('path');
+import { jest } from '@jest/globals';
+import { InferenceEngine } from '../InferenceEngine.js';
+import { DocumentationService } from '../DocumentationService.js';
+import fs from 'fs-extra';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 describe('InferenceEngine Integration', () => {
   let inferenceEngine;
   let mockDocService;
-  let mockManifestLoader;
   let tempDir;
 
   beforeEach(async () => {
@@ -109,19 +113,7 @@ Building REST APIs with Express.js.
       getContextualDocs: jest.fn().mockResolvedValue([])
     };
 
-    // Create mock ManifestLoader
-    mockManifestLoader = {
-      load: jest.fn().mockResolvedValue({
-        globalRules: [],
-        contextualRules: {},
-        inference: {
-          keywords: {},
-          patterns: {}
-        }
-      })
-    };
-
-    inferenceEngine = new InferenceEngine(mockDocService, mockManifestLoader);
+    inferenceEngine = new InferenceEngine(mockDocService);
     await inferenceEngine.initialize();
   });
 
@@ -257,7 +249,7 @@ Building REST APIs with Express.js.
         getContextualDocs: jest.fn().mockResolvedValue([])
       };
 
-      const fallbackEngine = new InferenceEngine(failingDocService, mockManifestLoader);
+      const fallbackEngine = new InferenceEngine(failingDocService);
       await fallbackEngine.initialize();
 
       expect(fallbackEngine.isIndexBuilt).toBe(false);

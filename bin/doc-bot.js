@@ -1,17 +1,22 @@
 #!/usr/bin/env node
 
-const { program } = require('commander');
-const path = require('path');
-const fs = require('fs-extra');
-const { DocsServer } = require('../src/index.js');
-const packageJson = require('../package.json');
+import { program } from 'commander';
+import path from 'path';
+import fs from 'fs-extra';
+import { DocsServer } from '../src/index.js';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
 
 program
   .name('doc-bot')
   .description('Generic MCP server for intelligent documentation access')
   .version(packageJson.version)
   .option('-d, --docs <path>', 'Path to docs folder', 'doc-bot')
-  .option('-c, --config <path>', 'Path to manifest file')
   .option('-v, --verbose', 'Enable verbose logging')
   .option('-w, --watch', 'Watch for file changes')
   .parse();
@@ -20,7 +25,6 @@ const options = program.opts();
 
 async function main() {
   const docsPath = path.resolve(options.docs);
-  const configPath = options.config ? path.resolve(options.config) : path.resolve(options.docs, 'manifest.json');
   
   // Check if documentation folder exists
   if (!await fs.pathExists(docsPath)) {
@@ -40,23 +44,8 @@ async function main() {
     process.exit(1);
   }
   
-  // Manifest is now optional - only create if explicitly requested
-  if (options.config && !await fs.pathExists(configPath)) {
-    if (options.verbose) {
-      console.error('📝 Creating default manifest.json...');
-    }
-    const defaultManifest = {
-      name: 'Project Documentation',
-      version: '1.0.0',
-      description: 'AI-powered documentation (auto-generated from frontmatter)',
-      note: 'This manifest is auto-generated. Configure rules using frontmatter in your markdown files.'
-    };
-    await fs.writeJSON(configPath, defaultManifest, { spaces: 2 });
-  }
-  
   const server = new DocsServer({
     docsPath,
-    configPath,
     verbose: options.verbose,
     watch: options.watch
   });
@@ -64,11 +53,7 @@ async function main() {
   if (options.verbose) {
     console.error('🚀 Starting doc-bot...');
     console.error(`📁 Documentation: ${docsPath}`);
-    if (await fs.pathExists(configPath)) {
-      console.error(`⚙️  Configuration: ${configPath}`);
-    } else {
-      console.error(`⚙️  Configuration: Auto-generated from frontmatter`);
-    }
+    console.error(`⚙️  Configuration: Frontmatter-based`);
     
     if (options.watch) {
       console.error('👀 Watching for file changes...');

@@ -1,7 +1,8 @@
 {
   "name": "@afterxleep/doc-bot",
-  "version": "1.8.0",
+  "version": "0.9.0",
   "description": "Generic MCP server for intelligent documentation access in any project",
+  "type": "module",
   "main": "src/index.js",
   "bin": {
     "doc-bot": "bin/doc-bot.js"
@@ -11,7 +12,7 @@
     "start:watch": "node bin/doc-bot.js --verbose --watch",
     "start:examples": "node bin/doc-bot.js --docs ./samples --verbose",
     "dev": "node bin/doc-bot.js --verbose --watch",
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint src/ bin/ --ext .js",
@@ -50,6 +51,10 @@
     "eslint": "^8.57.0",
     "jest": "^29.7.0",
     "supertest": "^6.3.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {}
   },
   "engines": {
     "node": ">=18.0.0"

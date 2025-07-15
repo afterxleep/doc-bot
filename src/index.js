@@ -1,18 +1,21 @@
-const { Server } = require('@modelcontextprotocol/sdk/server/index.js');
-const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
-const { CallToolRequestSchema, ListResourcesRequestSchema, ListToolsRequestSchema, ReadResourceRequestSchema } = require('@modelcontextprotocol/sdk/types.js');
-const { DocumentationService } = require('./services/DocumentationService.js');
-const { InferenceEngine } = require('./services/InferenceEngine.js');
-const { ManifestLoader } = require('./services/ManifestLoader.js');
-const chokidar = require('chokidar');
-const path = require('path');
-const fs = require('fs').promises;
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { CallToolRequestSchema, ListResourcesRequestSchema, ListToolsRequestSchema, ReadResourceRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { DocumentationService } from './services/DocumentationService.js';
+import { InferenceEngine } from './services/InferenceEngine.js';
+import chokidar from 'chokidar';
+import path from 'path';
+import { promises as fs } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 class DocsServer {
   constructor(options = {}) {
     this.options = {
       docsPath: options.docsPath || './doc-bot',
-      configPath: options.configPath || './doc-bot/manifest.json', // Optional, for backward compatibility
       verbose: options.verbose || false,
       watch: options.watch || false,
       ...options
@@ -32,10 +35,8 @@ class DocsServer {
       }
     });
     
-    // ManifestLoader is now optional - only create if manifest exists
-    this.manifestLoader = null;
     this.docService = new DocumentationService(this.options.docsPath);
-    this.inferenceEngine = new InferenceEngine(this.docService, null);
+    this.inferenceEngine = new InferenceEngine(this.docService);
     
     this.setupHandlers();
     
@@ -60,7 +61,6 @@ class DocsServer {
   setupHandlers() {
     // List available resources
     this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
-      const manifest = await this.manifestLoader.load();
       return {
         resources: [
           {
@@ -79,12 +79,6 @@ class DocsServer {
             uri: 'docs://contextual',
             name: 'Contextual Documentation',
             description: 'Smart documentation suggestions based on your current context',
-            mimeType: 'application/json'
-          },
-          {
-            uri: 'docs://manifest',
-            name: 'Documentation Manifest',
-            description: 'Project documentation configuration',
             mimeType: 'application/json'
           },
           {
@@ -122,24 +116,6 @@ class DocsServer {
             }]
           };
           
-        case 'docs://manifest':
-          // Generate manifest from frontmatter data
-          const manifestDocs = await this.docService.getAllDocuments();
-          const generatedManifest = {
-            name: 'Project Documentation',
-            version: '1.0.0',
-            description: 'Auto-generated from frontmatter',
-            globalRules: manifestDocs.filter(doc => doc.metadata?.alwaysApply === true).map(doc => doc.fileName),
-            contextualRules: this.extractContextualRules(manifestDocs)
-          };
-          return {
-            contents: [{
-              uri,
-              mimeType: 'application/json',
-              text: JSON.stringify(generatedManifest, null, 2)
-            }]
-          };
-
         case 'docs://system-prompt':
           const systemPrompt = await this.generateSystemPrompt();
           return {
@@ -407,7 +383,7 @@ class DocsServer {
   }
   
   setupWatcher() {
-    const watcher = chokidar.watch([this.options.docsPath, this.options.configPath], {
+    const watcher = chokidar.watch(this.options.docsPath, {
       ignored: /(^|[\/\\])\../, // ignore dotfiles
       persistent: true
     });
@@ -417,15 +393,8 @@ class DocsServer {
         console.error(`📄 Documentation updated: ${path.relative(process.cwd(), filePath)}`);
       }
       
-      // Reload manifest if config changed
-      if (filePath === this.options.configPath) {
-        await this.manifestLoader.reload();
-      }
-      
       // Reload docs if documentation changed
-      if (filePath.startsWith(this.options.docsPath)) {
-        await this.docService.reload();
-      }
+      await this.docService.reload();
     });
   }
   
@@ -599,12 +568,11 @@ class DocsServer {
   }
 
   async createOrUpdateRule({ fileName, title, description, keywords, alwaysApply, content }) {
-    const fs = require('fs-extra');
-    const path = require('path');
+    const { default: fsExtra } = await import('fs-extra');
     
     try {
       // Ensure the docs directory exists
-      await fs.ensureDir(this.options.docsPath);
+      await fsExtra.ensureDir(this.options.docsPath);
       
       // Create the full file path
       const filePath = path.join(this.options.docsPath, fileName);
@@ -625,7 +593,7 @@ class DocsServer {
       const fullContent = frontmatter + content;
       
       // Check if file exists to determine if this is create or update
-      const fileExists = await fs.pathExists(filePath);
+      const fileExists = await fsExtra.pathExists(filePath);
       const action = fileExists ? 'updated' : 'created';
       
       // Write the file
@@ -867,15 +835,6 @@ class DocsServer {
   }
   
   async start() {
-    // Initialize manifest loader if manifest exists (backward compatibility)
-    const fs = require('fs-extra');
-    if (await fs.pathExists(this.options.configPath)) {
-      this.manifestLoader = new ManifestLoader(this.options.configPath);
-      await this.manifestLoader.load();
-      // Update services with manifest loader
-      this.inferenceEngine = new InferenceEngine(this.docService, this.manifestLoader);
-    }
-    
     // Initialize services
     await this.docService.initialize();
     await this.inferenceEngine.initialize();
@@ -886,13 +845,9 @@ class DocsServer {
     
     if (this.options.verbose) {
       console.error('🔧 Server initialized with MCP transport');
-      if (this.manifestLoader) {
-        console.error('📄 Using manifest.json for additional configuration');
-      } else {
-        console.error('🚀 Using frontmatter-based configuration (no manifest needed)');
-      }
+      console.error('🚀 Using frontmatter-based configuration');
     }
   }
 }
 
-module.exports = { DocsServer };
+export { DocsServer };
