@@ -10,7 +10,7 @@ It's platform agnostic and designed to replace and extend the rule systems provi
 ## What is doc-bot?
 
 doc-bot is an intelligent documentation server that:
-- 🧠 **Auto-indexes** content for smart inference, based on content and keywords
+- 🧠 **Auto-indexes** content for smart inference, based on metadata and keywords
 - 🤖 **Provides agentic tools** to query, and update your documentation
 - 🔄 **Updates** automatically when docs change
 
