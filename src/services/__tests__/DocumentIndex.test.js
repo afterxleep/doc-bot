@@ -1,4 +1,4 @@
-const { DocumentIndex } = require('../DocumentIndex');
+import { DocumentIndex } from '../DocumentIndex.js';
 
 describe('DocumentIndex', () => {
   let documentIndex;

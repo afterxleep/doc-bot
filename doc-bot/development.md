@@ -61,9 +61,7 @@ node test-server.js
 doc-bot [options]
 
 Options:
-  -p, --port <port>        Port to run server on (default: 3000)
-  -d, --docs <path>        Path to docs folder (default: ./docs.ai)
-  -c, --config <path>      Path to manifest file (default: ./docs.ai/manifest.json)
+  -d, --docs <path>        Path to docs folder (default: ./doc-bot)
   -v, --verbose           Enable verbose logging
   -w, --watch             Watch for file changes
   -h, --help              Show help

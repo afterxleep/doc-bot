@@ -376,4 +376,4 @@ class DocumentIndex {
   }
 }
 
-module.exports = { DocumentIndex };
+export { DocumentIndex };

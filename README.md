@@ -204,7 +204,7 @@ Run tests with: `npm test`
 
 ## Frontmatter-Based Configuration
 
-doc-bot uses frontmatter in your markdown files to automatically detect and categorize rules - **no manifest.json required!**
+doc-bot uses frontmatter in your markdown files to automatically detect and categorize rules.
 
 ### Frontmatter Fields:
 
@@ -263,13 +263,7 @@ Your documentation content here...
    ```bash
    npm run dev
    ```
-
-5. **Run with examples documentation:**
-   ```bash
-   npm run start:examples
-   ```
-
-6. **Run tests:**
+5. **Run tests:**
    ```bash
    npm test
    ```
@@ -287,7 +281,6 @@ doc-bot [options]
 
 Options:
   -d, --docs <path>        Path to docs folder (default: doc-bot)
-  -c, --config <path>      Path to manifest file (optional, for backward compatibility)
   -v, --verbose           Enable verbose logging
   -w, --watch             Watch for file changes
   -h, --help              Show help
@@ -303,9 +296,6 @@ doc-bot --docs ./my-docs
 
 # With verbose logging and file watching
 doc-bot --verbose --watch
-
-# With optional manifest for backward compatibility
-doc-bot --config ./manifest.json
 ```
 
 ## Publishing and Development

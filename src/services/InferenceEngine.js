@@ -1,10 +1,9 @@
-const path = require('path');
-const { DocumentIndex } = require('./DocumentIndex');
+import path from 'path';
+import { DocumentIndex } from './DocumentIndex.js';
 
 class InferenceEngine {
-  constructor(documentationService, manifestLoader = null) {
+  constructor(documentationService) {
     this.docService = documentationService;
-    this.manifestLoader = manifestLoader;
     this.documentIndex = new DocumentIndex();
     this.isIndexBuilt = false;
   }
@@ -106,52 +105,13 @@ class InferenceEngine {
   }
   
   async getDocsByKeywords(query) {
-    if (!this.manifestLoader) {
-      return [];
-    }
-    
-    const manifest = await this.manifestLoader.load();
-    const keywords = manifest.inference?.keywords || {};
-    
-    const docs = [];
-    const queryLower = query.toLowerCase();
-    
-    for (const [keyword, docPaths] of Object.entries(keywords)) {
-      if (queryLower.includes(keyword.toLowerCase())) {
-        for (const docPath of docPaths) {
-          const doc = this.docService.getDocument(docPath);
-          if (doc) {
-            docs.push(doc);
-          }
-        }
-      }
-    }
-    
-    return docs;
+    // Now handled by DocumentIndex
+    return [];
   }
   
   async getDocsByPatterns(codeSnippet) {
-    if (!this.manifestLoader) {
-      return [];
-    }
-    
-    const manifest = await this.manifestLoader.load();
-    const patterns = manifest.inference?.patterns || {};
-    
-    const docs = [];
-    
-    for (const [pattern, docPaths] of Object.entries(patterns)) {
-      if (codeSnippet.includes(pattern)) {
-        for (const docPath of docPaths) {
-          const doc = this.docService.getDocument(docPath);
-          if (doc) {
-            docs.push(doc);
-          }
-        }
-      }
-    }
-    
-    return docs;
+    // Now handled by DocumentIndex
+    return [];
   }
   
   async getDocsByFileExtension(filePath) {
@@ -245,4 +205,4 @@ class InferenceEngine {
   }
 }
 
-module.exports = { InferenceEngine };
+export { InferenceEngine };
