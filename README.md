@@ -10,24 +10,21 @@ It's platform agnostic and designed to replace and extend the rule systems provi
 ## What is doc-bot?
 
 doc-bot is an intelligent documentation server that:
-- 🔍 **Searches** your project documentation instantly
-- 🧠 **Auto-indexes** content for smart inference (no manual keyword mapping!)
-- 📋 **Applies** global rules to every AI interaction
-- 🎯 **Suggests** contextual documentation based on file patterns
-- 🤖 **Detects** code patterns, frameworks, and keywords automatically
+- 🧠 **Auto-indexes** content for smart inference, based on content and keywords
+- 🤖 **Provides agentic tools** to query, and update your documentation
 - 🔄 **Updates** automatically when docs change
 
 ## Why MCP Instead of Static Rules?
 
-Traditional AI assistants use static rule files (like Cursor Rules or Copilot's .github/copilot-instructions.md) that have significant limitations. doc-bot's MCP approach offers powerful advantages:
+IDE's use static rule files (like Cursor Rules or Copilot's .github/copilot-instructions.md), and each one has their own format, metadata and approach.
 
 ### 🚀 Dynamic Search vs Static Rules
 
 **Static Systems:**
 - All rules must fit in a single file or limited token window
 - AI reads everything, even irrelevant rules
-- No way to search or filter documentation
-- Rules compete for precious context space
+- No way to search or filter documentation (besides plain 'grep')
+- Rules compete for context space
 
 **MCP with doc-bot:**
 - AI searches for exactly what it needs
@@ -38,9 +35,8 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
 ### 🧠 Contextual Intelligence
 
 **Static Systems:**
-- Same rules applied everywhere
-- No awareness of what you're working on
-- Can't provide specific help for your current task
+- Duplicate or symlinked rules to work with multiple agents
+- Agents use `grep` for basic text-base searching
 
 **MCP with doc-bot:**
 - AI searches for relevant documentation based on your query
@@ -51,8 +47,8 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
 ### 📈 Scalability Without Limits
 
 **Static Systems:**
-- Limited by token count (typically 2-4k tokens)
-- Adding more rules means removing others
+- Limited by token count
+- Adding more rules has impact in your context window
 - Documentation competes with your actual code for context
 
 **MCP with doc-bot:**
@@ -66,7 +62,7 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
 **Static Systems:**
 - Changes require restarting your AI/IDE
 - No way to know if rules are current
-- Manual synchronization across tools
+- Manual synchronization across tools and AI agents
 
 **MCP with doc-bot:**
 - Hot reload on documentation changes
@@ -84,7 +80,7 @@ Traditional AI assistants use static rule files (like Cursor Rules or Copilot's 
 **MCP with doc-bot:**
 - AI can list all available documentation
 - Discovers relevant docs automatically
-- Suggests documentation based on context
+- Suggests documentation based on relevance
 - Searchable knowledge base with intelligent ranking
 - No need for AI to grep through your codebase - dedicated search engine
 
