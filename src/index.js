@@ -3,8 +3,11 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListResourcesRequestSchema, ListToolsRequestSchema, ReadResourceRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { DocumentationService } from './services/DocumentationService.js';
 import { InferenceEngine } from './services/InferenceEngine.js';
+import { DocsetService } from './services/docset/index.js';
+import { MultiDocsetDatabase } from './services/docset/database.js';
 import chokidar from 'chokidar';
 import path from 'path';
+import os from 'os';
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -16,6 +19,7 @@ class DocsServer {
   constructor(options = {}) {
     this.options = {
       docsPath: options.docsPath || './doc-bot',
+      docsetsPath: options.docsetsPath || path.join(os.homedir(), 'Developer', 'DocSets'),
       verbose: options.verbose || false,
       watch: options.watch || false,
       ...options
@@ -37,6 +41,10 @@ class DocsServer {
     
     this.docService = new DocumentationService(this.options.docsPath);
     this.inferenceEngine = new InferenceEngine(this.docService);
+    
+    // Initialize docset services
+    this.docsetService = new DocsetService(this.options.docsetsPath);
+    this.docsetDatabase = new MultiDocsetDatabase();
     
     this.setupHandlers();
     
@@ -252,6 +260,95 @@ class DocsServer {
               properties: {},
               additionalProperties: false
             }
+          },
+          // Docset tools
+          {
+            name: 'add_docset',
+            description: 'Add a new documentation set from a URL or local file path. Supports .docset directories, .tgz/.tar.gz/.zip archives.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                source: {
+                  type: 'string',
+                  description: 'URL to download docset from OR local file path. Example: https://example.com/iOS.tgz or /path/to/Swift.docset'
+                }
+              },
+              required: ['source']
+            }
+          },
+          {
+            name: 'remove_docset',
+            description: 'Remove an installed documentation set',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                docsetId: {
+                  type: 'string',
+                  description: 'ID of the docset to remove'
+                }
+              },
+              required: ['docsetId']
+            }
+          },
+          {
+            name: 'list_docsets',
+            description: 'List all installed documentation sets',
+            inputSchema: {
+              type: 'object',
+              properties: {}
+            }
+          },
+          {
+            name: 'search_docsets',
+            description: 'Search installed documentation sets for API references, classes, methods, and guides. Returns official documentation with direct file links.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                query: {
+                  type: 'string',
+                  description: 'Search query - can be class names, method names, concepts, or any technical term'
+                },
+                type: {
+                  type: 'string',
+                  description: 'Optional: filter by type (Class, Method, Function, Guide, Property, Protocol, Enum, etc.)',
+                  enum: ['Class', 'Method', 'Function', 'Property', 'Protocol', 'Enum', 'Structure', 'Guide', 'Sample', 'Category', 'Constant', 'Variable', 'Typedef', 'Macro']
+                },
+                docsetId: {
+                  type: 'string',
+                  description: 'Optional: limit search to specific docset ID'
+                },
+                limit: {
+                  type: 'number',
+                  description: 'Maximum results to return (default: 50)',
+                  minimum: 1,
+                  maximum: 200,
+                  default: 50
+                }
+              },
+              required: ['query']
+            }
+          },
+          {
+            name: 'docset_stats',
+            description: 'Get detailed statistics about installed documentation sets',
+            inputSchema: {
+              type: 'object',
+              properties: {}
+            }
+          },
+          {
+            name: 'search_all',
+            description: 'Search both Markdown documentation and installed docsets. Provides unified results from all sources.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                query: {
+                  type: 'string',
+                  description: 'Search query to find in both documentation types'
+                }
+              },
+              required: ['query']
+            }
           }
         ]
       };
@@ -365,6 +462,134 @@ class DocsServer {
               content: [{
                 type: 'text',
                 text: await this.formatDocumentIndex(documentIndex)
+              }]
+            };
+            
+          // Docset tools
+          case 'add_docset':
+            const { source } = args || {};
+            if (!source) {
+              throw new Error('source parameter is required');
+            }
+            
+            try {
+              const docsetInfo = await this.docsetService.addDocset(source);
+              this.docsetDatabase.addDocset(docsetInfo);
+              
+              return {
+                content: [{
+                  type: 'text',
+                  text: JSON.stringify({
+                    success: true,
+                    docset: docsetInfo,
+                    message: `Successfully added docset: ${docsetInfo.name}`
+                  }, null, 2)
+                }]
+              };
+            } catch (error) {
+              return {
+                content: [{
+                  type: 'text',
+                  text: JSON.stringify({
+                    success: false,
+                    error: error.message
+                  }, null, 2)
+                }]
+              };
+            }
+            
+          case 'remove_docset':
+            const { docsetId } = args || {};
+            if (!docsetId) {
+              throw new Error('docsetId parameter is required');
+            }
+            
+            try {
+              await this.docsetService.removeDocset(docsetId);
+              this.docsetDatabase.removeDocset(docsetId);
+              
+              return {
+                content: [{
+                  type: 'text',
+                  text: JSON.stringify({
+                    success: true,
+                    message: `Successfully removed docset: ${docsetId}`
+                  }, null, 2)
+                }]
+              };
+            } catch (error) {
+              return {
+                content: [{
+                  type: 'text',
+                  text: JSON.stringify({
+                    success: false,
+                    error: error.message
+                  }, null, 2)
+                }]
+              };
+            }
+            
+          case 'list_docsets':
+            const docsets = await this.docsetService.listDocsets();
+            
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify(docsets, null, 2)
+              }]
+            };
+            
+          case 'search_docsets':
+            const { query: docsetQuery, type, docsetId: searchDocsetId, limit } = args || {};
+            if (!docsetQuery) {
+              throw new Error('query parameter is required');
+            }
+            
+            const docsetResults = this.docsetDatabase.search(docsetQuery, { type, docsetId: searchDocsetId, limit });
+            
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  query: docsetQuery,
+                  resultCount: docsetResults.length,
+                  results: docsetResults
+                }, null, 2)
+              }]
+            };
+            
+          case 'docset_stats':
+            const stats = this.docsetDatabase.getStats();
+            
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify(stats, null, 2)
+              }]
+            };
+            
+          case 'search_all':
+            const { query: allQuery } = args || {};
+            if (!allQuery) {
+              throw new Error('query parameter is required');
+            }
+            
+            // Search markdown documentation
+            const markdownResults = await this.docService.searchDocuments(allQuery);
+            
+            // Search docsets
+            const allDocsetResults = this.docsetDatabase.search(allQuery, { limit: 50 });
+            
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  query: allQuery,
+                  sources: ['markdown', 'docsets'],
+                  markdownResults: markdownResults.slice(0, 10),
+                  docsetResults: allDocsetResults,
+                  totalResults: markdownResults.length + allDocsetResults.length
+                }, null, 2)
               }]
             };
             
@@ -839,6 +1064,19 @@ class DocsServer {
     await this.docService.initialize();
     await this.inferenceEngine.initialize();
     
+    // Initialize docset service
+    await this.docsetService.initialize();
+    
+    // Load existing docsets into the database
+    const existingDocsets = await this.docsetService.listDocsets();
+    for (const docset of existingDocsets) {
+      this.docsetDatabase.addDocset(docset);
+    }
+    
+    if (this.options.verbose && existingDocsets.length > 0) {
+      console.error(`📚 Loaded ${existingDocsets.length} docsets from ${this.docsetService.storagePath}`);
+    }
+    
     // Start server
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
@@ -847,6 +1085,13 @@ class DocsServer {
       console.error('🔧 Server initialized with MCP transport');
       console.error('🚀 Using frontmatter-based configuration');
     }
+  }
+  
+  async stop() {
+    if (this.docsetDatabase) {
+      this.docsetDatabase.closeAll();
+    }
+    await this.server.close();
   }
 }
 

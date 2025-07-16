@@ -13,6 +13,7 @@ doc-bot is an intelligent documentation server that:
 - 🧠 **Auto-indexes** content for smart inference, based on metadata and keywords
 - 🤖 **Provides agentic tools** to query, and update your documentation
 - 🔄 **Updates** automatically when docs change
+- 📚 **Supports Docsets** for searching official API documentation alongside your custom docs
 
 ## Why MCP Instead of Static Rules?
 
@@ -108,6 +109,18 @@ IDE's use static rule files (like Cursor Rules or Copilot's .github/copilot-inst
        "doc-bot": {
          "command": "npx",
          "args": ["@afterxleep/doc-bot@latest", "--docs", "./my-custom-docs"]
+       }
+     }
+   }
+   ```
+   
+   **With Docsets support (for official API documentation):**
+   ```json
+   {
+     "mcpServers": {
+       "doc-bot": {
+         "command": "npx",
+         "args": ["@afterxleep/doc-bot@latest", "--docs", "./docs", "--docsets", "~/MyDocSets"]
        }
      }
    }
@@ -385,6 +398,23 @@ git commit -m "feat: your feature description"
 git push origin main
 git push --tags  # Push version tags
 ```
+
+## Docset Support
+
+doc-bot now supports [Docsets](https://kapeli.com/docsets) - pre-indexed documentation used by Dash, Zeal, and Velocity. This allows you to search official API documentation alongside your custom project docs.
+
+### Key Features
+- Search iOS, macOS, Swift, and other official documentation
+- Install docsets from URLs or local files
+- Unified search across both custom docs and official APIs
+- No manual HTML parsing required
+
+### Quick Start
+1. **Install a docset**: Use the `add_docset` tool with a URL or local path
+2. **Search documentation**: Use `search_docsets` for docsets only, or `search_all` for unified results
+3. **Manage docsets**: List installed docsets with `list_docsets`, remove with `remove_docset`
+
+See [DOCSETS.md](./DOCSETS.md) for detailed documentation.
 
 ## License
 
