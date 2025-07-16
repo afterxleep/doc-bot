@@ -148,23 +148,6 @@ keywords: ["database", "postgres", "schema", "migrations"]
 Documentation found through search queries
 ```
 
-### Example Project Structure
-
-```
-doc-bot/
-├── standards/
-│   ├── coding-style.md      # alwaysApply: true
-│   ├── git-workflow.md      # alwaysApply: true
-│   └── security-rules.md    # alwaysApply: true
-├── guides/
-│   ├── testing.md           # filePatterns: ["*.test.*"]
-│   ├── react-components.md  # filePatterns: ["*.jsx", "*.tsx"]
-│   └── api-endpoints.md     # filePatterns: ["**/api/**"]
-└── references/
-    ├── database-schema.md   # Searchable reference
-    ├── deployment.md        # Searchable reference
-    └── troubleshooting.md   # Searchable reference
-```
 
 ## Docsets (API Documentation)
 
@@ -185,11 +168,13 @@ Docsets are pre-built documentation databases containing official docs for:
    - [Zeal](https://zealdocs.org/) (Windows/Linux)
    - [Direct downloads](https://kapeli.com/feeds)
 
-2. **Place in default location**:
-   - Default: `~/Developer/DocSets`
-   - Or specify custom path: `--docsets /path/to/docsets`
+2. **Ask your AI agent to install them**:
+   ```
+     Add docset /PATH/TO/DOCSET/DOWNLOAD.docset
+   ```
+   Docsets are automatically stored in : `~/Developer/DocSets` (macOS), but you can define a custom path.   
 
-3. **Configure** (optional):
+3. **Configure** (with optional custom path):
    ```json
    {
      "mcpServers": {
@@ -317,4 +302,4 @@ MIT - See [LICENSE](LICENSE) for details.
 
 ---
 
-Built with ❤️ to make AI assistants truly understand your project.
+Built with ❤️ in Spain
