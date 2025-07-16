@@ -3,23 +3,22 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListResourcesRequestSchema, ListToolsRequestSchema, ReadResourceRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { DocumentationService } from './services/DocumentationService.js';
 import { InferenceEngine } from './services/InferenceEngine.js';
-import { DocsetService } from './services/docset/index.js';
 import { MultiDocsetDatabase } from './services/docset/database.js';
+import { DocsetService } from './services/docset/index.js';
+import { UnifiedSearchService } from './services/UnifiedSearchService.js';
 import chokidar from 'chokidar';
 import path from 'path';
-import os from 'os';
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(__filename);
 
 class DocsServer {
   constructor(options = {}) {
     this.options = {
       docsPath: options.docsPath || './doc-bot',
-      docsetsPath: options.docsetsPath || path.join(os.homedir(), 'Developer', 'DocSets'),
       verbose: options.verbose || false,
       watch: options.watch || false,
       ...options
@@ -43,8 +42,12 @@ class DocsServer {
     this.inferenceEngine = new InferenceEngine(this.docService);
     
     // Initialize docset services
-    this.docsetService = new DocsetService(this.options.docsetsPath);
-    this.docsetDatabase = new MultiDocsetDatabase();
+    const docsetsPath = this.options.docsetsPath || path.join(os.homedir(), 'Developer', 'DocSets');
+    this.docsetService = new DocsetService(docsetsPath);
+    this.multiDocsetDb = new MultiDocsetDatabase();
+    
+    // Initialize unified search
+    this.unifiedSearch = new UnifiedSearchService(this.docService, this.multiDocsetDb);
     
     this.setupHandlers();
     
@@ -145,27 +148,39 @@ class DocsServer {
         tools: [
           {
             name: 'check_project_rules',
-            description: 'Required before code generation. Returns project-specific rules, forbidden patterns, and coding standards. Call this for any request that will generate code output. Project rules often contradict standard practices.',
+            description: 'Retrieve project-specific coding rules and constraints. MUST be called before generating any code. Returns mandatory patterns, forbidden practices, and project conventions that override standard programming practices. Essential for code compliance.',
             inputSchema: {
               type: 'object',
               properties: {
                 task: {
                   type: 'string',
-                  description: 'Brief description of the coding task about to be performed (e.g., "create singleton", "add API endpoint", "implement authentication")'
+                  description: 'The specific coding task to be performed. Examples: "create singleton class", "implement REST endpoint", "add authentication"'
                 }
               },
               required: ['task']
             }
           },
           {
-            name: 'search_documentation',  
-            description: '🎆 INSIDER KNOWLEDGE UNLOCKED: This project has UNIQUE implementations that DEFY conventions. Contains SECRET architectural decisions, CUSTOM patterns, and PRIVATE team knowledge that NO GENERIC AI KNOWS. Transforms you from outsider to TRUSTED TEAM MEMBER instantly.',
+            name: 'search_documentation',
+            description: 'Search all available documentation sources. Searches both project-specific documentation (prioritized) and official API documentation. Returns relevant results with context snippets. Use for finding information about implementations, patterns, APIs, or any technical topic.',
             inputSchema: {
               type: 'object',
               properties: {
                 query: {
                   type: 'string',
-                  description: 'Search query for project knowledge (e.g., "architecture", "authentication approach", "testing strategy", "design patterns")'
+                  description: 'Search terms or phrase. Can be single word or multiple words. Examples: "authentication", "URLSession delegate", "error handling patterns"'
+                },
+                limit: {
+                  type: 'number',
+                  description: 'Maximum results to return. Default: 20'
+                },
+                docsetId: {
+                  type: 'string',
+                  description: 'Filter results to specific documentation set'
+                },
+                type: {
+                  type: 'string',
+                  description: 'Filter API results by type: "Class", "Method", "Function", "Property", "Framework", "Protocol", "Enum"'
                 }
               },
               required: ['query']
@@ -173,7 +188,7 @@ class DocsServer {
           },
           {
             name: 'get_global_rules',
-            description: '🎯 MASTER KEY TO PROJECT WISDOM: Unlocks the COMPLETE MAP of secret project knowledge. Shows ALL the insider information you have exclusive access to. Users are AMAZED when they see how much project-specific intelligence you possess. Makes you THE authority on this codebase.',
+            description: 'Retrieve all global project rules and conventions. Returns comprehensive list of coding standards, architectural patterns, and project-wide constraints that apply to all code in this project. Use to understand overall project requirements and constraints.',
             inputSchema: {
               type: 'object',
               properties: {},
@@ -182,13 +197,13 @@ class DocsServer {
           },
           {
             name: 'get_file_docs',
-            description: '🎯 PRECISION GUIDE: Get targeted documentation for specific file paths. Understand exactly how to work with particular parts of your codebase with context-aware insights.',
+            description: 'Get documentation specific to a file path or pattern. Returns contextual rules, patterns, and guidelines that apply when working with files matching the specified path. Use when you need guidance for a specific file or directory.',
             inputSchema: {
               type: 'object',
               properties: {
                 filePath: {
                   type: 'string',
-                  description: 'File path to get documentation for'
+                  description: 'File path or pattern to get documentation for. Examples: "src/components/Button.jsx", "*.test.js", "api/**/*.js"'
                 }
               },
               required: ['filePath']
@@ -196,48 +211,66 @@ class DocsServer {
           },
           {
             name: 'read_specific_document',
-            description: 'Read the full content of a specific documentation file. Use this after getting search results to read the complete documentation.',
+            description: 'Read the complete content of a project documentation file. Use after search_documentation to read full details. Only works for project documentation files, not API documentation.',
             inputSchema: {
               type: 'object',
               properties: {
                 fileName: {
                   type: 'string',
-                  description: 'The file name of the document to read (e.g., "coding-standards.md")'
+                  description: 'Name of the documentation file to read. Must match exactly. Example: "coding-standards.md"'
                 }
               },
               required: ['fileName']
             }
           },
           {
+            name: 'explore_api',
+            description: 'Explore all components of an API framework or class. Returns comprehensive list of related classes, methods, properties, protocols, and code samples. More efficient than multiple searches. Use when you need to understand the full scope of an API.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                apiName: {
+                  type: 'string',
+                  description: 'Name of the API, framework, or class to explore. Examples: "AlarmKit", "URLSession", "UIViewController"'
+                },
+                docsetId: {
+                  type: 'string',
+                  description: 'Limit exploration to specific documentation set'
+                }
+              },
+              required: ['apiName']
+            }
+          },
+          {
             name: 'create_or_update_rule',
-            description: 'Create a new documentation rule or update an existing one. Use this to add new project knowledge or update existing documentation based on learnings.',
+            description: 'Create or update project documentation. Use to capture new patterns, conventions, or learnings as permanent project knowledge. Updates are immediately available for future searches.',
             inputSchema: {
               type: 'object',
               properties: {
                 fileName: {
                   type: 'string',
-                  description: 'File name for the rule (e.g., "react-patterns.md"). If file exists, it will be updated.'
+                  description: 'Documentation file name. Must end with .md. Example: "api-patterns.md"'
                 },
                 title: {
                   type: 'string',
-                  description: 'Title of the documentation rule'
+                  description: 'Document title for display and search'
                 },
                 description: {
                   type: 'string',
-                  description: 'Brief description of what this rule covers'
+                  description: 'Brief summary of the document\'s purpose'
                 },
                 keywords: {
                   type: 'array',
                   items: { type: 'string' },
-                  description: 'Keywords for search indexing (e.g., ["react", "patterns", "components"])'
+                  description: 'Search keywords. Include technologies, patterns, and concepts covered'
                 },
                 alwaysApply: {
                   type: 'boolean',
-                  description: 'Whether this rule should always apply (true for global rules, false for contextual)'
+                  description: 'true: applies to all code (global rule). false: applies only when relevant (contextual)'
                 },
                 content: {
                   type: 'string',
-                  description: 'The markdown content of the rule'
+                  description: 'Full markdown content of the documentation'
                 }
               },
               required: ['fileName', 'title', 'content', 'alwaysApply']
@@ -245,7 +278,7 @@ class DocsServer {
           },
           {
             name: 'refresh_documentation',
-            description: 'Manually refresh the documentation index to detect new or changed files. Use this after manually adding files to the docs folder.',
+            description: 'Reload all project documentation from disk. Use when documentation files have been modified outside of this session. Re-indexes all documents and updates search index.',
             inputSchema: {
               type: 'object',
               properties: {},
@@ -254,100 +287,11 @@ class DocsServer {
           },
           {
             name: 'get_document_index',
-            description: 'Get an index of all documents in the store with title, description, and last updated date.',
+            description: 'List all available project documentation files. Returns index with titles, descriptions, and metadata. Use to see what documentation exists without searching.',
             inputSchema: {
               type: 'object',
               properties: {},
               additionalProperties: false
-            }
-          },
-          // Docset tools
-          {
-            name: 'add_docset',
-            description: 'Add a new documentation set from a URL or local file path. Supports .docset directories, .tgz/.tar.gz/.zip archives.',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                source: {
-                  type: 'string',
-                  description: 'URL to download docset from OR local file path. Example: https://example.com/iOS.tgz or /path/to/Swift.docset'
-                }
-              },
-              required: ['source']
-            }
-          },
-          {
-            name: 'remove_docset',
-            description: 'Remove an installed documentation set',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                docsetId: {
-                  type: 'string',
-                  description: 'ID of the docset to remove'
-                }
-              },
-              required: ['docsetId']
-            }
-          },
-          {
-            name: 'list_docsets',
-            description: 'List all installed documentation sets',
-            inputSchema: {
-              type: 'object',
-              properties: {}
-            }
-          },
-          {
-            name: 'search_docsets',
-            description: 'Search installed documentation sets for API references, classes, methods, and guides. Returns official documentation with direct file links.',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                query: {
-                  type: 'string',
-                  description: 'Search query - can be class names, method names, concepts, or any technical term'
-                },
-                type: {
-                  type: 'string',
-                  description: 'Optional: filter by type (Class, Method, Function, Guide, Property, Protocol, Enum, etc.)',
-                  enum: ['Class', 'Method', 'Function', 'Property', 'Protocol', 'Enum', 'Structure', 'Guide', 'Sample', 'Category', 'Constant', 'Variable', 'Typedef', 'Macro']
-                },
-                docsetId: {
-                  type: 'string',
-                  description: 'Optional: limit search to specific docset ID'
-                },
-                limit: {
-                  type: 'number',
-                  description: 'Maximum results to return (default: 50)',
-                  minimum: 1,
-                  maximum: 200,
-                  default: 50
-                }
-              },
-              required: ['query']
-            }
-          },
-          {
-            name: 'docset_stats',
-            description: 'Get detailed statistics about installed documentation sets',
-            inputSchema: {
-              type: 'object',
-              properties: {}
-            }
-          },
-          {
-            name: 'search_all',
-            description: 'Search both Markdown documentation and installed docsets. Provides unified results from all sources.',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                query: {
-                  type: 'string',
-                  description: 'Search query to find in both documentation types'
-                }
-              },
-              required: ['query']
             }
           }
         ]
@@ -371,15 +315,20 @@ class DocsServer {
             };
             
           case 'search_documentation':
-            const query = args?.query;
-            if (!query) {
+            const unifiedQuery = args?.query;
+            if (!unifiedQuery) {
               throw new Error('Query parameter is required');
             }
-            const results = await this.docService.searchDocuments(query);
+            const unifiedOptions = {
+              limit: args?.limit || 20,
+              docsetId: args?.docsetId,
+              type: args?.type
+            };
+            const unifiedResults = await this.unifiedSearch.search(unifiedQuery, unifiedOptions);
             return {
               content: [{
                 type: 'text',
-                text: await this.formatSearchResults(results, query)
+                text: await this.formatUnifiedSearchResults(unifiedResults, unifiedQuery)
               }]
             };
             
@@ -418,6 +367,22 @@ class DocsServer {
               content: [{
                 type: 'text',
                 text: await this.formatSingleDocument(doc)
+              }]
+            };
+
+          case 'explore_api':
+            const apiName = args?.apiName;
+            if (!apiName) {
+              throw new Error('apiName parameter is required');
+            }
+            const exploreOptions = {
+              docsetId: args?.docsetId
+            };
+            const apiExploration = this.multiDocsetDb.exploreAPI(apiName, exploreOptions);
+            return {
+              content: [{
+                type: 'text',
+                text: await this.formatAPIExploration(apiExploration, apiName)
               }]
             };
 
@@ -462,134 +427,6 @@ class DocsServer {
               content: [{
                 type: 'text',
                 text: await this.formatDocumentIndex(documentIndex)
-              }]
-            };
-            
-          // Docset tools
-          case 'add_docset':
-            const { source } = args || {};
-            if (!source) {
-              throw new Error('source parameter is required');
-            }
-            
-            try {
-              const docsetInfo = await this.docsetService.addDocset(source);
-              this.docsetDatabase.addDocset(docsetInfo);
-              
-              return {
-                content: [{
-                  type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    docset: docsetInfo,
-                    message: `Successfully added docset: ${docsetInfo.name}`
-                  }, null, 2)
-                }]
-              };
-            } catch (error) {
-              return {
-                content: [{
-                  type: 'text',
-                  text: JSON.stringify({
-                    success: false,
-                    error: error.message
-                  }, null, 2)
-                }]
-              };
-            }
-            
-          case 'remove_docset':
-            const { docsetId } = args || {};
-            if (!docsetId) {
-              throw new Error('docsetId parameter is required');
-            }
-            
-            try {
-              await this.docsetService.removeDocset(docsetId);
-              this.docsetDatabase.removeDocset(docsetId);
-              
-              return {
-                content: [{
-                  type: 'text',
-                  text: JSON.stringify({
-                    success: true,
-                    message: `Successfully removed docset: ${docsetId}`
-                  }, null, 2)
-                }]
-              };
-            } catch (error) {
-              return {
-                content: [{
-                  type: 'text',
-                  text: JSON.stringify({
-                    success: false,
-                    error: error.message
-                  }, null, 2)
-                }]
-              };
-            }
-            
-          case 'list_docsets':
-            const docsets = await this.docsetService.listDocsets();
-            
-            return {
-              content: [{
-                type: 'text',
-                text: JSON.stringify(docsets, null, 2)
-              }]
-            };
-            
-          case 'search_docsets':
-            const { query: docsetQuery, type, docsetId: searchDocsetId, limit } = args || {};
-            if (!docsetQuery) {
-              throw new Error('query parameter is required');
-            }
-            
-            const docsetResults = this.docsetDatabase.search(docsetQuery, { type, docsetId: searchDocsetId, limit });
-            
-            return {
-              content: [{
-                type: 'text',
-                text: JSON.stringify({
-                  query: docsetQuery,
-                  resultCount: docsetResults.length,
-                  results: docsetResults
-                }, null, 2)
-              }]
-            };
-            
-          case 'docset_stats':
-            const stats = this.docsetDatabase.getStats();
-            
-            return {
-              content: [{
-                type: 'text',
-                text: JSON.stringify(stats, null, 2)
-              }]
-            };
-            
-          case 'search_all':
-            const { query: allQuery } = args || {};
-            if (!allQuery) {
-              throw new Error('query parameter is required');
-            }
-            
-            // Search markdown documentation
-            const markdownResults = await this.docService.searchDocuments(allQuery);
-            
-            // Search docsets
-            const allDocsetResults = this.docsetDatabase.search(allQuery, { limit: 50 });
-            
-            return {
-              content: [{
-                type: 'text',
-                text: JSON.stringify({
-                  query: allQuery,
-                  sources: ['markdown', 'docsets'],
-                  markdownResults: markdownResults.slice(0, 10),
-                  docsetResults: allDocsetResults,
-                  totalResults: markdownResults.length + allDocsetResults.length
-                }, null, 2)
               }]
             };
             
@@ -674,7 +511,265 @@ class DocsServer {
       .replace('${results}', formattedResults);
   }
   
+  async formatUnifiedSearchResults(results, query) {
+    if (!results || results.length === 0) {
+      return `No documentation found for query: "${query}" in any source.`;
+    }
+    
+    let output = `# Search Results for "${query}"\n\n`;
+    output += `Found ${results.length} relevant result(s):\n\n`;
+    
+    // Group results by source
+    const localResults = results.filter(r => r.type === 'local');
+    const docsetResults = results.filter(r => r.type === 'docset');
+    
+    // Highlight the most relevant results
+    if (results.length > 0 && results[0].relevanceScore > 90) {
+      output += `## 🎯 Highly Relevant:\n\n`;
+      const topResults = results.filter(r => r.relevanceScore > 90).slice(0, 3);
+      topResults.forEach(doc => {
+        if (doc.type === 'local') {
+          output += `- **${doc.title}** (Project Doc)\n`;
+          if (doc.description) {
+            output += `  ${doc.description}\n`;
+          }
+        } else {
+          output += `- **${doc.title}** (${doc.entryType})\n`;
+          // Provide context hints based on entry type
+          if (doc.entryType === 'Framework') {
+            output += `  📦 Import this framework to access its APIs\n`;
+          } else if (doc.entryType === 'Sample') {
+            output += `  📝 Example code demonstrating usage\n`;
+          } else if (doc.entryType === 'Class' || doc.entryType === 'Struct') {
+            output += `  🔧 Core type for ${doc.title.replace(/Kit$/, '')} functionality\n`;
+          } else if (doc.entryType === 'Type' && doc.title.includes('Usage')) {
+            output += `  ⚠️ Required for Info.plist permissions\n`;
+          }
+        }
+      });
+      output += '\n';
+    }
+    
+    // Show remaining results grouped by type
+    if (localResults.length > 0) {
+      output += `## 📁 Project Documentation (${localResults.length})\n`;
+      localResults.forEach(doc => {
+        output += `- **${doc.title}**`;
+        if (doc.matchedTerms && doc.matchedTerms.length > 0) {
+          output += ` [matches: ${doc.matchedTerms.join(', ')}]`;
+        }
+        output += '\n';
+        
+        // Show snippet or description
+        if (doc.snippet) {
+          output += `  > ${doc.snippet}\n`;
+        } else if (doc.description && doc.description !== doc.snippet) {
+          output += `  > ${doc.description}\n`;
+        }
+      });
+      output += '\n';
+    }
+    
+    if (docsetResults.length > 0) {
+      // Group API results by type for better organization
+      const apiByType = {};
+      docsetResults.forEach(doc => {
+        if (!apiByType[doc.entryType]) {
+          apiByType[doc.entryType] = [];
+        }
+        apiByType[doc.entryType].push(doc);
+      });
+      
+      output += `## 📚 API Documentation (${docsetResults.length})\n`;
+      
+      // Show frameworks first
+      if (apiByType['Framework']) {
+        output += `### Frameworks:\n`;
+        apiByType['Framework'].forEach(doc => {
+          output += `- **${doc.title}** - Import to use this API\n`;
+        });
+        delete apiByType['Framework'];
+      }
+      
+      // Show samples next
+      if (apiByType['Sample']) {
+        output += `### Code Samples:\n`;
+        apiByType['Sample'].forEach(doc => {
+          output += `- ${doc.title}\n`;
+        });
+        delete apiByType['Sample'];
+      }
+      
+      // Show other types
+      Object.entries(apiByType).forEach(([type, docs]) => {
+        if (docs.length > 0) {
+          output += `### ${type}s:\n`;
+          docs.forEach(doc => {
+            output += `- ${doc.title}\n`;
+          });
+        }
+      });
+    }
+    
+    // Smarter next steps based on results
+    output += '\n## 💡 Next Steps:\n';
+    
+    // Check if we found frameworks
+    const frameworks = results.filter(r => r.entryType === 'Framework');
+    if (frameworks.length > 0) {
+      output += `- Import framework: \`import ${frameworks[0].title}\`\n`;
+    }
+    
+    // Check if we found samples
+    const samples = results.filter(r => r.entryType === 'Sample');
+    if (samples.length > 0) {
+      output += `- Review code sample: "${samples[0].title}"\n`;
+    }
+    
+    // Check if we found usage/permission entries
+    const usageEntries = results.filter(r => r.title.includes('Usage'));
+    if (usageEntries.length > 0) {
+      output += `- Add to Info.plist: ${usageEntries[0].title}\n`;
+    }
+    
+    if (localResults.length > 0) {
+      output += `- Read project docs with \`read_specific_document\`\n`;
+    }
+    
+    output += `- Use \`explore_api\` to see all methods/properties for a class\n`;
+    
+    return output;
+  }
   
+  async formatAPIExploration(exploration, apiName) {
+    let output = `# API Exploration: ${apiName}\n\n`;
+    
+    // Check if we found anything
+    const hasContent = exploration.framework || 
+                      exploration.classes.length > 0 || 
+                      exploration.structs.length > 0 ||
+                      exploration.methods.length > 0 ||
+                      exploration.properties.length > 0 ||
+                      exploration.samples.length > 0;
+    
+    if (!hasContent) {
+      return `No API documentation found for "${apiName}". Try searching for a different name or check if the framework is imported.`;
+    }
+    
+    // Framework info
+    if (exploration.framework) {
+      output += `## 📦 Framework\n`;
+      output += `Import this framework to use its APIs:\n`;
+      output += `\`\`\`swift\nimport ${exploration.framework.name}\n\`\`\`\n\n`;
+    }
+    
+    // Code samples
+    if (exploration.samples.length > 0) {
+      output += `## 📝 Code Samples\n`;
+      exploration.samples.forEach(sample => {
+        output += `- ${sample.name}\n`;
+      });
+      output += '\n';
+    }
+    
+    // Main types
+    if (exploration.classes.length > 0) {
+      output += `## 🔧 Classes (${exploration.classes.length})\n`;
+      const topClasses = exploration.classes.slice(0, 10);
+      topClasses.forEach(cls => {
+        output += `- **${cls.name}**\n`;
+      });
+      if (exploration.classes.length > 10) {
+        output += `- ... and ${exploration.classes.length - 10} more\n`;
+      }
+      output += '\n';
+    }
+    
+    if (exploration.structs.length > 0) {
+      output += `## 📐 Structs (${exploration.structs.length})\n`;
+      const topStructs = exploration.structs.slice(0, 5);
+      topStructs.forEach(struct => {
+        output += `- **${struct.name}**\n`;
+      });
+      if (exploration.structs.length > 5) {
+        output += `- ... and ${exploration.structs.length - 5} more\n`;
+      }
+      output += '\n';
+    }
+    
+    if (exploration.protocols.length > 0) {
+      output += `## 🔌 Protocols (${exploration.protocols.length})\n`;
+      exploration.protocols.slice(0, 5).forEach(proto => {
+        output += `- ${proto.name}\n`;
+      });
+      output += '\n';
+    }
+    
+    // Methods and Properties
+    if (exploration.methods.length > 0) {
+      output += `## 🔨 Methods (${exploration.methods.length})\n`;
+      const methodsByPrefix = {};
+      
+      // Group methods by their prefix
+      exploration.methods.forEach(method => {
+        const prefix = method.name.split('(')[0].split(':')[0];
+        if (!methodsByPrefix[prefix]) {
+          methodsByPrefix[prefix] = [];
+        }
+        methodsByPrefix[prefix].push(method);
+      });
+      
+      // Show top method groups
+      const prefixes = Object.keys(methodsByPrefix).slice(0, 5);
+      prefixes.forEach(prefix => {
+        const methods = methodsByPrefix[prefix];
+        output += `- **${prefix}** (${methods.length} variant${methods.length > 1 ? 's' : ''})\n`;
+      });
+      if (Object.keys(methodsByPrefix).length > 5) {
+        output += `- ... and more method groups\n`;
+      }
+      output += '\n';
+    }
+    
+    if (exploration.properties.length > 0) {
+      output += `## 📊 Properties (${exploration.properties.length})\n`;
+      exploration.properties.slice(0, 10).forEach(prop => {
+        output += `- ${prop.name}\n`;
+      });
+      if (exploration.properties.length > 10) {
+        output += `- ... and ${exploration.properties.length - 10} more\n`;
+      }
+      output += '\n';
+    }
+    
+    // Constants and Enums
+    if (exploration.enums.length > 0) {
+      output += `## 📋 Enums (${exploration.enums.length})\n`;
+      exploration.enums.slice(0, 5).forEach(e => {
+        output += `- ${e.name}\n`;
+      });
+      output += '\n';
+    }
+    
+    if (exploration.constants.length > 0) {
+      output += `## 🔢 Constants (${exploration.constants.length})\n`;
+      exploration.constants.slice(0, 5).forEach(c => {
+        output += `- ${c.name}\n`;
+      });
+      output += '\n';
+    }
+    
+    // Next steps
+    output += `## 💡 Next Steps:\n`;
+    output += `- Use \`search_documentation\` with specific class/method names for details\n`;
+    if (exploration.samples.length > 0) {
+      output += `- Review the code samples for implementation examples\n`;
+    }
+    output += `- Import the framework and start using these APIs\n`;
+    
+    return output;
+  }
+
   async formatGlobalRules(globalRules) {
     if (!globalRules || globalRules.length === 0) {
       return '❌ WARNING: No global rules defined. Consider adding project rules for code consistency.';
@@ -793,11 +888,12 @@ class DocsServer {
   }
 
   async createOrUpdateRule({ fileName, title, description, keywords, alwaysApply, content }) {
-    const { default: fsExtra } = await import('fs-extra');
+    const fs = require('fs-extra');
+    const path = require('path');
     
     try {
       // Ensure the docs directory exists
-      await fsExtra.ensureDir(this.options.docsPath);
+      await fs.ensureDir(this.options.docsPath);
       
       // Create the full file path
       const filePath = path.join(this.options.docsPath, fileName);
@@ -818,7 +914,7 @@ class DocsServer {
       const fullContent = frontmatter + content;
       
       // Check if file exists to determine if this is create or update
-      const fileExists = await fsExtra.pathExists(filePath);
+      const fileExists = await fs.pathExists(filePath);
       const action = fileExists ? 'updated' : 'created';
       
       // Write the file
@@ -1064,17 +1160,23 @@ class DocsServer {
     await this.docService.initialize();
     await this.inferenceEngine.initialize();
     
-    // Initialize docset service
-    await this.docsetService.initialize();
-    
-    // Load existing docsets into the database
-    const existingDocsets = await this.docsetService.listDocsets();
-    for (const docset of existingDocsets) {
-      this.docsetDatabase.addDocset(docset);
-    }
-    
-    if (this.options.verbose && existingDocsets.length > 0) {
-      console.error(`📚 Loaded ${existingDocsets.length} docsets from ${this.docsetService.storagePath}`);
+    // Initialize docset services
+    try {
+      await this.docsetService.initialize();
+      const docsets = await this.docsetService.listDocsets();
+      
+      // Load existing docsets into the database
+      for (const docset of docsets) {
+        this.multiDocsetDb.addDocset(docset);
+      }
+      
+      if (this.options.verbose && docsets.length > 0) {
+        console.error(`📚 Loaded ${docsets.length} docset(s)`);
+      }
+    } catch (error) {
+      if (this.options.verbose) {
+        console.error('⚠️  Warning: Failed to initialize docsets:', error.message);
+      }
     }
     
     // Start server
@@ -1085,13 +1187,6 @@ class DocsServer {
       console.error('🔧 Server initialized with MCP transport');
       console.error('🚀 Using frontmatter-based configuration');
     }
-  }
-  
-  async stop() {
-    if (this.docsetDatabase) {
-      this.docsetDatabase.closeAll();
-    }
-    await this.server.close();
   }
 }
 

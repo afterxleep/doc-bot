@@ -2,23 +2,20 @@
 
 import { program } from 'commander';
 import path from 'path';
-import os from 'os';
 import fs from 'fs-extra';
 import { DocsServer } from '../src/index.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
+const __dirname = path.dirname(__filename);
+const packageJson = JSON.parse(readFileSync(path.join(__dirname, '../package.json'), 'utf8'));
 
 program
   .name('doc-bot')
   .description('Generic MCP server for intelligent documentation access')
   .version(packageJson.version)
   .option('-d, --docs <path>', 'Path to docs folder', 'doc-bot')
-  .option('--docsets <path>', 'Path to docsets folder', path.join(os.homedir(), 'Developer', 'DocSets'))
   .option('-v, --verbose', 'Enable verbose logging')
   .option('-w, --watch', 'Watch for file changes')
   .parse();
@@ -27,7 +24,6 @@ const options = program.opts();
 
 async function main() {
   const docsPath = path.resolve(options.docs);
-  const docsetsPath = path.resolve(options.docsets);
   
   // Check if documentation folder exists
   if (!await fs.pathExists(docsPath)) {
@@ -49,7 +45,6 @@ async function main() {
   
   const server = new DocsServer({
     docsPath,
-    docsetsPath,
     verbose: options.verbose,
     watch: options.watch
   });
@@ -57,7 +52,6 @@ async function main() {
   if (options.verbose) {
     console.error('🚀 Starting doc-bot...');
     console.error(`📁 Documentation: ${docsPath}`);
-    console.error(`📚 Docsets: ${docsetsPath}`);
     console.error(`⚙️  Configuration: Frontmatter-based`);
     
     if (options.watch) {

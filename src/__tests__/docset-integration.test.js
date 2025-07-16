@@ -30,7 +30,7 @@ describe('DocsServer Docset Integration', () => {
 
   afterEach(async () => {
     if (server) {
-      await server.stop();
+      await server.close();
     }
     await fs.remove(tempDocsPath);
     await fs.remove(tempDocsetsPath);
@@ -75,7 +75,7 @@ describe('DocsServer Docset Integration', () => {
 
     it('should have docset service initialized', () => {
       expect(server.docsetService).toBeDefined();
-      expect(server.docsetDatabase).toBeDefined();
+      expect(server.multiDocsetDatabase).toBeDefined();
     });
 
     it('should have empty docsets initially', async () => {
@@ -130,10 +130,10 @@ describe('DocsServer Docset Integration', () => {
       expect(docsets[0].name).toBe('Mock Documentation');
       
       // Add to database for searching
-      server.docsetDatabase.addDocset(docsetInfo);
+      server.multiDocsetDatabase.addDocset(docsetInfo);
       
       // Test searching
-      const searchResults = server.docsetDatabase.search('Test');
+      const searchResults = server.multiDocsetDatabase.search('Test');
       expect(searchResults).toHaveLength(1);
       expect(searchResults[0].name).toBe('TestClass');
       

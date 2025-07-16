@@ -99,10 +99,17 @@ class DocumentationService {
     
     for (const doc of this.documents.values()) {
       const score = this.calculateAdvancedRelevanceScore(doc, searchTerms, query);
-      if (score > 0.1) { // Minimum relevance threshold
+      // Only include documents with meaningful relevance (5% or higher)
+      // This filters out documents that only have weak partial matches
+      if (score >= 5.0) {
+        // Extract a relevant snippet from the content
+        const snippet = this.extractRelevantSnippet(doc.content, searchTerms, query);
+        
         results.push({
           ...doc,
-          relevanceScore: score
+          relevanceScore: score,
+          snippet: snippet,
+          matchedTerms: this.getMatchedTerms(doc, searchTerms)
         });
       }
     }
@@ -244,6 +251,128 @@ class DocumentationService {
   calculateRelevanceScore(doc, searchTerm) {
     // Legacy method - keep for backward compatibility
     return this.calculateAdvancedRelevanceScore(doc, [searchTerm], searchTerm);
+  }
+
+  /**
+   * Extract a relevant snippet from content that shows context around matched terms
+   * @param {string} content - The document content
+   * @param {string[]} searchTerms - The search terms
+   * @param {string} originalQuery - The original query
+   * @returns {string} A relevant snippet
+   */
+  extractRelevantSnippet(content, searchTerms, originalQuery) {
+    const contentLower = content.toLowerCase();
+    const snippetLength = 200;
+    let bestSnippet = '';
+    let bestScore = 0;
+
+    // First, try to find exact phrase match
+    if (originalQuery.length > 3) {
+      const phraseIndex = contentLower.indexOf(originalQuery.toLowerCase());
+      if (phraseIndex !== -1) {
+        const start = Math.max(0, phraseIndex - 50);
+        const end = Math.min(content.length, phraseIndex + originalQuery.length + 150);
+        return this.cleanSnippet(content.substring(start, end), start > 0, end < content.length);
+      }
+    }
+
+    // Find the best snippet containing the most search terms
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const lineLower = line.toLowerCase();
+      
+      // Skip empty lines and frontmatter
+      if (!line.trim() || line.startsWith('---')) continue;
+      
+      // Count matching terms in this line and surrounding context
+      let score = 0;
+      let matchCount = 0;
+      
+      for (const term of searchTerms) {
+        if (lineLower.includes(term.toLowerCase())) {
+          matchCount++;
+          // Higher score for terms in headers
+          if (line.startsWith('#')) {
+            score += 10;
+          } else {
+            score += 5;
+          }
+        }
+      }
+      
+      if (matchCount > 0) {
+        // Get context around this line
+        const contextStart = Math.max(0, i - 1);
+        const contextEnd = Math.min(lines.length, i + 3);
+        const contextLines = lines.slice(contextStart, contextEnd);
+        const snippet = contextLines.join(' ').trim();
+        
+        if (score > bestScore && snippet.length > 20) {
+          bestScore = score;
+          bestSnippet = snippet;
+        }
+      }
+    }
+
+    // If no good snippet found, return the description or first meaningful paragraph
+    if (!bestSnippet) {
+      const metadata = this.extractMetadata(content);
+      if (metadata.description) {
+        return metadata.description;
+      }
+      
+      // Find first non-empty paragraph after frontmatter
+      const contentWithoutFrontmatter = content.replace(/^---[\s\S]*?---\n*/m, '');
+      const paragraphs = contentWithoutFrontmatter.split(/\n\n+/);
+      for (const para of paragraphs) {
+        const cleaned = para.trim();
+        if (cleaned && !cleaned.startsWith('#') && cleaned.length > 30) {
+          return this.cleanSnippet(cleaned.substring(0, snippetLength), false, cleaned.length > snippetLength);
+        }
+      }
+    }
+
+    return this.cleanSnippet(bestSnippet.substring(0, snippetLength), false, bestSnippet.length > snippetLength);
+  }
+
+  /**
+   * Clean and format a snippet for display
+   */
+  cleanSnippet(snippet, hasStart, hasEnd) {
+    // Remove multiple spaces and clean up
+    let cleaned = snippet.replace(/\s+/g, ' ').trim();
+    
+    // Remove markdown formatting for readability
+    cleaned = cleaned.replace(/\*\*/g, '');
+    cleaned = cleaned.replace(/`/g, '');
+    
+    // Add ellipsis if truncated
+    if (hasStart) cleaned = '...' + cleaned;
+    if (hasEnd) cleaned = cleaned + '...';
+    
+    return cleaned;
+  }
+
+  /**
+   * Get the terms that matched in this document
+   */
+  getMatchedTerms(doc, searchTerms) {
+    const matched = [];
+    const contentLower = doc.content.toLowerCase();
+    const titleLower = (doc.metadata?.title || doc.fileName).toLowerCase();
+    const descriptionLower = (doc.metadata?.description || '').toLowerCase();
+    
+    for (const term of searchTerms) {
+      const termLower = term.toLowerCase();
+      if (titleLower.includes(termLower) || 
+          descriptionLower.includes(termLower) || 
+          contentLower.includes(termLower)) {
+        matched.push(term);
+      }
+    }
+    
+    return matched;
   }
   
   async getGlobalRules() {

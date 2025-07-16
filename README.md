@@ -15,6 +15,80 @@ doc-bot is an intelligent documentation server that:
 - 🔄 **Updates** automatically when docs change
 - 📚 **Supports Docsets** for searching official API documentation alongside your custom docs
 
+## Documentation Sets (Docsets) Support
+
+doc-bot now includes powerful support for searching official API documentation through Docsets. This allows your AI assistant to access both your custom project documentation and official API references in a unified search experience.
+
+### What are Docsets?
+
+Docsets are SQLite-based documentation databases used by tools like Dash (macOS) and Zeal (cross-platform). They contain indexed, searchable documentation for programming languages, frameworks, and libraries.
+
+### Key Features
+
+- **Unified Search**: Search both your custom documentation and official API docs with a single command
+- **Smart Prioritization**: Project documentation is automatically prioritized over API documentation
+- **Parallel Search**: Efficiently searches multiple docsets simultaneously
+- **Intelligent Ranking**: Results are ranked by relevance with sophisticated scoring algorithms
+- **API Exploration**: Discover related classes, methods, and properties for any API
+
+### Setting Up Docsets
+
+1. **Default Location**: doc-bot looks for docsets in `~/Developer/DocSets` by default
+
+2. **Custom Location**: Specify a custom path when starting doc-bot:
+   ```bash
+   doc-bot --docsets /path/to/your/docsets
+   ```
+
+3. **Configuration**: Add to your MCP client config:
+   ```json
+   {
+     "mcpServers": {
+       "doc-bot": {
+         "command": "npx",
+         "args": ["@afterxleep/doc-bot@latest", "--docsets", "/path/to/docsets"]
+       }
+     }
+   }
+   ```
+
+### Getting Docsets
+
+Download docsets from:
+- [Dash](https://kapeli.com/dash) (macOS)
+- [Zeal](https://zealdocs.org/) (Windows/Linux)
+- Direct downloads from [Dash's feed](https://kapeli.com/feeds)
+
+Popular docsets include:
+- Swift, iOS, macOS frameworks
+- Python, JavaScript, TypeScript
+- React, Vue, Angular
+- Node.js, Express
+- And hundreds more...
+
+### How It Works
+
+When you search for documentation, doc-bot:
+
+1. **Searches your project docs first** with a 5x relevance boost
+2. **Searches docsets in parallel** for official API documentation
+3. **Deduplicates results** preferring language-specific versions (e.g., Swift)
+4. **Returns unified results** with context and relevance scores
+
+### Example Usage
+
+Ask your AI assistant:
+- "How do I use AlarmKit?" - Searches both your docs and Apple's AlarmKit documentation
+- "Show me URLSession configuration options" - Finds API references and your custom guides
+- "What's available in the React framework?" - Explores React API with the `explore_api` tool
+
+### Advanced Features
+
+- **Term-based search**: Breaks queries into terms for better matches (e.g., "URLSession configuration" finds "URLSessionConfiguration")
+- **Quality filtering**: Automatically filters out low-relevance results
+- **Context snippets**: Provides relevant excerpts from your project documentation
+- **Performance optimized**: Uses caching and parallel execution for fast results
+
 ## Why MCP Instead of Static Rules?
 
 IDE's use static rule files (like Cursor Rules or Copilot's .github/copilot-instructions.md), and each one has their own format, metadata and approach.
@@ -324,6 +398,7 @@ doc-bot [options]
 
 Options:
   -d, --docs <path>        Path to docs folder (default: doc-bot)
+  -s, --docsets <path>     Path to docsets folder (default: ~/Developer/DocSets)
   -v, --verbose           Enable verbose logging
   -w, --watch             Watch for file changes
   -h, --help              Show help
@@ -337,8 +412,14 @@ doc-bot
 # Specify a custom docs folder
 doc-bot --docs ./my-docs
 
+# With custom docsets location
+doc-bot --docsets /Library/Application\ Support/Dash/DocSets
+
 # With verbose logging and file watching
 doc-bot --verbose --watch
+
+# All options combined
+doc-bot --docs ./my-docs --docsets ~/DocSets --verbose --watch
 ```
 
 ## Publishing and Development
