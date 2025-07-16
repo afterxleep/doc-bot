@@ -185,8 +185,6 @@ Docsets are pre-built documentation databases containing official docs for:
 
 ### Docset Sources
 
-- **Official Dash Feeds**: https://kapeli.com/feeds
-- **Main Docsets Repository**: https://github.com/Kapeli/Dash-iOS
 - **User Contributed Docsets**: https://github.com/Kapeli/Dash-User-Contributions
 - **Docset Generation Tools**: https://github.com/Kapeli/docset-generator
 
