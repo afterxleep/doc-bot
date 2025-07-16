@@ -175,11 +175,7 @@ Docsets are pre-built documentation databases containing official docs for:
    Use the add_docset tool to install the docset at /Users/me/Downloads/React.docset
    ```
 
-2. **Option B: Download manually and install**:
-   - Download from [Dash feeds](https://kapeli.com/feeds) or [Zeal](https://zealdocs.org/)
-   - Ask your AI: "Install the docset at /path/to/downloaded.docset"
-
-3. **Manage your docsets**:
+2. **Manage your docsets**:
    ```
    List all installed docsets
    Remove docset with ID abc123
@@ -187,7 +183,7 @@ Docsets are pre-built documentation databases containing official docs for:
 
    Docsets are automatically stored in `~/Developer/DocSets` by default.
 
-4. **Configure custom path** (optional):
+3. **Configure custom path** (optional):
    ```json
    {
      "mcpServers": {
