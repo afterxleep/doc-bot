@@ -183,6 +183,20 @@ Docsets are pre-built documentation databases containing official docs for:
 
    Docsets are automatically stored in `~/Developer/DocSets` by default.
 
+### Docset Sources
+
+- **Official Dash Feeds**: https://kapeli.com/feeds
+- **Main Docsets Repository**: https://github.com/Kapeli/Dash-iOS
+- **User Contributed Docsets**: https://github.com/Kapeli/Dash-User-Contributions
+- **Docset Generation Tools**: https://github.com/Kapeli/docset-generator
+
+Popular docsets available:
+- Programming Languages: Python, JavaScript, Go, Rust, Swift
+- Web Frameworks: React, Vue, Angular, Django, Rails
+- Mobile: iOS, Android, React Native, Flutter
+- Databases: PostgreSQL, MySQL, MongoDB, Redis
+- Cloud: AWS, Google Cloud, Azure
+
 3. **Configure custom path** (optional):
    ```json
    {
