@@ -1,356 +1,291 @@
 ---
 alwaysApply: false
-title: "Development Guide"
-description: "Development setup, testing, and workflow for doc-bot project"
-keywords: ["development", "setup", "testing", "workflow", "debugging", "filePatterns"]
+title: "Doc-Bot Development"
+description: "Internal development documentation for the doc-bot project"
+keywords: ["development", "internal", "implementation", "code", "architecture"]
+filePatterns: ["src/**/*.js", "bin/**/*.js"]
 ---
 
-# Development Guide
+# Doc-Bot Development
 
-This guide covers the development setup, testing, and workflow for the doc-bot project.
+Internal development documentation for doc-bot maintainers and contributors.
 
-## Prerequisites
+## Core Implementation Details
 
-- Node.js >= 18.0.0
-- npm or yarn
-- Git
+### MCP Server Implementation
 
-## Project Setup
-
-1. Clone the repository:
-```bash
-git clone https://github.com/afterxleep/doc-bot.git
-cd doc-bot
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create a documentation folder:
-```bash
-mkdir doc-bot
-```
-
-## Project Structure
-
-```
-doc-bot/
-├── src/                         # Source code
-│   ├── index.js                # Main MCP server implementation
-│   ├── index.test.js           # Server tests
-│   └── services/               # Core services
-│       ├── DocumentationService.js
-│       ├── InferenceEngine.js
-│       ├── DocumentIndex.js
-│       └── __tests__/          # Service tests
-├── bin/                        # CLI executables
-│   └── doc-bot.js             # Main CLI tool
-├── prompts/                    # Agent optimization templates
-│   ├── agent_integration.md
-│   ├── alwaysApply.md
-│   ├── checkProjectRules.md
-│   ├── getFileDocs.md
-│   ├── searchDocumentation.md
-│   └── tools.md
-├── doc-bot/                    # Documentation directory (default)
-├── samples/                    # Example documentation
-├── test-*.js                   # Test utilities
-├── package.json               # Project configuration
-├── AGENT_INTEGRATION_RULE.txt # Agent enforcement rules
-└── README.md                  # Project documentation
-```
-
-## Development Scripts
-
-```bash
-# Start the server
-npm start
-
-# Start with file watching (hot reload)
-npm run dev
-# or
-npm run start:watch
-
-# Run with example documentation
-npm run start:examples
-
-# Run tests
-npm test
-
-# Run linter
-npm run lint
-
-# Fix linting issues
-npm run lint:fix
-```
-
-## CLI Options
-
-The `doc-bot` CLI supports the following options:
-
-- `-d, --docs <path>` - Specify documentation folder (default: "doc-bot")
-- `-v, --verbose` - Enable verbose logging
-- `-w, --watch` - Enable file watching for hot reload
-
-Example:
-```bash
-node bin/doc-bot.js --docs ./my-docs --verbose --watch
-```
-
-## Writing Documentation
-
-Documentation files should be markdown with frontmatter:
-
-```markdown
----
-title: My Documentation
-keywords: [keyword1, keyword2]
-topics: [topic1, topic2]
-filePatterns: ["*.js", "src/**/*.ts"]
-alwaysApply: false
-confidence: 0.9
----
-
-# Content goes here
-```
-
-### Frontmatter Fields
-
-- `title` (required): Document title
-- `keywords`: Array of searchable keywords
-- `topics`: Array of topics for categorization
-- `filePatterns`: Glob patterns for file matching (see below)
-- `alwaysApply`: Whether rules always apply (default: false)
-- `confidence`: Confidence score for inference (0-1)
-
-### File Patterns
-
-The `filePatterns` field enables contextual documentation that appears only for specific files:
-
-```yaml
-# React component documentation
-filePatterns: ["*.jsx", "*.tsx", "components/**/*.js"]
-
-# Test file documentation
-filePatterns: ["*.test.js", "*.spec.js", "__tests__/**/*"]
-
-# Configuration documentation
-filePatterns: ["*.config.js", ".*rc", "*.json"]
-
-# API route documentation
-filePatterns: ["api/**/*.js", "routes/**/*.ts"]
-```
-
-#### Pattern Syntax
-
-- `*.js` - Matches any JavaScript file
-- `**/*.ts` - Matches TypeScript files in any subdirectory
-- `src/**/test/*.js` - Matches JS files in any test folder under src
-- `[Tt]est.js` - Matches Test.js or test.js (character sets)
-- `?.js` - Matches single character (a.js, b.js, etc.)
-
-#### How It Works
-
-1. When the `get_file_docs` tool is called with a file path
-2. Doc-bot checks each document's `filePatterns`
-3. Documents with matching patterns are returned
-4. Patterns are case-insensitive and support glob-like syntax
-
-#### Examples
-
-**Example 1: React Component Guidelines**
-```markdown
----
-title: React Component Guidelines
-keywords: [react, components, jsx]
-filePatterns: ["*.jsx", "*.tsx", "src/components/**/*"]
-alwaysApply: false
----
-
-# React Component Best Practices
-- Use functional components with hooks
-- Follow naming conventions (PascalCase)
-- Keep components focused and reusable
-```
-
-**Example 2: Testing Standards**
-```markdown
----
-title: Testing Standards
-keywords: [testing, jest, test]
-filePatterns: ["*.test.js", "*.spec.js", "__tests__/**/*"]
-alwaysApply: false
----
-
-# Testing Guidelines
-- Write tests alongside source files
-- Use descriptive test names
-- Follow AAA pattern (Arrange-Act-Assert)
-```
-
-**Example 3: Configuration Guide**
-```markdown
----
-title: Configuration Guide
-keywords: [config, setup, environment]
-filePatterns: ["*.config.js", ".env*", "config/**/*"]
-alwaysApply: false
----
-
-# Configuration Best Practices
-- Never commit secrets
-- Use environment variables
-- Document all configuration options
-```
-
-## Testing
-
-The project uses Jest for testing with ES modules support:
-
-```bash
-# Run all tests
-npm test
-
-# Note: test:watch and test:coverage require ES module configuration
-NODE_OPTIONS=--experimental-vm-modules npm test
-```
-
-### Test Structure
-
-- Unit tests are located alongside source files
-- Integration tests are in `__tests__` directories
-- Test utilities are in root `test-*.js` files
-
-### Writing Tests
+The main server (`src/index.js`) extends the MCP SDK Server class:
 
 ```javascript
-import { describe, it, expect } from '@jest/globals';
+class DocsServer {
+  constructor(options = {}) {
+    // Default options
+    this.options = {
+      docsPath: options.docsPath || './doc-bot',
+      docsetsPath: options.docsetsPath || path.join(os.homedir(), 'Developer', 'DocSets'),
+      verbose: options.verbose || false,
+      watch: options.watch || false
+    };
+    
+    // Initialize MCP server
+    this.server = new Server({
+      name: 'doc-bot',
+      version: '1.12.0',
+      description: 'Generic MCP server for intelligent documentation access'
+    });
+  }
+}
+```
 
-describe('MyComponent', () => {
-  it('should work correctly', () => {
-    // Test implementation
+### Service Initialization Order
+
+Services must be initialized in the correct order due to dependencies:
+
+1. DocumentationService (no dependencies)
+2. InferenceEngine (depends on DocumentationService)
+3. DocsetService (no dependencies)
+4. MultiDocsetDatabase (no dependencies)
+5. UnifiedSearchService (depends on DocumentationService and MultiDocsetDatabase)
+
+### Memory Management
+
+#### Document Caching
+- All project documentation is loaded into memory on startup
+- Documents are stored in a Map: `fileName -> document object`
+- Hot reload updates individual documents without full reload
+
+#### Docset Connections
+- SQLite connections are opened lazily on first search
+- Connections remain open for the server lifetime
+- Each docset has its own database connection
+
+#### Search Caching
+- ParallelSearchManager uses LRU cache (100 entries max)
+- Cache TTL: 5 minutes
+- Cache key includes search terms and options
+
+### Performance Considerations
+
+#### Search Optimization
+```javascript
+// Parallel search triggers for >3 docsets
+if (this.databases.size > 3) {
+  return this.parallelSearchManager.searchDocsetsParallel(...);
+}
+```
+
+#### Relevance Scoring
+- Project docs get 5x boost to ensure they rank higher
+- Minimum relevance threshold: 5%
+- Dynamic quality filtering based on top results
+
+#### Timeout Protection
+- Individual docset searches timeout after 2 seconds
+- Prevents slow docsets from blocking all results
+
+### Error Handling Strategy
+
+#### Graceful Degradation
+```javascript
+try {
+  // Try operation
+} catch (error) {
+  if (this.options.verbose) {
+    console.error('Error details:', error);
+  }
+  // Return empty result instead of throwing
+  return [];
+}
+```
+
+#### Service Isolation
+- Each service handles its own errors
+- Failures in one docset don't affect others
+- Missing directories return empty results
+
+### Tool Implementation Pattern
+
+Each tool follows this pattern:
+
+```javascript
+// 1. Tool definition in setupHandlers()
+{
+  name: 'tool_name',
+  description: 'Clear description',
+  inputSchema: { /* JSON Schema */ }
+}
+
+// 2. Handler in handleToolCall()
+case 'tool_name':
+  return await this.handleToolName(params);
+
+// 3. Implementation method
+async handleToolName(params) {
+  try {
+    // Validate params
+    // Call appropriate service
+    // Format response
+    return { success: true, data: result };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+```
+
+### Adding New Search Algorithms
+
+1. Extend scoring in `DocumentationService.calculateAdvancedRelevanceScore()`
+2. Add new term extraction in `UnifiedSearchService.parseQuery()`
+3. Update `DocsetDatabase.searchWithTerms()` for SQL queries
+4. Add tests for edge cases
+
+### Debugging Techniques
+
+#### Verbose Logging
+```javascript
+if (this.options.verbose) {
+  console.log('[ServiceName]', 'Operation:', details);
+}
+```
+
+#### Performance Timing
+```javascript
+const start = Date.now();
+const result = await operation();
+if (this.options.verbose) {
+  console.log(`Operation took ${Date.now() - start}ms`);
+}
+```
+
+#### Search Debugging
+```javascript
+// Log search internals
+console.log('Query terms:', searchTerms);
+console.log('Results before filtering:', results.length);
+console.log('Results after filtering:', filtered.length);
+```
+
+### Testing Strategies
+
+#### Unit Test Pattern
+```javascript
+describe('Service', () => {
+  let service;
+  
+  beforeEach(() => {
+    service = new Service(mockDependencies);
+  });
+  
+  afterEach(() => {
+    // Cleanup
+  });
+  
+  it('should handle normal case', async () => {
+    // Test
   });
 });
 ```
 
-## Code Style
+#### Integration Testing
+- Use real SQLite databases in temp directories
+- Test full search flow from query to results
+- Verify service interactions
 
-The project uses ES modules and follows these conventions:
-
-1. **ES Module Imports**: Always use `.js` extensions
-   ```javascript
-   import { MyClass } from './MyClass.js';
-   ```
-
-2. **File Naming**: Use PascalCase for classes, camelCase for utilities
-
-3. **Async/Await**: Prefer async/await over promises
-
-4. **Error Handling**: Always handle errors gracefully
-
-## Debugging
-
-1. Enable verbose logging:
-   ```bash
-   npm start -- --verbose
-   ```
-
-2. Use VS Code debugger with provided launch configuration
-
-3. Check logs for detailed error messages
-
-## Hot Reloading
-
-When developing, use the `--watch` flag:
-
-```bash
-npm run dev
+#### Performance Testing
+```javascript
+it('should complete search within timeout', async () => {
+  const start = Date.now();
+  await service.search('test');
+  expect(Date.now() - start).toBeLessThan(2000);
+});
 ```
 
-This will:
-- Monitor the documentation directory
-- Automatically reload changed documents
-- Update indexes in real-time
-- No server restart needed
+### Code Patterns and Conventions
 
-## Common Tasks
+#### Async/Await Usage
+```javascript
+// Good
+async function loadDocuments() {
+  const files = await glob('**/*.md');
+  return Promise.all(files.map(f => this.loadDocument(f)));
+}
 
-### Adding a New Tool
-
-1. Add tool handler in `src/index.js`
-2. Update tool list in constructor
-3. Add corresponding prompt template in `prompts/`
-4. Update documentation
-
-### Updating Documentation Index
-
-1. Modify `src/services/DocumentIndex.js`
-2. Add new index types or extraction logic
-3. Update inference engine to use new indexes
-
-### Testing MCP Integration
-
-Use an MCP-compatible client to test:
-```bash
-# Start server
-npm start -- --verbose
-
-# In another terminal, connect with MCP client
-# The server listens on stdio
+// Avoid
+function loadDocuments() {
+  return glob('**/*.md').then(files => {
+    return Promise.all(files.map(f => this.loadDocument(f)));
+  });
+}
 ```
 
-### Creating Contextual Documentation
+#### Error Messages
+```javascript
+// Include context in errors
+throw new Error(`Failed to load document: ${fileName} - ${error.message}`);
 
-1. Identify file patterns for your documentation
-2. Add `filePatterns` to frontmatter
-3. Set `alwaysApply: false` to enable pattern matching
-4. Test with `get_file_docs` tool
+// Not just
+throw new Error('Failed to load document');
+```
 
-## Troubleshooting
+#### Service Method Naming
+- `search*` - Returns search results
+- `get*` - Returns specific items
+- `load*` - Loads data from disk
+- `parse*` - Transforms data
+- `calculate*` - Computes values
+- `normalize*` - Standardizes format
 
-### ES Module Issues
+### Hot Reload Implementation
 
-If you encounter ES module errors:
-1. Ensure Node.js >= 18.0.0
-2. Check that `"type": "module"` is in package.json
-3. Use `.js` extensions in imports
+The file watcher uses chokidar with these events:
 
-### File Watching Not Working
+```javascript
+watcher
+  .on('add', path => this.handleFileAdd(path))
+  .on('change', path => this.handleFileChange(path))
+  .on('unlink', path => this.handleFileRemove(path));
+```
 
-1. Check file permissions
-2. Ensure chokidar is properly installed
-3. Try with explicit paths: `--docs ./doc-bot`
+Debouncing is not implemented - consider adding for rapid changes.
 
-### Documentation Not Loading
+### Security Considerations
 
-1. Check documentation directory exists
-2. Verify markdown files have `.md` extension
-3. Validate frontmatter syntax (YAML)
-4. Run with `--verbose` for detailed logs
+#### Path Validation
+- Always resolve to absolute paths
+- Check paths are within allowed directories
+- Sanitize user input for file operations
 
-### File Patterns Not Matching
+#### SQL Injection Prevention
+- Use parameterized queries with better-sqlite3
+- Never concatenate user input into SQL
 
-1. Test patterns with simple cases first
-2. Remember patterns are case-insensitive
-3. Use `**` for recursive directory matching
-4. Check for typos in patterns
+#### Resource Limits
+- Limit search results to prevent memory issues
+- Timeout long-running operations
+- Cap cache sizes
 
-## Contributing
+### Future Optimization Opportunities
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+1. **Incremental Indexing**: Only reindex changed documents
+2. **Query Result Streaming**: Stream large result sets
+3. **Background Index Building**: Build indices asynchronously
+4. **Compressed Caches**: Compress cached search results
+5. **Docset Preloading**: Load frequently used docsets on startup
 
-## Release Process
+### Known Limitations
 
-1. Update version in package.json
-2. Update CHANGELOG (if exists)
-3. Commit changes
-4. Create git tag
-5. Push to repository
-6. Publish to npm (see publishing.md)
+1. **Memory Usage**: All docs loaded into memory
+2. **Single Process**: No worker threads for search
+3. **No Persistence**: Caches cleared on restart
+4. **SQLite Locking**: Can conflict with Dash/Zeal
+5. **Pattern Matching**: Simple glob, no regex support
+
+### Development TODOs
+
+- [ ] Add request ID for tracing
+- [ ] Implement search result pagination
+- [ ] Add metrics collection
+- [ ] Support for encrypted docsets
+- [ ] WebSocket transport option
+- [ ] Search query autocomplete
+- [ ] Document version tracking

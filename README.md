@@ -159,6 +159,16 @@ IDE's use static rule files (like Cursor Rules or Copilot's .github/copilot-inst
 - Searchable knowledge base with intelligent ranking
 - No need for AI to grep through your codebase - dedicated search engine
 
+## Documentation
+
+- **[API Reference](doc-bot/api-reference.md)** - Complete reference for all MCP tools
+- **[Architecture Guide](doc-bot/architecture.md)** - Technical architecture and components
+- **[Configuration Guide](doc-bot/configuration-guide.md)** - All configuration options
+- **[Troubleshooting Guide](doc-bot/troubleshooting.md)** - Common issues and solutions
+- **[Services Reference](doc-bot/services-reference.md)** - Detailed service documentation
+- **[Examples & Best Practices](doc-bot/examples-and-best-practices.md)** - Real-world usage examples
+- **[Contributing Guide](doc-bot/contributing.md)** - How to contribute to doc-bot
+
 ## Installation
 
 1. **Create your documentation folder** in your project root (see organization section below)
