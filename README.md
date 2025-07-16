@@ -43,7 +43,7 @@ When you ask your AI assistant to write code, it can:
 
 Add doc-bot to your AI assistant's configuration:
 
-**For Claude Desktop:**
+**For Claude Desktop or Claude Code:**
 ```json
 {
   "mcpServers": {
@@ -163,18 +163,31 @@ Docsets are pre-built documentation databases containing official docs for:
 
 ### Setting Up Docsets
 
-1. **Download Docsets** from:
-   - [Dash](https://kapeli.com/dash) (macOS)
-   - [Zeal](https://zealdocs.org/) (Windows/Linux)
-   - [Direct downloads](https://kapeli.com/feeds)
-
-2. **Ask your AI agent to install them**:
+1. **Option A: Ask your AI assistant to install directly**:
+   
+   From a URL:
    ```
-     Add docset /PATH/TO/DOCSET/DOWNLOAD.docset
+   Use the add_docset tool to install Swift documentation from https://kapeli.com/feeds/Swift.tgz
    ```
-   Docsets are automatically stored in : `~/Developer/DocSets` (macOS), but you can define a custom path.   
+   
+   From a local file:
+   ```
+   Use the add_docset tool to install the docset at /Users/me/Downloads/React.docset
+   ```
 
-3. **Configure** (with optional custom path):
+2. **Option B: Download manually and install**:
+   - Download from [Dash feeds](https://kapeli.com/feeds) or [Zeal](https://zealdocs.org/)
+   - Ask your AI: "Install the docset at /path/to/downloaded.docset"
+
+3. **Manage your docsets**:
+   ```
+   List all installed docsets
+   Remove docset with ID abc123
+   ```
+
+   Docsets are automatically stored in `~/Developer/DocSets` by default.
+
+4. **Configure custom path** (optional):
    ```json
    {
      "mcpServers": {
@@ -204,6 +217,9 @@ doc-bot provides these tools to AI assistants:
 | `get_global_rules` | Get always-apply rules | "What are the coding standards?" |
 | `get_file_docs` | Get file-specific docs | "Rules for Button.test.jsx" |
 | `explore_api` | Explore API documentation | "Show me URLSession methods" |
+| `add_docset` | Install new docset | "Add Swift docs from URL" |
+| `remove_docset` | Remove installed docset | "Remove docset abc123" |
+| `list_docsets` | List all docsets | "Show installed docsets" |
 
 ## Configuration Options
 

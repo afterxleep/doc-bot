@@ -5,6 +5,15 @@ All notable changes to doc-bot will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `add_docset` tool for installing docsets from URLs or local paths
+- `remove_docset` tool for uninstalling docsets
+- `list_docsets` tool for viewing installed docsets
+- Automatic docset downloading and extraction
+- Support for .tgz, .tar.gz, and .zip archives
+
 ## [1.12.0] - 2025-01-16
 
 ### Added

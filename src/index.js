@@ -293,6 +293,43 @@ class DocsServer {
               properties: {},
               additionalProperties: false
             }
+          },
+          {
+            name: 'add_docset',
+            description: 'Install a new documentation set (docset) for API reference. Supports both local .docset files and direct URLs. Docsets provide official API documentation for frameworks and libraries.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                source: {
+                  type: 'string',
+                  description: 'Path to local .docset file/directory or URL to download. Examples: "/Downloads/Swift.docset", "https://example.com/React.docset.tgz"'
+                }
+              },
+              required: ['source']
+            }
+          },
+          {
+            name: 'remove_docset',
+            description: 'Remove an installed documentation set. Use list_docsets first to see available docsets and their IDs.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                docsetId: {
+                  type: 'string',
+                  description: 'ID of the docset to remove. Get this from list_docsets command.'
+                }
+              },
+              required: ['docsetId']
+            }
+          },
+          {
+            name: 'list_docsets',
+            description: 'List all installed documentation sets (docsets). Shows docset IDs, names, and installation details. Use this to see what API documentation is available.',
+            inputSchema: {
+              type: 'object',
+              properties: {},
+              additionalProperties: false
+            }
           }
         ]
       };
@@ -383,6 +420,75 @@ class DocsServer {
               content: [{
                 type: 'text',
                 text: await this.formatAPIExploration(apiExploration, apiName)
+              }]
+            };
+
+          case 'add_docset':
+            const source = args?.source;
+            if (!source) {
+              throw new Error('source parameter is required');
+            }
+            
+            try {
+              const docsetInfo = await this.docsetService.addDocset(source);
+              // Add to the database for searching
+              this.multiDocsetDb.addDocset(docsetInfo);
+              
+              return {
+                content: [{
+                  type: 'text',
+                  text: `✅ Successfully installed docset!\n\n**Name:** ${docsetInfo.name}\n**ID:** ${docsetInfo.id}\n**Path:** ${docsetInfo.path}\n\nThe docset is now available for searching with \`search_documentation\` and exploring with \`explore_api\`.`
+                }]
+              };
+            } catch (error) {
+              throw new Error(`Failed to add docset: ${error.message}`);
+            }
+
+          case 'remove_docset':
+            const docsetId = args?.docsetId;
+            if (!docsetId) {
+              throw new Error('docsetId parameter is required');
+            }
+            
+            try {
+              await this.docsetService.removeDocset(docsetId);
+              // Remove from the database
+              this.multiDocsetDb.removeDocset(docsetId);
+              
+              return {
+                content: [{
+                  type: 'text',
+                  text: `✅ Successfully removed docset with ID: ${docsetId}`
+                }]
+              };
+            } catch (error) {
+              throw new Error(`Failed to remove docset: ${error.message}`);
+            }
+
+          case 'list_docsets':
+            const docsets = await this.docsetService.listDocsets();
+            
+            if (docsets.length === 0) {
+              return {
+                content: [{
+                  type: 'text',
+                  text: 'No docsets installed yet.\n\nUse `add_docset` to install documentation sets for your frameworks and libraries.'
+                }]
+              };
+            }
+            
+            let output = `# Installed Documentation Sets\n\nFound ${docsets.length} docset(s):\n\n`;
+            docsets.forEach((docset, index) => {
+              output += `## ${index + 1}. ${docset.name}\n`;
+              output += `**ID:** ${docset.id}\n`;
+              output += `**Path:** ${docset.path}\n`;
+              output += `**Installed:** ${new Date(docset.downloadedAt).toLocaleString()}\n\n`;
+            });
+            
+            return {
+              content: [{
+                type: 'text',
+                text: output
               }]
             };
 

@@ -175,9 +175,51 @@ This document provides a complete reference for all MCP tools exposed by the doc
 - `keywords`: Associated keywords
 - `alwaysApply`: Whether globally applied
 
-### 9. `list_docsets`
+### 9. `add_docset`
 
-**Purpose**: List all available documentation sets (docsets).
+**Purpose**: Install a new documentation set (docset) for API reference.
+
+**Description**: Downloads and installs a docset from a URL or copies from a local path. Supports .docset directories and compressed archives (.tgz, .tar.gz, .zip).
+
+**Parameters**:
+- `source` (string, required): URL or local file path to the docset
+  - URL examples: "https://kapeli.com/feeds/Swift.tgz"
+  - Local path examples: "/Downloads/React.docset", "/Users/me/iOS.docset"
+
+**Returns**: Object containing:
+- `name`: Docset name
+- `id`: Unique identifier for the docset
+- `path`: Installation path
+
+**Example**:
+```json
+{
+  "source": "https://kapeli.com/feeds/Swift.tgz"
+}
+```
+
+### 10. `remove_docset`
+
+**Purpose**: Remove an installed documentation set.
+
+**Description**: Deletes a docset from the system and removes it from search indices.
+
+**Parameters**:
+- `docsetId` (string, required): The unique ID of the docset to remove
+  - Get this from `list_docsets` command
+
+**Returns**: Success confirmation message
+
+**Example**:
+```json
+{
+  "docsetId": "a1b2c3d4"
+}
+```
+
+### 11. `list_docsets`
+
+**Purpose**: List all installed documentation sets (docsets).
 
 **Description**: Returns information about all installed docsets that can be searched.
 
@@ -187,10 +229,9 @@ This document provides a complete reference for all MCP tools exposed by the doc
 - `id`: Unique docset identifier
 - `name`: Human-readable docset name
 - `path`: File system path to docset
-- `entryCount`: Number of entries in the docset
-- `types`: Available entry types (Class, Method, etc.)
+- `downloadedAt`: Installation timestamp
 
-### 10. `explore_api`
+### 12. `explore_api`
 
 **Purpose**: Explore API documentation for a specific framework or class.
 
