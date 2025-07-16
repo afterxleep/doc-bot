@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { createWriteStream } from 'fs';
 import axios from 'axios';
-import tar from 'tar';
+import * as tar from 'tar';
 import AdmZip from 'adm-zip';
 import plist from 'plist';
 import crypto from 'crypto';
