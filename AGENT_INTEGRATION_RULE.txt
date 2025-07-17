@@ -66,8 +66,10 @@ Are you about to:
 ### FAILURE RECOVERY
 
 If doc_bot is unavailable:
-1. Tell user: "doc_bot MCP server not available"
-2. Continue working on the task based on your own knowledge and tools.
+1. STOP
+2. Tell user: "doc_bot MCP server not available"
+3. Ask the user if they want to continue without any rulesets applied.
+4. If the user agrees, continue the task using existing knowledge.
 
 ---
 Remember: You're not here to be creative. You're here to be CORRECT.
