@@ -1,7 +1,7 @@
-# DOC-BOT: AGENT INTEGRATION RULE
-Version 4
-Copy everything below as your Agent single rule.
-
+---
+description: Doc-Bot integration default rule
+globs:
+alwaysApply: true
 ---
 
 ## DOC-BOT: MANDATORY BEHAVIORAL PROTOCOL
@@ -74,5 +74,3 @@ If doc_bot is unavailable:
 Remember: You're not here to be creative. You're here to be CORRECT.
 And correctness means: doc_bot() → tools → done.
 ```
-
----

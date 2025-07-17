@@ -157,16 +157,19 @@ Query → UnifiedSearchService
 
 ## Available Tools
 
-1. **`check_project_rules`**: Get project-specific coding rules
-2. **`search_documentation`**: Unified search across all documentation
-3. **`get_global_rules`**: Get always-apply rules
-4. **`get_file_docs`**: Get file-specific documentation
-5. **`read_specific_document`**: Read a specific doc file
-6. **`create_or_update_rule`**: Create/update documentation
-7. **`refresh_documentation`**: Refresh documentation index
-8. **`get_document_index`**: List all available documents
-9. **`list_docsets`**: List installed docsets
-10. **`explore_api`**: Explore API documentation comprehensively
+1. **`doc_bot`**: Intelligent assistant that analyzes requests and provides optimal tool routing
+2. **`check_project_rules`**: Get project-specific coding rules
+3. **`search_documentation`**: Unified search across all documentation
+4. **`get_global_rules`**: Get always-apply rules
+5. **`get_file_docs`**: Get file-specific documentation
+6. **`read_specific_document`**: Read a specific doc file
+7. **`create_or_update_rule`**: Create/update documentation
+8. **`refresh_documentation`**: Refresh documentation index
+9. **`get_document_index`**: List all available documents
+10. **`add_docset`**: Install new documentation sets
+11. **`remove_docset`**: Remove installed docsets
+12. **`list_docsets`**: List installed docsets
+13. **`explore_api`**: Explore API documentation comprehensively
 
 ## File Structure
 
@@ -218,13 +221,43 @@ confidence: 0.9
 5. **Relevance Filtering**: Low-quality results filtered early
 6. **Deduplication**: Duplicate results removed efficiently
 
-## Agent Optimization
+## Agent Integration Architecture
+
+### Simplified Integration Approach
+
+Doc-bot v1.15.0 introduces a revolutionary single-entry-point architecture for AI agent integration:
+
+1. **Single Rule**: Agents only need one simple rule that calls `doc_bot` first
+2. **Intelligent Routing**: The `doc_bot` tool analyzes requests and provides exact tool sequences
+3. **Context-Aware**: Different workflows for code generation, understanding, documentation, etc.
+4. **Self-Updating**: Central intelligence can be updated without changing agent configurations
+
+### The doc_bot Tool
+
+The `doc_bot` tool serves as an intelligent assistant that:
+- Classifies the type of request (code generation, architecture query, documentation, etc.)
+- Extracts relevant search terms from natural language
+- Provides step-by-step tool execution guidance
+- Enforces best practices (e.g., checking rules before generating code)
+- Teaches effective search strategies (API names vs descriptions)
+
+### Integration Rule Psychology
+
+The integration rule uses advanced prompt engineering principles:
+- **Cognitive Tunneling**: Single execution path prevents deviation
+- **Visual Salience**: Box formatting creates unavoidable hierarchy
+- **Triadic Structure**: Three memorable laws
+- **Code-as-Enforcement**: Makes violations feel like syntax errors
+- **Ego Suppression**: "You're not here to be creative" prevents improvisation
+
+### Agent Optimization
 
 Doc-bot includes sophisticated prompt templates to ensure AI agents:
-- Always check project rules before generating code
-- Use documentation as the source of truth
-- Follow project-specific patterns and conventions
-- Search efficiently using appropriate tools
+- Always call `doc_bot` first for ANY task
+- Follow the exact tool sequence provided
+- Trust project documentation over general knowledge
+- Search efficiently using API names, not descriptions
+- Never skip mandatory steps like rule checking
 
 ## Hot Reloading
 

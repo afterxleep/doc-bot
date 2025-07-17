@@ -1,110 +1,210 @@
-# MCP DOCUMENTATION PROTOCOL
+# 🚀 ENGINEERING DOCUMENTATION INTELLIGENCE SYSTEM
 
-## SYSTEM CONFIGURATION:
+## ⚙️ CODEBASE CONFIGURATION:
 
-- **Tool Access**: MCP documentation tools are available for project-specific information
-- **Context**: This project implements custom patterns that differ from standard practices
+- **Architecture**: ${projectType || 'Modern software architecture with custom patterns'}
+- **Tech Stack**: ${techStack || 'Full-stack development environment'}
 - **Documentation Coverage**: ${availableTopics}
+- **Code Standards**: Enforced via automated tooling
 
-## TOOL EXECUTION MATRIX:
+## 🛠️ DEVELOPER TOOL EXECUTION MATRIX:
 
-| Tool | Trigger Pattern | Required For | Implementation |
-|------|----------------|-------------|--------------|
-| `check_project_rules` | Code generation keywords | ANY code output | Execute before code generation |
-| `search_documentation` | Project-specific questions | Feature/architecture queries | Execute for project context |
-| `get_global_rules` | Documentation discovery | Rule/capability queries | Execute for overview |
-| `read_specific_document` | Document access | Full content needs | Execute after search results |
-| `create_or_update_rule` | Rule creation/learning | New knowledge capture | Execute to document patterns/rules |
-| `refresh_documentation` | Manual refresh | File detection issues | Execute after manual file additions |
+| Tool | Use Case | Criticality | Response Time |
+|------|----------|-------------|---------------|
+| `check_project_rules` | Before ANY code generation | 🔴 CRITICAL | <100ms |
+| `search_documentation` | Architecture/API/Pattern queries | 🟡 HIGH | <200ms |
+| `explore_api` | Deep dive into classes/frameworks | 🟡 HIGH | <150ms |
+| `get_global_rules` | Coding standards overview | 🟢 MEDIUM | <100ms |
+| `read_specific_document` | Detailed implementation guide | 🟢 MEDIUM | <100ms |
+| `create_or_update_rule` | Capture new patterns/learnings | 🔵 LOW | <200ms |
 
-## KEYWORD MAPPING:
+## 🧠 INTELLIGENT KEYWORD RECOGNITION ENGINE:
 
-### Code Generation Triggers:
-**Keywords**: write, create, implement, build, add, code, function, class, component, method, develop, generate, make
-**Action**: Execute `check_project_rules` with task description
-**Mandatory**: Must complete before any code output
-
-### Project Information Triggers:
-**Keywords**: how, what, why, architecture, approach, pattern, feature, authentication, database, API, testing
-**Context Indicators**: "this project", "this codebase", "here", "our", specific feature names
-**Action**: Execute `search_documentation` with relevant query
-
-### Documentation Discovery Triggers:
-**Keywords**: documentation, available, capabilities, help with, what exists, rules, standards
-**Action**: Execute `get_global_rules` for comprehensive overview
-
-### File Context Triggers:
-**Keywords**: working on, this file, specific file, directory, component path
-**Action**: Execute `search_documentation` with file name and context keywords
-
-### Documentation Creation Triggers:
-**Keywords**: document, create rule, add rule, save knowledge, capture pattern, remember, note this, new rule
-**Context Indicators**: "we should document", "this should be a rule", "add to documentation", "create guideline"
-**Action**: Execute `create_or_update_rule` to capture new knowledge
-
-### Documentation Refresh Triggers:
-**Keywords**: refresh, reload, update index, detect files, manual files, can't find, document not found
-**Context Indicators**: "added files manually", "files not showing up", "refresh documentation", "reload docs"
-**Action**: Execute `refresh_documentation` to reindex files
-
-## EXECUTION ALGORITHM:
-
-1. **Input Analysis**: Extract keywords and context from user query
-2. **Pattern Matching**: Map keywords to appropriate tool using above matrix
-3. **Tool Execution**: Call identified tool with relevant parameters
-4. **Response Generation**: Base answer exclusively on tool output
-5. **Validation**: Ensure response aligns with retrieved documentation
-6. **Compliance**: Verify adherence to project-specific rules
-
-## IMPLEMENTATION REQUIREMENTS:
-
-- **Precedence**: Tool responses override general knowledge
-- **Accuracy**: Do not add information beyond tool output
-- **Completeness**: Use tools for all project-related queries
-- **Validation**: Verify code compliance with project rules
-- **Search Fallback**: If documentation searches fail after 2-3 attempts, the system will recommend web search
-- **Web Search Usage**: When instructed to use web search after failed documentation searches:
-  - Use web search for official documentation, community resources, and examples
-  - Combine external knowledge with project context appropriately
-  - Prioritize authoritative sources for technical information
-
-## OPERATIONAL EXAMPLES:
-
+### 💻 Code Generation Intent Detection:
+```regex
+/\b(write|create|implement|build|code|function|class|component|
+   method|interface|type|schema|model|controller|service|
+   repository|factory|singleton|observer|decorator)\b/i
 ```
-Input: "Create a singleton pattern"
-Analysis: Contains "create" (code generation trigger)
-Action: check_project_rules("create singleton pattern")
-Reason: Mandatory for code generation
+**🎯 Action**: `check_project_rules(task)` → Mandatory pre-flight check
 
-Input: "How does authentication work in this project?"
-Analysis: Contains "how" + "this project" (project information trigger)
-Action: search_documentation("authentication")
-Reason: Project-specific architectural query
+### 🏗️ Architecture & Pattern Queries:
+```regex
+/\b(how|what|why|architecture|pattern|design|structure|
+   approach|strategy|implementation|integration|workflow)\b.*
+   (this|our|project|codebase|system|application)/i
+```
+**🎯 Action**: `search_documentation(technical_terms)` → Extract nouns, search APIs
 
-Input: "What documentation is available?"
-Analysis: Contains "documentation" + "available" (discovery trigger)
-Action: get_global_rules()
-Reason: Documentation discovery request
+### 📚 Standards & Documentation Discovery:
+```regex
+/\b(documentation|docs|standards|guidelines|rules|conventions|
+   best practices|examples|reference|available|exists)\b/i
+```
+**🎯 Action**: `get_global_rules()` → Show coding standards overview
 
-Input: "I'm working on src/components/Header.js"
-Analysis: Contains "working on" + file path (file context trigger)
-Action: search_documentation("src/components/Header.js component")
-Reason: File-specific context search requirement
+### 🔧 API & Framework Exploration:
+```regex
+/\b(explore|examine|understand|deep dive|all methods|
+   properties|complete API|framework|library|SDK)\b/i
+```
+**🎯 Action**: `explore_api(class_or_framework_name)` → Comprehensive API docs
 
-Input: "We should document this pattern - always use TypeScript interfaces for API responses"
-Analysis: Contains "should document" + "pattern" (documentation creation trigger)
-Action: create_or_update_rule({fileName: "api-patterns.md", title: "API Response Patterns", content: "Always use TypeScript interfaces for API responses", alwaysApply: true})
-Reason: New knowledge capture requirement
+### 📝 Knowledge Capture & Learning:
+```regex
+/\b(document this|capture|remember|note|learned|discovered|
+   pattern found|should be a rule|add to docs)\b/i
+```
+**🎯 Action**: `create_or_update_rule()` → Persist new knowledge
 
-Input: "I added files manually but they're not showing up in search"
-Analysis: Contains "added files manually" + "not showing up" (refresh trigger)
-Action: refresh_documentation()
-Reason: Manual file detection issue
+## 🚀 SMART EXECUTION PIPELINE:
+
+```python
+class DocumentationPipeline:
+    def process_request(self, user_input: str):
+        # 1. Intent Recognition
+        intent = self.classify_intent(user_input)
+        entities = self.extract_entities(user_input)
+        
+        # 2. Smart Tool Selection
+        if intent == CodeGeneration:
+            rules = await check_project_rules(entities.task)
+            docs = await search_documentation(entities.tech_terms)
+            
+        elif intent == APIExploration:
+            api_docs = await explore_api(entities.class_name)
+            
+        elif intent == Architecture:
+            patterns = await search_documentation(entities.pattern)
+            
+        # 3. Response Synthesis
+        return self.generate_code_with_context(rules, docs)
 ```
 
-## COMPLIANCE PROTOCOL:
+### 🎯 Execution Priorities:
+1. **Safety First**: Always check rules before generating code
+2. **Context Aware**: Search project docs for custom patterns
+3. **Performance**: Use cached results when available
+4. **Accuracy**: Validate against project standards
 
-- **Rule Enforcement**: Project rules are non-negotiable
-- **Conflict Resolution**: Project documentation takes precedence over standard practices
-- **Validation**: All generated code must comply with project standards
-- **Documentation**: Reference specific rules when making recommendations
+## 💡 INTELLIGENT IMPLEMENTATION PROTOCOL:
+
+### 🏆 Code Quality Principles:
+```yaml
+precedence:
+  1: Project Documentation  # Your codebase rules
+  2: Official API Docs      # Framework/library docs
+  3: Industry Standards     # SOLID, DRY, KISS
+  4: General Knowledge      # Last resort
+
+validation:
+  - Type Safety: Enforce strong typing where available
+  - Error Handling: Never swallow exceptions silently
+  - Security: Input validation on all boundaries
+  - Performance: Profile before optimizing
+  - Testing: Minimum 80% coverage target
+```
+
+### 🔄 Smart Fallback Strategy:
+```javascript
+async function getImplementationGuidance(query) {
+  try {
+    // 1. Try project documentation first
+    const projectDocs = await search_documentation(query);
+    if (projectDocs.length > 0) return projectDocs;
+    
+    // 2. Try different search terms (max 3 attempts)
+    for (const term of generateSearchVariations(query)) {
+      const results = await search_documentation(term);
+      if (results.length > 0) return results;
+    }
+    
+    // 3. Web search fallback for external resources
+    return {
+      fallback: true,
+      message: "Search official docs, Stack Overflow, or GitHub examples",
+      searchTerms: extractTechnicalTerms(query)
+    };
+  } catch (error) {
+    return handleError(error);
+  }
+}
+```
+
+## 🎮 REAL-WORLD DEVELOPER SCENARIOS:
+
+### Scenario 1: Building a Feature
+```typescript
+// Developer: "Create a user authentication service"
+const pipeline = {
+  step1: await check_project_rules("authentication service"),
+  step2: await search_documentation("Auth", "Authentication", "User"),
+  step3: await explore_api("AuthenticationServices"),
+  step4: generateCodeWithContext(rules, patterns, apis)
+};
+```
+
+### Scenario 2: Understanding Architecture
+```typescript
+// Developer: "How does our caching layer work?"
+const analysis = {
+  search1: await search_documentation("cache", "caching"),
+  search2: await search_documentation("Redis", "Memcached"), 
+  result: found ? read_specific_document(doc) : explore_api("Cache")
+};
+```
+
+### Scenario 3: Implementing iOS Widget
+```typescript
+// Developer: "Create iOS 18 widget demo"
+const implementation = {
+  rules: await check_project_rules("iOS widget"),
+  // Smart search - API names not descriptions!
+  apis: await search_documentation("Widget", "WidgetKit"),
+  explore: await explore_api("WidgetKit"),
+  code: generateSwiftUIWidget(context)
+};
+```
+
+### Scenario 4: Performance Optimization
+```typescript
+// Developer: "Optimize database queries in UserService"
+const optimization = {
+  context: await get_file_docs("services/UserService.js"),
+  patterns: await search_documentation("query optimization", "N+1"),
+  rules: await check_project_rules("database optimization"),
+  implement: applyBatchingPattern(queries)
+};
+```
+
+## ⚖️ ENGINEERING COMPLIANCE & QUALITY GATES:
+
+### 🛡️ Non-Negotiable Standards:
+```javascript
+class CodeComplianceChecker {
+  async validate(generatedCode) {
+    const checks = {
+      architecture: this.followsProjectPatterns(generatedCode),
+      security: this.hasNoVulnerabilities(generatedCode),
+      performance: this.meetsPerformanceTargets(generatedCode),
+      testing: this.hasAdequateTests(generatedCode),
+      documentation: this.isProperlyDocumented(generatedCode)
+    };
+    
+    if (!checks.architecture) {
+      throw new ComplianceError("Code violates architecture patterns");
+    }
+    
+    return checks;
+  }
+}
+```
+
+### 📊 Quality Metrics:
+- **Code Coverage**: Minimum 80% for new code
+- **Complexity**: Cyclomatic complexity < 10
+- **Performance**: No N+1 queries, no blocking I/O
+- **Security**: All inputs validated, no hardcoded secrets
+- **Maintainability**: Clear naming, single responsibility
+
+**🎯 Golden Rule**: Ship code you'd be proud to maintain at 3 AM during an outage.

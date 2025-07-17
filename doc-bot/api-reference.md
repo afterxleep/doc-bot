@@ -11,7 +11,45 @@ This document provides a complete reference for all MCP tools exposed by the doc
 
 ## Available Tools
 
-### 1. `check_project_rules`
+### 1. `doc_bot`
+
+**Purpose**: Intelligent assistant that analyzes ANY request and provides optimal tool routing.
+
+**Description**: This is the primary entry point for all interactions with doc-bot. It analyzes your request, classifies the task type, extracts relevant search terms, and provides a step-by-step execution plan using other doc-bot tools. ALWAYS call this first.
+
+**Parameters**:
+- `task` (string, required): What you need help with
+  - Examples: "create REST API", "understand auth flow", "document this pattern", "find database models"
+
+**Returns**: Structured guidance containing:
+- Task classification (code generation, understanding, documentation, etc.)
+- Exact tool sequence to execute
+- Specific search terms to use
+- Best practices and tips
+- Search strategy guidance
+
+**Example**:
+```json
+{
+  "task": "create a user authentication service"
+}
+```
+
+**Response Example**:
+```
+## 💻 CODE GENERATION TASK DETECTED
+
+**MANDATORY Steps (in order)**:
+1. ⚡ FIRST: `check_project_rules("authentication service")` - Get critical coding standards
+2. 🔍 SEARCH for existing patterns:
+   - `search_documentation("Authentication")`
+   - `search_documentation("Auth")`
+   - `search_documentation("Login")`
+3. 📚 EXPLORE: If APIs found, use `explore_api()` for complete details
+4. ✅ IMPLEMENT: Generate code following ALL discovered patterns
+```
+
+### 2. `check_project_rules`
 
 **Purpose**: Retrieve project-specific coding rules and constraints that MUST be followed.
 
@@ -286,11 +324,13 @@ All tools return responses in a consistent format:
 
 ## Best Practices
 
-1. **Always call `check_project_rules` first** when generating code
-2. **Use `search_documentation` for general queries** before asking for specifics
-3. **Prefer `explore_api` for comprehensive API discovery** over multiple searches
-4. **Cache results when appropriate** to reduce redundant calls
-5. **Use `get_file_docs` for context-aware documentation** when working on specific files
+1. **ALWAYS call `doc_bot` first** for ANY task - it provides optimal routing
+2. **Follow the exact tool sequence** provided by `doc_bot` without deviation
+3. **Search using API/class names** not descriptions (e.g., "Widget" not "iOS widgets")
+4. **Call `check_project_rules` before generating code** as directed by `doc_bot`
+5. **Use `explore_api` for deep dives** into frameworks and classes
+6. **Trust project documentation** over general programming knowledge
+7. **Document new patterns** using `create_or_update_rule` for future reference
 
 ## Rate Limiting and Performance
 
