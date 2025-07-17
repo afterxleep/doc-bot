@@ -1,14 +1,52 @@
-# FILE-SPECIFIC DOCUMENTATION
+# 📁 CODE CONTEXT DOCUMENTATION
 
-**Target**: ${filePath}
+**File/Pattern**: `${filePath}`
 
-**Applicable Rules**:
+## 🎯 CONTEXTUAL CODING STANDARDS:
 
 ${docsContent}
 
-## IMPLEMENTATION REQUIREMENTS:
+## 🔧 IMPLEMENTATION CHECKLIST:
 
-- **Scope**: Apply these rules specifically to work on ${filePath}
-- **Precedence**: File-specific rules override global guidelines
-- **Validation**: Ensure all modifications comply with documented patterns
-- **Context**: Consider file's role in overall project architecture
+### Pre-Implementation Analysis:
+```typescript
+interface FileContext {
+  dependencies: string[];      // What does this file import?
+  exports: string[];          // What does this file export?
+  patterns: string[];         // Design patterns used
+  performance: string[];      // Hot paths or bottlenecks
+  security: string[];         // Security considerations
+}
+```
+
+### Code Modification Protocol:
+1. **🔍 Analyze Current Implementation**
+   - Review existing patterns and conventions
+   - Identify architectural decisions
+   - Note performance optimizations
+
+2. **🏗️ Apply Contextual Rules**
+   - File-specific patterns override globals
+   - Maintain consistency with surrounding code
+   - Preserve existing optimizations
+
+3. **✅ Validation Requirements**
+   ```javascript
+   // Before committing changes:
+   assert(follows_file_conventions);
+   assert(maintains_dependencies);
+   assert(preserves_contracts);
+   assert(passes_type_checking);
+   ```
+
+### 🚀 Performance Considerations:
+- **Hot Paths**: Code in this context may be performance-critical
+- **Memory**: Watch for memory leaks in long-running processes
+- **Complexity**: Keep O(n) complexity unless documented otherwise
+
+### 🛡️ Security Context:
+- **Input Validation**: Required for user-facing code
+- **Authentication**: Check if auth context needed
+- **Data Sanitization**: Required for DB operations
+
+**💡 Developer Note**: This file's patterns were chosen for specific reasons. Understand the "why" before changing the "how".

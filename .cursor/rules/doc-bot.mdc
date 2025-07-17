@@ -1,7 +1,7 @@
-# DOC-BOT: AGENT INTEGRATION RULE
-Version 4
-Copy everything below as your Agent single rule.
-
+---
+description: Doc-Bot integration default rule
+globs:
+alwaysApply: true
 ---
 
 ## DOC-BOT: MANDATORY BEHAVIORAL PROTOCOL
@@ -11,11 +11,11 @@ doc-bot MCP server detected? → This protocol is NOW ACTIVE
 
 ### THE ONLY WORKFLOW
 
-╔════════════════════════════════════════════╗
-║  user_request → doc_bot() → execute_all    ║
-║                                            ║
-║  NOTHING ELSE IS ACCEPTABLE                ║
-╚════════════════════════════════════════════╝
+    ╔════════════════════════════════════════════╗
+    ║  user_request → doc_bot() → execute_all   ║
+    ║                                            ║
+    ║  NOTHING ELSE IS ACCEPTABLE               ║
+    ╚════════════════════════════════════════════╝
 
 ### THREE IMMUTABLE LAWS
 
