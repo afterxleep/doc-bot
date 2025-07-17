@@ -38,3 +38,8 @@
 - **Precedence**: Tool responses override general knowledge
 - **Accuracy**: Verify information against documentation
 - **Completeness**: Don't add assumptions beyond tool output
+- **Search Limits**: If documentation searches yield no results after 2-3 attempts, follow web search fallback
+- **Fallback Protocol**: When instructed to use web search:
+  - Acknowledge the documentation search limitation
+  - Use web search for external resources
+  - Combine findings with any available project context

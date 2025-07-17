@@ -27,6 +27,9 @@ class DocsServer {
     // Cache for prompt templates
     this.promptTemplates = {};
     
+    // Track search attempts per session/query pattern
+    this.searchAttempts = new Map();
+    
     this.server = new Server({
       name: 'doc-bot',
       version: '1.0.0',
@@ -618,8 +621,44 @@ class DocsServer {
   }
   
   async formatUnifiedSearchResults(results, query) {
+    // Track search attempts for this query pattern
+    const queryKey = query.toLowerCase().trim();
+    const attemptData = this.searchAttempts.get(queryKey) || { count: 0, timestamp: Date.now() };
+    attemptData.count += 1;
+    attemptData.timestamp = Date.now();
+    this.searchAttempts.set(queryKey, attemptData);
+    
     if (!results || results.length === 0) {
-      return `No documentation found for query: "${query}" in any source.`;
+      // Check if we've tried multiple times
+      if (attemptData.count >= 3) {
+        // Clear the counter after suggesting fallback
+        this.searchAttempts.delete(queryKey);
+        
+        return `No documentation found for query: "${query}" in any source after ${attemptData.count} attempts.
+
+## 🌐 Fallback Recommendation:
+Since the documentation search hasn't yielded results after multiple attempts, **consider using web search** to find information about "${query}". Web searches can provide:
+
+- Latest API documentation from official sources
+- Community tutorials and examples
+- Stack Overflow solutions
+- Blog posts and articles
+
+**Suggested action:** Use web search with queries like:
+- "${query} documentation"
+- "${query} API reference"
+- "${query} example code"
+- "${query} tutorial"
+
+This will help you find the most current information beyond the local documentation.`;
+      }
+      
+      return `No documentation found for query: "${query}" in any source.
+
+Try:
+- Using different search terms or keywords
+- Searching for related concepts
+- Checking if the correct docset is installed with \`list_docsets\``;
     }
     
     let output = `# Search Results for "${query}"\n\n`;
@@ -1265,6 +1304,17 @@ class DocsServer {
     // Initialize services
     await this.docService.initialize();
     await this.inferenceEngine.initialize();
+    
+    // Set up periodic cleanup of search attempts (every 5 minutes)
+    this.searchCleanupInterval = setInterval(() => {
+      // Clear search attempts older than 10 minutes
+      const now = Date.now();
+      for (const [key, value] of this.searchAttempts.entries()) {
+        if (typeof value === 'object' && value.timestamp && (now - value.timestamp) > 600000) {
+          this.searchAttempts.delete(key);
+        }
+      }
+    }, 300000);
     
     // Initialize docset services
     try {

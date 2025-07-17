@@ -61,7 +61,11 @@ STEP 6: validation(response, project_rules)
 ### Fallback Response:
 1. **Context Check**: Verify if response requires project knowledge
 2. **Tool Selection**: Use search_documentation if uncertain
-3. **Generic Response**: Only if certain no project context needed
+3. **Search Limit**: If documentation search yields no results after 2-3 attempts, fall back to web search
+4. **Web Search Guidance**: When instructed to use web search after failed documentation searches:
+   - Use web search for official documentation, tutorials, and examples
+   - Combine project context with external knowledge when appropriate
+5. **Generic Response**: Only if certain no project context needed
 
 ## VALIDATION REQUIREMENTS:
 

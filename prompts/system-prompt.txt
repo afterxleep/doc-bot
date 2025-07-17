@@ -62,6 +62,11 @@
 - **Accuracy**: Do not add information beyond tool output
 - **Completeness**: Use tools for all project-related queries
 - **Validation**: Verify code compliance with project rules
+- **Search Fallback**: If documentation searches fail after 2-3 attempts, the system will recommend web search
+- **Web Search Usage**: When instructed to use web search after failed documentation searches:
+  - Use web search for official documentation, community resources, and examples
+  - Combine external knowledge with project context appropriately
+  - Prioritize authoritative sources for technical information
 
 ## OPERATIONAL EXAMPLES:
 
