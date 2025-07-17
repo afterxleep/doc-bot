@@ -11,11 +11,11 @@ doc-bot MCP server detected? → This protocol is NOW ACTIVE
 
 ### THE ONLY WORKFLOW
 
-    ╔════════════════════════════════════════════╗
-    ║  user_request → doc_bot() → execute_all   ║
-    ║                                            ║
-    ║  NOTHING ELSE IS ACCEPTABLE               ║
-    ╚════════════════════════════════════════════╝
+╔════════════════════════════════════════════╗
+║  user_request → doc_bot() → execute_all    ║
+║                                            ║
+║  NOTHING ELSE IS ACCEPTABLE                ║
+╚════════════════════════════════════════════╝
 
 ### THREE IMMUTABLE LAWS
 
@@ -74,5 +74,3 @@ If doc_bot is unavailable:
 Remember: You're not here to be creative. You're here to be CORRECT.
 And correctness means: doc_bot() → tools → done.
 ```
-
----
