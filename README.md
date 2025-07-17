@@ -75,7 +75,11 @@ your-project/
 └── package.json
 ```
 
-### 3. Test It
+### 3. Add the custom Agent Rule
+
+Replace all rules and instructions for your Agent (cursor.mdc, CLAUDE.md, etc) with Doc Bot Core Rule [AGENT INTEGRATION RULE](https://github.com/afterxleep/doc-bot/blob/main/AGENT_INTEGRATION_RULE.txt).
+
+### 4. Test it!
 
 Ask your AI assistant: "What are the coding standards for this project?"
 
