@@ -60,8 +60,8 @@ Add doc-bot to your AI assistant's configuration:
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
 
-**For Cursor::**
-Add an `mcp.json` file with the contents above to your `.cursor` folder
+**For Cursor:**
+- Add an `mcp.json` file with the contents above to your `.cursor` folder
 
 ### 2. Create Your Documentation
 
