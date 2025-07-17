@@ -5,6 +5,18 @@ All notable changes to doc-bot will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.16.0] - 2025-01-17
+
+### Fixed
+- doc_bot tool now correctly handles administrative tasks (add docset, create rule, etc.) without going through the standard documentation search path
+- Administrative tasks now get direct tool recommendations instead of following the standard check_project_rules → search_documentation → get_global_rules flow
+
+### Enhanced
+- Improved doc_bot guidance for docset management tasks (list, add, remove)
+- Better handling of rule/pattern creation requests with clear parameter examples
+- More intuitive documentation management task detection
+- Clearer distinction between administrative and development tasks
+
 ## [1.15.0] - 2025-01-17
 
 ### Added

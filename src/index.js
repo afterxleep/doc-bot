@@ -1062,7 +1062,65 @@ Try:
     let guidance = `# 🤖 DOC-BOT INTELLIGENT ASSISTANT\n\n`;
     guidance += `**Your Request**: ${task}\n\n`;
     
-    // Analyze the task and provide intelligent routing
+    // Check for administrative/management tasks first
+    const isDocsetManagement = /add.*docset|remove.*docset|list.*docset|install.*docset/i.test(task);
+    const isRuleManagement = /add.*rule|create.*rule|update.*rule|document.*pattern|capture.*pattern/i.test(task);
+    const isDocumentManagement = /refresh.*doc|reload.*doc|index.*doc|get.*index/i.test(task);
+    
+    // Handle administrative tasks directly
+    if (isDocsetManagement) {
+      guidance += `## 📦 DOCSET MANAGEMENT TASK DETECTED\n\n`;
+      guidance += `**Direct Actions Required**:\n`;
+      
+      if (/list/i.test(task)) {
+        guidance += `1. \`list_docsets()\` - Show all installed documentation sets\n\n`;
+      } else if (/add|install/i.test(task)) {
+        guidance += `1. \`add_docset(source: "path/to/docset or URL")\` - Install new docset\n\n`;
+        guidance += `📝 **Examples**:\n`;
+        guidance += `- Local: \`add_docset(source: "/Downloads/Swift.docset")\`\n`;
+        guidance += `- URL: \`add_docset(source: "https://example.com/React.docset.tgz")\`\n\n`;
+      } else if (/remove/i.test(task)) {
+        guidance += `1. \`list_docsets()\` - First, get the docset ID\n`;
+        guidance += `2. \`remove_docset(docsetId: "the-id-from-step-1")\` - Remove the docset\n\n`;
+      }
+      
+      guidance += `💡 **Note**: This is an administrative task - no documentation search needed.\n`;
+      return guidance;
+    }
+    
+    if (isRuleManagement) {
+      guidance += `## 📝 RULE/PATTERN MANAGEMENT TASK DETECTED\n\n`;
+      guidance += `**Direct Action Required**:\n`;
+      guidance += `1. \`create_or_update_rule(...)\` with these parameters:\n\n`;
+      guidance += `\`\`\`javascript\n`;
+      guidance += `{\n`;
+      guidance += `  fileName: "descriptive-name.md",\n`;
+      guidance += `  title: "Clear title for the rule/pattern",\n`;
+      guidance += `  content: "Full markdown documentation",\n`;
+      guidance += `  alwaysApply: true/false, // true = global, false = contextual\n`;
+      guidance += `  keywords: ["relevant", "search", "terms"],\n`;
+      guidance += `  description: "Brief summary" // optional\n`;
+      guidance += `}\n`;
+      guidance += `\`\`\`\n\n`;
+      guidance += `💡 **Note**: This captures project knowledge permanently - no search needed.\n`;
+      return guidance;
+    }
+    
+    if (isDocumentManagement) {
+      guidance += `## 🔄 DOCUMENTATION MANAGEMENT TASK DETECTED\n\n`;
+      guidance += `**Direct Action Required**:\n`;
+      
+      if (/refresh|reload/i.test(task)) {
+        guidance += `1. \`refresh_documentation()\` - Reload all docs from disk\n\n`;
+      } else {
+        guidance += `1. \`get_document_index()\` - List all available documentation\n\n`;
+      }
+      
+      guidance += `💡 **Note**: This is an administrative task - direct execution only.\n`;
+      return guidance;
+    }
+    
+    // Analyze the task and provide intelligent routing for non-administrative tasks
     if (taskLower.includes('create') || taskLower.includes('implement') || taskLower.includes('build') || 
         taskLower.includes('write') || taskLower.includes('add') || taskLower.includes('code') ||
         taskLower.includes('function') || taskLower.includes('class') || taskLower.includes('component')) {
