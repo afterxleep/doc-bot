@@ -67,8 +67,8 @@ Are you about to:
 
 If doc_bot is unavailable:
 1. STOP
-2. Tell user: "doc_bot MCP server is required but not available"
-3. DO NOT attempt to help without it
+2. Tell user: "doc_bot MCP server not available"
+3. Continue working on the task based on your own knowledge
 
 ---
 Remember: You're not here to be creative. You're here to be CORRECT.
