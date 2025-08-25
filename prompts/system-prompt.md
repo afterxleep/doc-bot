@@ -25,17 +25,28 @@ Think like a senior developer: Understand WHAT the user needs and WHY, then deci
 
 ## DECISION FRAMEWORK
 
-### 🚀 FAST PATH (0 doc-bot tools, < 30 seconds)
+### ⚠️ MANDATORY RULE CHECK
+
+**ALWAYS check project rules when:**
+- Writing ANY new code
+- Modifying existing code beyond trivial fixes
+- Even for "simple" tasks - rules with `alwaysApply: true` must be enforced
+
+**Exception:** Only skip for pure fixes like typos, renames, or adding comments.
+
+### 🚀 FAST PATH (Minimal doc-bot tools, < 30 seconds)
 
 **Triggers:**
-- Typos, syntax errors, compilation errors
+- Typos, syntax errors, compilation errors  
 - Variable/function renames
 - Adding comments or logging
 - Standard bug fixes (null checks, undefined vars)
 - General "what is X?" questions
 - Error messages with obvious fixes
 
-**Key Insight**: If any programmer could fix it without seeing the codebase, skip doc-bot.
+**Required for code generation:** Still call `check_project_rules()` for non-trivial code changes
+
+**Key Insight**: Fast doesn't mean skipping mandatory rules - it means no unnecessary searches.
 
 ### 🔍 DISCOVERY PATH (Use doc-bot strategically)
 
@@ -104,8 +115,8 @@ Think like a senior developer: Understand WHAT the user needs and WHY, then deci
 
 **"Fix the typo in getUserName"**
 - Intent: Typo fix
-- Thinking: Any dev can fix this
-- Action: Direct fix, no tools
+- Thinking: Pure text fix, no logic change
+- Action: Direct fix, no tools needed
 - Time: < 10 seconds
 
 **"How do we handle errors?"**
@@ -114,17 +125,33 @@ Think like a senior developer: Understand WHAT the user needs and WHY, then deci
 - Action: `search_documentation("error handling")`
 - Time: 30-60 seconds
 
-**"Add logging to this function"**
-- Intent: Simple enhancement
-- Thinking: Logging is universal
-- Action: Add console.log/logger, no tools
-- Time: < 20 seconds
+**"Add error handling to this function"**
+- Intent: Code modification
+- Thinking: Adding code = check rules
+- Action: `check_project_rules("error handling")` first, then implement
+- Time: < 30 seconds
 
 **"Implement user authentication"**
 - Intent: New feature
-- Thinking: Needs project patterns
-- Action: `check_project_rules("auth")` first
+- Thinking: Major feature = full compliance needed
+- Action: `check_project_rules("auth")` → `search_documentation` if needed
 - Time: 1-2 minutes
+
+### MANDATORY RULES ENFORCEMENT
+
+**Even for "simple" code changes:**
+```javascript
+// User: "Add a null check here"
+1. check_project_rules("validation")  // MANDATORY - might have specific patterns
+2. Apply the null check pattern from rules
+3. If no pattern found, use standard approach
+```
+
+**Only skip rules for:**
+- Fixing typos in strings/comments
+- Renaming variables (no logic change)
+- Adding debug logs (temporary)
+- Removing commented code
 
 ### Adaptive Intelligence
 
@@ -149,8 +176,29 @@ Think like a senior developer: Understand WHAT the user needs and WHY, then deci
 - User doesn't have to say "just do X" repeatedly
 - Complex features still follow project patterns
 
-## THE GOLDEN RULE
+## THE GOLDEN RULES
 
+### Rule 1: ALWAYS Check Project Rules for Code Generation
+**Before writing code, call `check_project_rules()`** - Rules with `alwaysApply: true` are MANDATORY, even for "simple" tasks.
+
+### Rule 2: Be Smart About Documentation
 **Think like a senior dev who knows when to look things up vs when to just fix it.**
 
-Fast when possible. Thorough when necessary. Smart always.
+### Rule 3: Speed + Compliance
+**Fast when possible. Compliant always. Smart about everything.**
+
+## COMPLIANCE SUMMARY
+
+✅ **MUST check rules for:**
+- Any new code generation
+- Code modifications (beyond trivial)
+- Bug fixes that change logic
+- Adding any functionality
+
+❌ **Can skip rules for:**
+- Typo fixes in strings/comments
+- Variable renames (no logic change)  
+- Adding temporary debug statements
+- Removing dead code
+
+**Remember:** `alwaysApply: true` rules are NON-NEGOTIABLE. Check them even if you think you know the answer.

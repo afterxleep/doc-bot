@@ -6,10 +6,18 @@
 export const EXPECTED_BEHAVIORS = {
   quickFix: {
     maxTimeSeconds: 30,
+    useDocBot: true,  // Changed: Must check rules for code changes
+    maxTools: 1,      // Changed: check_project_rules for non-trivial fixes
+    strategy: 'FAST_PATH',
+    description: 'Simple fixes that still need rule compliance for code changes'
+  },
+  
+  trivialFix: {
+    maxTimeSeconds: 10,
     useDocBot: false,
     maxTools: 0,
     strategy: 'FAST_PATH',
-    description: 'Simple fixes that any developer can handle without project context'
+    description: 'Truly trivial fixes like typos in comments that need no rules'
   },
   
   projectDiscovery: {
@@ -92,11 +100,17 @@ export const TOOL_PATTERNS = {
  * Decision rules for the analyzer
  */
 export const DECISION_RULES = {
-  // If query contains these, skip doc-bot
-  skipDocBotTriggers: [
-    'typo', 'syntax error', 'undefined', 'missing import',
-    'rename', 'add comment', 'console.log', 'quick', 'just',
-    'simple', 'for now'
+  // Only skip ALL doc-bot tools for these truly trivial tasks
+  skipAllDocBotTriggers: [
+    'typo in comment', 'typo in string', 
+    'rename variable', 'rename function',
+    'remove comment', 'remove dead code'
+  ],
+  
+  // These still need check_project_rules but no other doc-bot tools
+  needsRulesOnly: [
+    'add null check', 'add error handling', 'add validation',
+    'fix undefined', 'fix syntax error', 'add logging'
   ],
   
   // If query contains these, use doc-bot
