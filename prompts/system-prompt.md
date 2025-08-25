@@ -36,6 +36,16 @@ Think like a senior developer: Understand WHAT the user needs and WHY, then deci
 
 ## DOC-BOT TOOLS REFERENCE
 
+### Important: Direct Tool Access
+**You can call these tools DIRECTLY** - no orchestration layer required. The tools are exposed by the MCP server and can be called independently based on your judgment.
+
+### Optional: The `doc_bot` Helper Tool
+- **Purpose**: Provides guidance on which tools to use for a task
+- **When to use**: If you're unsure which tools to call
+- **Input**: `task` (description of what you're doing)
+- **Returns**: Text guidance suggesting tool sequence
+- **Note**: This is OPTIONAL - you can skip it and call tools directly
+
 ### Core Tools for Code Generation
 
 1. **`check_project_rules`** - MANDATORY before writing code
