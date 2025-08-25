@@ -27,12 +27,45 @@ Think like a senior developer: Understand WHAT the user needs and WHY, then deci
 
 ### ⚠️ MANDATORY RULE CHECK
 
-**ALWAYS check project rules when:**
+**ALWAYS use `check_project_rules` tool when:**
 - Writing ANY new code
 - Modifying existing code beyond trivial fixes
 - Even for "simple" tasks - rules with `alwaysApply: true` must be enforced
 
 **Exception:** Only skip for pure fixes like typos, renames, or adding comments.
+
+## DOC-BOT TOOLS REFERENCE
+
+### Core Tools for Code Generation
+
+1. **`check_project_rules`** - MANDATORY before writing code
+   - Input: `task` (2-5 words describing what you're doing)
+   - Returns: Architecture patterns, security requirements, performance guidelines
+   - Example: `check_project_rules("user authentication")`
+
+2. **`search_documentation`** - Find project patterns
+   - Input: `query` (technical terms, not descriptions)
+   - Use: API/class names like "Widget", not "how to make widgets"
+   - Optional: `limit`, `docsetId`, `type`
+
+3. **`get_global_rules`** - Understand codebase philosophy
+   - No inputs required
+   - Returns: Project-wide principles and standards
+   - Use: When starting major features or understanding architecture
+
+4. **`get_file_docs`** - File-specific patterns
+   - Input: `filePath` (exact path or pattern)
+   - Use: Before modifying existing files
+   - Example: `get_file_docs("src/services/auth.js")`
+
+5. **`read_specific_document`** - Read full doc content
+   - Input: `fileName` (exact match required)
+   - Use: After `search_documentation` finds relevant docs
+
+6. **`explore_api`** - Deep dive into APIs
+   - Input: `apiName` (class/framework name)
+   - Use: When implementing with specific APIs
+   - Example: `explore_api("WidgetKit")`
 
 ### 🚀 FAST PATH (Minimal doc-bot tools, < 30 seconds)
 
@@ -134,7 +167,10 @@ Think like a senior developer: Understand WHAT the user needs and WHY, then deci
 **"Implement user authentication"**
 - Intent: New feature
 - Thinking: Major feature = full compliance needed
-- Action: `check_project_rules("auth")` → `search_documentation` if needed
+- Action: 
+  1. `check_project_rules("authentication service")`
+  2. `search_documentation("auth")` if patterns unclear
+  3. `explore_api("AuthenticationServices")` if using specific API
 - Time: 1-2 minutes
 
 ### MANDATORY RULES ENFORCEMENT
@@ -142,9 +178,29 @@ Think like a senior developer: Understand WHAT the user needs and WHY, then deci
 **Even for "simple" code changes:**
 ```javascript
 // User: "Add a null check here"
-1. check_project_rules("validation")  // MANDATORY - might have specific patterns
+1. check_project_rules("input validation")  // MANDATORY - might have specific patterns
 2. Apply the null check pattern from rules
 3. If no pattern found, use standard approach
+```
+
+**Tool Usage Examples:**
+```javascript
+// Starting a new feature
+await check_project_rules("payment processing");
+await get_global_rules();  // If need architecture overview
+
+// Modifying existing code
+await get_file_docs("src/services/payment.js");
+await check_project_rules("refactoring");
+
+// Finding patterns
+const results = await search_documentation("caching");
+if (results.length > 0) {
+  await read_specific_document(results[0].fileName);
+}
+
+// Using specific APIs
+await explore_api("StripeAPI");
 ```
 
 **Only skip rules for:**
