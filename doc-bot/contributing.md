@@ -33,7 +33,7 @@ Thank you for your interest in contributing to doc-bot! This guide will help you
 
 3. **Run Tests**
    ```bash
-   NODE_OPTIONS="--experimental-vm-modules" npm test
+   npm test
    ```
 
 4. **Start Development Server**
@@ -158,6 +158,8 @@ docs: update API reference for new tool
 
 ## Testing Your Changes
 
+> **📚 See [Running Tests Guide](running-tests.md) for complete testing instructions**
+
 ### Local Testing with Claude
 
 1. Build your changes:
@@ -182,17 +184,20 @@ docs: update API reference for new tool
 ### Running Tests
 
 ```bash
-# Run all tests
-NODE_OPTIONS="--experimental-vm-modules" npm test
+# Run all tests (NODE_OPTIONS handled automatically)
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Run E2E tests only
+npm run test:e2e
+
+# Watch mode for development
+npm run test:watch
 
 # Run specific test file
 NODE_OPTIONS="--experimental-vm-modules" npm test -- UnifiedSearchService.test.js
-
-# Run with coverage
-NODE_OPTIONS="--experimental-vm-modules" npm run test:coverage
-
-# Watch mode
-NODE_OPTIONS="--experimental-vm-modules" npm run test:watch
 ```
 
 ## Pull Request Process

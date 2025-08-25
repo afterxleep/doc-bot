@@ -167,6 +167,8 @@ console.log('Results after filtering:', filtered.length);
 
 ### Testing Strategies
 
+> **📚 For complete testing instructions, see [Running Tests Guide](running-tests.md)**
+
 #### Unit Test Pattern
 ```javascript
 describe('Service', () => {

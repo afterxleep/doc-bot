@@ -114,3 +114,19 @@ Thumbs.db
 
 # Test output
 test-results/
+
+# Test fixtures (generated files)
+test/fixtures/docs/
+test/fixtures/prompts/
+
+# Prompts directory (copied during tests)
+prompts/
+
+# Coverage reports
+coverage/
+*.lcov
+.nyc_output/
+
+# Test artifacts
+test-*.md
+e2e-test-*.md

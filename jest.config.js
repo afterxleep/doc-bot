@@ -10,8 +10,19 @@ export default {
   ],
   collectCoverageFrom: [
     'src/**/*.js',
-    '!src/**/__tests__/**'
+    'bin/**/*.js',
+    '!src/**/__tests__/**',
+    '!src/**/*.test.js',
+    '!bin/**/*.test.js'
   ],
+  coverageThreshold: {
+    global: {
+      branches: 45,
+      functions: 65,
+      lines: 55,
+      statements: 55
+    }
+  },
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   testTimeout: 30000

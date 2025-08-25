@@ -29,13 +29,32 @@ class DocumentationService {
       }
       
       const pattern = path.join(this.docsPath, '**/*.{md,mdx,mdc}');
-      const files = glob.sync(pattern);
+      
+      // Use explicit glob options to ensure recursive scanning
+      const files = glob.sync(pattern, {
+        absolute: true,     // Return absolute paths
+        dot: true,          // Include hidden files/folders
+        follow: true,       // Follow symbolic links
+        nodir: true,        // Only return files, not directories
+        ignore: ['**/node_modules/**', '**/.git/**']  // Ignore common non-doc folders
+      });
+      
+      // Log scanning info if verbose mode is enabled
+      if (process.env.DOC_BOT_VERBOSE === 'true') {
+        console.log(`[DocumentationService] Scanning pattern: ${pattern}`);
+        console.log(`[DocumentationService] Found ${files.length} document(s)`);
+      }
       
       for (const filePath of files) {
         await this.loadDocument(filePath);
       }
       
       this.lastScanned = new Date();
+      
+      // Log final loaded count if verbose
+      if (process.env.DOC_BOT_VERBOSE === 'true') {
+        console.log(`[DocumentationService] Successfully loaded ${this.documents.size} document(s)`);
+      }
     } catch (error) {
       console.error('Error loading documents:', error);
     }
@@ -58,6 +77,12 @@ class DocumentationService {
       };
       
       this.documents.set(relativePath, document);
+      
+      // Log individual document loading if verbose
+      if (process.env.DOC_BOT_VERBOSE === 'true') {
+        const folderPath = path.dirname(relativePath);
+        console.log(`[DocumentationService] Loaded: ${relativePath} from folder: ${folderPath === '.' ? 'root' : folderPath}`);
+      }
     } catch (error) {
       console.error(`Error loading document ${filePath}:`, error);
     }

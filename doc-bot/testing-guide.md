@@ -9,6 +9,8 @@ keywords: ["testing", "jest", "unit tests", "integration tests", "test coverage"
 
 How to write and run tests for the doc-bot project.
 
+> **📚 For complete instructions on running the test suite, see [Running Tests Guide](running-tests.md)**
+
 ## Testing Framework
 
 Doc-bot uses Jest as its testing framework with ES modules support.
