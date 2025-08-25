@@ -5,6 +5,30 @@ All notable changes to doc-bot will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0] - 2025-01-25
+
+### Added
+- Comprehensive testing framework for system prompts and AI validation
+- Test suite for expected AI behaviors and response patterns
+- Logic validation tests for prompt consistency
+- Sample queries fixture for testing common use cases
+- Automated test runner for continuous validation
+
+### Changed
+- Migrated all prompt templates from .txt to .md format for better readability
+- Enhanced system prompt with clearer agent guidance and mandatory rules enforcement
+- Improved file-docs prompt with better context instructions
+- Updated global rules prompt with enhanced role clarification
+- Refined mandatory rules with explicit project rules checking requirement
+- Optimized search results prompt for better relevance assessment
+
+### Improved
+- Agent integration clarity with direct tool references instead of imports
+- More explicit instructions for mandatory project rules checking before code generation
+- Better structured prompts with markdown formatting for improved parsing
+- Enhanced cognitive triggers and behavioral psychology techniques in prompts
+- Clearer separation between different types of documentation tasks
+
 ## [1.16.0] - 2025-01-17
 
 ### Fixed
