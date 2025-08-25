@@ -1,0 +1,43 @@
+{
+  "quickFixes": [
+    "Fix the typo in getUserName method",
+    "Add console.log to debug this function",
+    "Rename variable from x to meaningfulName",
+    "Fix syntax error on line 42",
+    "Add a comment explaining this function",
+    "Remove unused imports",
+    "Fix undefined variable error"
+  ],
+  "projectDiscovery": [
+    "How do we handle authentication in this project?",
+    "What's our pattern for error handling?",
+    "Where is the user service implemented?",
+    "How does this codebase handle caching?",
+    "What's our API versioning strategy?",
+    "Show me our database migration patterns"
+  ],
+  "featureImplementation": [
+    "Implement user registration endpoint",
+    "Add rate limiting to our API",
+    "Create a new payment processing module",
+    "Build a notification service",
+    "Implement OAuth2 authentication",
+    "Add WebSocket support for real-time updates"
+  ],
+  "generalQuestions": [
+    "What is a JavaScript closure?",
+    "How does async/await work?",
+    "Explain the event loop",
+    "What's the difference between let and const?",
+    "How does prototypal inheritance work?",
+    "What are React hooks?"
+  ],
+  "edgeCases": [
+    "Just make it work",
+    "Quick fix for now",
+    "This is broken, help",
+    "???",
+    "Make it better",
+    "Optimize this somehow"
+  ]
+}

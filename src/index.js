@@ -61,12 +61,21 @@ class DocsServer {
 
   async loadPromptTemplate(templateName) {
     if (!this.promptTemplates[templateName]) {
-      const templatePath = path.join(__dirname, '../prompts', `${templateName}.txt`);
+      // Try markdown first, fall back to txt for backward compatibility
+      const mdPath = path.join(__dirname, '../prompts', `${templateName}.md`);
+      const txtPath = path.join(__dirname, '../prompts', `${templateName}.txt`);
+      
       try {
-        this.promptTemplates[templateName] = await fs.readFile(templatePath, 'utf8');
-      } catch (error) {
-        console.error(`Failed to load prompt template ${templateName}:`, error);
-        return null;
+        // Try loading markdown version first
+        this.promptTemplates[templateName] = await fs.readFile(mdPath, 'utf8');
+      } catch (mdError) {
+        try {
+          // Fall back to txt version
+          this.promptTemplates[templateName] = await fs.readFile(txtPath, 'utf8');
+        } catch (txtError) {
+          console.error(`Failed to load prompt template ${templateName}:`, mdError.message);
+          return null;
+        }
       }
     }
     return this.promptTemplates[templateName];
