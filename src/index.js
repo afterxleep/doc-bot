@@ -9,6 +9,7 @@ import { UnifiedSearchService } from './services/UnifiedSearchService.js';
 import chokidar from 'chokidar';
 import path from 'path';
 import { promises as fs } from 'fs';
+import fsExtra from 'fs-extra';
 import { fileURLToPath } from 'url';
 import os from 'os';
 
@@ -1233,12 +1234,9 @@ Try:
   }
 
   async createOrUpdateRule({ fileName, title, description, keywords, alwaysApply, content }) {
-    const fs = require('fs-extra');
-    const path = require('path');
-    
     try {
       // Ensure the docs directory exists
-      await fs.ensureDir(this.options.docsPath);
+      await fsExtra.ensureDir(this.options.docsPath);
       
       // Create the full file path
       const filePath = path.join(this.options.docsPath, fileName);
@@ -1259,11 +1257,11 @@ Try:
       const fullContent = frontmatter + content;
       
       // Check if file exists to determine if this is create or update
-      const fileExists = await fs.pathExists(filePath);
+      const fileExists = await fsExtra.pathExists(filePath);
       const action = fileExists ? 'updated' : 'created';
       
       // Write the file
-      await fs.writeFile(filePath, fullContent, 'utf8');
+      await fsExtra.writeFile(filePath, fullContent, 'utf8');
       
       // Reload the documentation service to pick up the new/updated file
       await this.docService.reload();
