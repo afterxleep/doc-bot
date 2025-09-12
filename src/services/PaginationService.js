@@ -96,65 +96,100 @@ export class PaginationService {
       };
     }
 
-    // Smart pagination: fit as many items as possible within token limit
-    let accumulatedContent = '';
-    let itemsIncluded = [];
-    let startIndex = 0;
-    
-    // Find starting index for requested page
-    if (page > 1) {
-      // Estimate items per page based on average size
-      const sampleSize = Math.min(5, items.length);
-      const sampleContent = formatter(items.slice(0, sampleSize));
-      const avgTokensPerItem = this.estimateTokens(sampleContent) / sampleSize;
-      const estimatedItemsPerPage = Math.floor(20000 / avgTokensPerItem); // Conservative limit
-      startIndex = (page - 1) * estimatedItemsPerPage;
+    // First, analyze all items to detect chunking needs and build a page map
+    const itemAnalysis = items.map((item, index) => {
+      const singleContent = formatter([item]);
+      const tokens = this.estimateTokens(singleContent);
       
-      if (startIndex >= items.length) {
-        startIndex = items.length - estimatedItemsPerPage;
+      let chunks = [singleContent];
+      let needsChunking = false;
+      
+      if (tokens > 20000) {
+        chunks = this.chunkText(singleContent, 80000); // ~20k tokens
+        needsChunking = chunks.length > 1;
+      }
+      
+      return {
+        index,
+        item,
+        tokens,
+        needsChunking,
+        chunks,
+        pagesNeeded: needsChunking ? chunks.length : 1
+      };
+    });
+    
+    // Build a logical page map that accounts for chunked items
+    const pageMap = [];
+    let currentPage = 1;
+    
+    for (const analysis of itemAnalysis) {
+      if (analysis.needsChunking) {
+        // Each chunk gets its own page
+        for (let chunkIndex = 0; chunkIndex < analysis.chunks.length; chunkIndex++) {
+          pageMap.push({
+            page: currentPage++,
+            itemIndex: analysis.index,
+            chunkIndex: chunkIndex,
+            content: analysis.chunks[chunkIndex],
+            isChunked: true,
+            totalChunks: analysis.chunks.length
+          });
+        }
+      } else {
+        // Regular item gets one page
+        pageMap.push({
+          page: currentPage++,
+          itemIndex: analysis.index,
+          chunkIndex: null,
+          content: analysis.chunks[0],
+          isChunked: false,
+          totalChunks: 1
+        });
       }
     }
-
-    // Add items until we approach token limit
-    for (let i = startIndex; i < items.length; i++) {
-      const itemContent = formatter([items[i]]);
-      const newTotal = accumulatedContent + itemContent;
-      
-      if (this.estimateTokens(newTotal) > 20000 && itemsIncluded.length > 0) { // Leave room for pagination info
-        break;
-      }
-      
-      accumulatedContent = newTotal;
-      itemsIncluded.push(items[i]);
-      
-      // If even a single item exceeds limit, include it anyway
-      if (itemsIncluded.length === 1 && this.estimateTokens(newTotal) > 20000) {
-        break;
-      }
-    }
-
-    // Calculate pagination info
-    const hasMore = startIndex + itemsIncluded.length < items.length;
-    const estimatedTotalPages = Math.ceil(items.length / Math.max(1, itemsIncluded.length));
     
+    // Find the requested page
+    const requestedPageData = pageMap.find(p => p.page === page);
+    
+    if (!requestedPageData) {
+      // Page out of range
+      return {
+        content: 'Page not found.',
+        pagination: {
+          page: page,
+          itemsInPage: 0,
+          totalItems: items.length,
+          hasMore: false,
+          estimatedTotalPages: pageMap.length,
+          nextPage: null,
+          prevPage: page > 1 ? Math.min(page - 1, pageMap.length) : null
+        }
+      };
+    }
+    
+    // Return the content for the requested page
     return {
-      content: accumulatedContent,
+      content: requestedPageData.content,
       pagination: {
         page: page,
-        itemsInPage: itemsIncluded.length,
+        itemsInPage: 1,
         totalItems: items.length,
-        hasMore: hasMore,
-        estimatedTotalPages: estimatedTotalPages,
-        nextPage: hasMore ? page + 1 : null,
+        hasMore: page < pageMap.length,
+        estimatedTotalPages: pageMap.length,
+        nextPage: page < pageMap.length ? page + 1 : null,
         prevPage: page > 1 ? page - 1 : null,
-        startIndex: startIndex,
-        endIndex: startIndex + itemsIncluded.length
+        isChunked: requestedPageData.isChunked,
+        chunkIndex: requestedPageData.isChunked ? requestedPageData.chunkIndex + 1 : null,
+        totalChunks: requestedPageData.totalChunks,
+        startIndex: requestedPageData.itemIndex,
+        endIndex: requestedPageData.itemIndex + 1
       }
     };
   }
 
   /**
-   * Format pagination info for display
+   * Format pagination info for display at the bottom of responses
    */
   formatPaginationInfo(pagination) {
     let info = '\n\n---\n';
@@ -167,7 +202,11 @@ export class PaginationService {
     }
     info += '**\n';
     
-    if (pagination.itemsInPage !== undefined) {
+    // Handle chunked content
+    if (pagination.isChunked) {
+      info += `📄 **Content Chunk ${pagination.chunkIndex} of ${pagination.totalChunks}** (Large document split for readability)\n`;
+      info += `📊 Document ${pagination.startIndex + 1} of ${pagination.totalItems} total items\n`;
+    } else if (pagination.itemsInPage !== undefined) {
       info += `📊 Showing ${pagination.itemsInPage} of ${pagination.totalItems} items\n`;
     } else if (pagination.pageSize) {
       const start = (pagination.page - 1) * pagination.pageSize + 1;
@@ -181,11 +220,65 @@ export class PaginationService {
         info += `⬅️ Previous: Add \`page: ${pagination.prevPage}\` to see previous items\n`;
       }
       if (pagination.nextPage) {
-        info += `➡️ Next: Add \`page: ${pagination.nextPage}\` to see more items\n`;
+        if (pagination.isChunked && pagination.chunkIndex < pagination.totalChunks) {
+          info += `➡️ Next: Add \`page: ${pagination.nextPage}\` to see next chunk\n`;
+        } else {
+          info += `➡️ Next: Add \`page: ${pagination.nextPage}\` to see more items\n`;
+        }
       }
     }
     
     return info;
+  }
+
+  /**
+   * Format pagination info for display at the TOP of responses (for agent guidance)
+   */
+  formatPaginationHeader(pagination) {
+    let header = '📖 **LARGE DOCUMENT - PAGINATION ACTIVE**\n\n';
+    header += `📄 **Current Page: ${pagination.page}`;
+    
+    if (pagination.totalPages) {
+      header += ` of ${pagination.totalPages}`;
+    } else if (pagination.estimatedTotalPages) {
+      header += ` of ~${pagination.estimatedTotalPages}`;
+    }
+    header += '**\n';
+    
+    // Handle chunked content
+    if (pagination.isChunked) {
+      header += `📄 **Content Chunk ${pagination.chunkIndex} of ${pagination.totalChunks}** (Large document automatically split)\n`;
+      header += `📊 **Content**: Document ${pagination.startIndex + 1} of ${pagination.totalItems} total items\n`;
+    } else if (pagination.itemsInPage !== undefined) {
+      header += `📊 **Content**: Showing ${pagination.itemsInPage} of ${pagination.totalItems} items\n`;
+    }
+    
+    if (pagination.hasMore || pagination.nextPage || pagination.prevPage) {
+      header += '\n🧭 **NAVIGATION GUIDE FOR AGENTS:**\n';
+      if (pagination.prevPage) {
+        header += `  • **Previous page**: Add \`page: ${pagination.prevPage}\` parameter\n`;
+      }
+      if (pagination.nextPage) {
+        if (pagination.isChunked && pagination.chunkIndex < pagination.totalChunks) {
+          header += `  • **Next page**: Add \`page: ${pagination.nextPage}\` parameter (next chunk)\n`;
+        } else {
+          header += `  • **Next page**: Add \`page: ${pagination.nextPage}\` parameter\n`;
+        }
+      }
+      const maxPages = pagination.isChunked ? 
+        Math.max(pagination.totalChunks, pagination.estimatedTotalPages || pagination.totalPages || 1) :
+        (pagination.estimatedTotalPages || pagination.totalPages);
+      if (maxPages) {
+        header += `  • **Jump to page**: Use \`page: N\` (where N = 1-${maxPages})\n`;
+      }
+      
+      if (pagination.nextPage) {
+        header += '\n⚠️ **IMPORTANT**: This response is truncated. Use pagination to see the complete content.\n';
+      }
+    }
+    
+    header += '\n---\n\n';
+    return header;
   }
 
   /**
