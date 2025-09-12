@@ -7,6 +7,7 @@ import { MultiDocsetDatabase } from './services/docset/database.js';
 import { DocsetService } from './services/docset/index.js';
 import { UnifiedSearchService } from './services/UnifiedSearchService.js';
 import { PaginationService } from './services/PaginationService.js';
+import { TokenEstimator } from './utils/TokenEstimator.js';
 import chokidar from 'chokidar';
 import path from 'path';
 import { promises as fs } from 'fs';
@@ -442,7 +443,7 @@ class DocsServer {
             
             // Format all global rules into one combined text
             const allGlobalRulesText = this.formatGlobalRulesArray(globalRules);
-            const estimatedTokens = Math.ceil(allGlobalRulesText.length / 4);
+            const estimatedTokens = TokenEstimator.estimateTokens(allGlobalRulesText);
             
             // Check if pagination is needed
             if (estimatedTokens <= 20000) {
@@ -456,7 +457,7 @@ class DocsServer {
             }
             
             // Use text-level pagination for large content
-            const chunks = this.paginationService.chunkText(allGlobalRulesText, 80000); // ~20k tokens per chunk
+            const chunks = this.paginationService.chunkText(allGlobalRulesText, 20000); // 20k tokens per chunk
             const totalPages = chunks.length;
             
             if (globalPage < 1 || globalPage > totalPages) {
@@ -540,7 +541,7 @@ class DocsServer {
             }
             
             const fullContent = await this.formatSingleDocument(doc);
-            const fullContentTokens = Math.ceil(fullContent.length / 4);
+            const fullContentTokens = TokenEstimator.estimateTokens(fullContent);
             
             // Check if pagination is needed
             if (fullContentTokens <= 20000) {

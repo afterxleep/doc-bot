@@ -1,3 +1,5 @@
+import { TokenEstimator } from '../utils/TokenEstimator.js';
+
 /**
  * PaginationService - Handles response pagination for MCP server
  * Ensures responses stay within token limits (25K tokens)
@@ -10,12 +12,12 @@ export class PaginationService {
   }
 
   /**
-   * Estimate token count from string length
-   * Uses conservative 4:1 char to token ratio
+   * Estimate token count using realistic tokenization patterns
+   * @param {string} text - Text to analyze
+   * @returns {number} Estimated token count
    */
   estimateTokens(text) {
-    if (!text) return 0;
-    return Math.ceil(text.length / 4);
+    return TokenEstimator.estimateTokens(text);
   }
 
   /**
@@ -284,22 +286,19 @@ export class PaginationService {
   /**
    * Chunk large text content
    */
-  chunkText(text, maxChunkSize = 80000) {
+  chunkText(text, targetTokens = 20000) {
     if (!text) {
       return [text];
     }
     
-    const maxTokensPerChunk = Math.floor(maxChunkSize / 4); // Convert char limit to token limit
-    
-    // If text is under the limit for default chunk size
-    if (maxChunkSize === 80000 && this.estimateTokens(text) <= 24000) {
+    // If text is under the token limit, return as-is
+    const totalTokens = this.estimateTokens(text);
+    if (totalTokens <= targetTokens) {
       return [text];
     }
     
-    // If text is under the specified limit
-    if (text.length <= maxChunkSize) {
-      return [text];
-    }
+    // Estimate characters per token for this specific text
+    const targetChars = TokenEstimator.estimateCharsForTokens(text, targetTokens);
 
     const chunks = [];
     
@@ -310,19 +309,23 @@ export class PaginationService {
 
       for (const line of lines) {
         const testChunk = currentChunk + line + '\n';
-        if (testChunk.length > maxChunkSize) {
+        const testTokens = this.estimateTokens(testChunk);
+        
+        if (testTokens > targetTokens) {
           if (currentChunk) {
-            chunks.push(currentChunk);
+            chunks.push(currentChunk.trim());
             currentChunk = line + '\n';
           } else {
-            // Single line too long, split it
+            // Single line too long, split it by words
             const words = line.split(' ');
             let wordChunk = '';
             for (const word of words) {
               const testWordChunk = wordChunk + word + ' ';
-              if (testWordChunk.length > maxChunkSize) {
+              const wordChunkTokens = this.estimateTokens(testWordChunk);
+              
+              if (wordChunkTokens > targetTokens) {
                 if (wordChunk) {
-                  chunks.push(wordChunk);
+                  chunks.push(wordChunk.trim());
                 }
                 wordChunk = word + ' ';
               } else {
@@ -339,14 +342,34 @@ export class PaginationService {
       }
 
       if (currentChunk) {
-        chunks.push(currentChunk);
+        chunks.push(currentChunk.trim());
       }
     } else {
-      // No line breaks, split by character count
+      // No line breaks, split by estimated token boundaries
       let i = 0;
       while (i < text.length) {
-        chunks.push(text.slice(i, i + maxChunkSize));
-        i += maxChunkSize;
+        let endPos = Math.min(i + targetChars, text.length);
+        
+        // Try to break on word boundaries
+        if (endPos < text.length) {
+          const nextSpace = text.indexOf(' ', endPos);
+          const prevSpace = text.lastIndexOf(' ', endPos);
+          
+          if (prevSpace > i && (endPos - prevSpace) < (nextSpace - endPos)) {
+            endPos = prevSpace;
+          } else if (nextSpace !== -1 && (nextSpace - endPos) < 100) {
+            endPos = nextSpace;
+          }
+        }
+        
+        const chunk = text.slice(i, endPos);
+        chunks.push(chunk);
+        i = endPos;
+        
+        // Skip whitespace at the beginning of next chunk
+        while (i < text.length && text[i] === ' ') {
+          i++;
+        }
       }
     }
 
