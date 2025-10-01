@@ -364,7 +364,7 @@ class DocsServer {
           },
           {
             name: 'doc_bot',
-            description: 'Your intelligent project assistant. Analyzes ANY request and provides smart routing to the right tools. ALWAYS call this first - it understands coding, documentation, architecture questions, and more.',
+            description: 'ALWAYS call this first for any task. Returns mandatory project standards (alwaysApply rules) that must be followed, plus a catalog of available documentation tools. Provides intelligent guidance while trusting your judgment on what additional context you need based on your familiarity with the codebase.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -700,14 +700,16 @@ class DocsServer {
               }]
             };
             
-          case 'doc_bot':
+          case 'doc_bot': {
             const assistantTask = args?.task || '';
+            const docBotMandatoryRules = await this.docService.getGlobalRules();
             return {
               content: [{
                 type: 'text',
-                text: this.getDocBotGuidance(assistantTask)
+                text: this.getIntelligentGatekeeperResponse(assistantTask, docBotMandatoryRules)
               }]
             };
+          }
             
           default:
             throw new Error(`Unknown tool: ${name}`);
@@ -1247,172 +1249,123 @@ Try:
     return output;
   }
 
-  getDocBotGuidance(task) {
-    // This is the intelligent guidance that replaces the complex AGENT_INTEGRATION_RULE
-    const taskLower = task.toLowerCase();
-    
-    let guidance = `# 🤖 DOC-BOT INTELLIGENT ASSISTANT\n\n`;
-    guidance += `**Your Request**: ${task}\n\n`;
-    
+  getIntelligentGatekeeperResponse(task, mandatoryRules) {
     // Check for administrative/management tasks first
     const isDocsetManagement = /add.*docset|remove.*docset|list.*docset|install.*docset/i.test(task);
     const isRuleManagement = /add.*rule|create.*rule|update.*rule|document.*pattern|capture.*pattern/i.test(task);
     const isDocumentManagement = /refresh.*doc|reload.*doc|index.*doc|get.*index/i.test(task);
-    
-    // Handle administrative tasks directly
+
+    // Handle administrative tasks with direct action guidance
     if (isDocsetManagement) {
-      guidance += `## 📦 DOCSET MANAGEMENT TASK DETECTED\n\n`;
-      guidance += `**Direct Actions Required**:\n`;
-      
+      let guidance = `# 📦 Docset Management\n\n`;
+
       if (/list/i.test(task)) {
-        guidance += `1. \`list_docsets()\` - Show all installed documentation sets\n\n`;
+        guidance += `**Action**: \`list_docsets()\`\n\n`;
+        guidance += `Shows all installed documentation sets with their IDs and metadata.\n`;
       } else if (/add|install/i.test(task)) {
-        guidance += `1. \`add_docset(source: "path/to/docset or URL")\` - Install new docset\n\n`;
-        guidance += `📝 **Examples**:\n`;
+        guidance += `**Action**: \`add_docset(source: "path or URL")\`\n\n`;
+        guidance += `**Examples**:\n`;
         guidance += `- Local: \`add_docset(source: "/Downloads/Swift.docset")\`\n`;
-        guidance += `- URL: \`add_docset(source: "https://example.com/React.docset.tgz")\`\n\n`;
+        guidance += `- URL: \`add_docset(source: "https://example.com/React.docset.tgz")\`\n`;
       } else if (/remove/i.test(task)) {
-        guidance += `1. \`list_docsets()\` - First, get the docset ID\n`;
-        guidance += `2. \`remove_docset(docsetId: "the-id-from-step-1")\` - Remove the docset\n\n`;
+        guidance += `**Steps**:\n`;
+        guidance += `1. \`list_docsets()\` - Get the docset ID\n`;
+        guidance += `2. \`remove_docset(docsetId: "id-from-step-1")\`\n`;
       }
-      
-      guidance += `💡 **Note**: This is an administrative task - no documentation search needed.\n`;
+
       return guidance;
     }
-    
+
     if (isRuleManagement) {
-      guidance += `## 📝 RULE/PATTERN MANAGEMENT TASK DETECTED\n\n`;
-      guidance += `**Direct Action Required**:\n`;
-      guidance += `1. \`create_or_update_rule(...)\` with these parameters:\n\n`;
+      let guidance = `# 📝 Rule/Pattern Management\n\n`;
+      guidance += `**Action**: \`create_or_update_rule(...)\`\n\n`;
+      guidance += `**Parameters**:\n`;
       guidance += `\`\`\`javascript\n`;
       guidance += `{\n`;
       guidance += `  fileName: "descriptive-name.md",\n`;
-      guidance += `  title: "Clear title for the rule/pattern",\n`;
+      guidance += `  title: "Clear title for the rule",\n`;
       guidance += `  content: "Full markdown documentation",\n`;
-      guidance += `  alwaysApply: true/false, // true = global, false = contextual\n`;
-      guidance += `  keywords: ["relevant", "search", "terms"],\n`;
+      guidance += `  alwaysApply: true,  // true = mandatory (like CLAUDE.md)\n`;
+      guidance += `                      // false = contextual (found via search)\n`;
+      guidance += `  keywords: ["search", "terms"],\n`;
       guidance += `  description: "Brief summary" // optional\n`;
       guidance += `}\n`;
-      guidance += `\`\`\`\n\n`;
-      guidance += `💡 **Note**: This captures project knowledge permanently - no search needed.\n`;
+      guidance += `\`\`\`\n`;
       return guidance;
     }
-    
+
     if (isDocumentManagement) {
-      guidance += `## 🔄 DOCUMENTATION MANAGEMENT TASK DETECTED\n\n`;
-      guidance += `**Direct Action Required**:\n`;
-      
+      let guidance = `# 🔄 Documentation Management\n\n`;
+
       if (/refresh|reload/i.test(task)) {
-        guidance += `1. \`refresh_documentation()\` - Reload all docs from disk\n\n`;
+        guidance += `**Action**: \`refresh_documentation()\`\n\n`;
+        guidance += `Reloads all documentation from disk and rebuilds search indexes.\n`;
       } else {
-        guidance += `1. \`get_document_index()\` - List all available documentation\n\n`;
+        guidance += `**Action**: \`get_document_index()\`\n\n`;
+        guidance += `Lists all available documentation files with metadata.\n`;
       }
-      
-      guidance += `💡 **Note**: This is an administrative task - direct execution only.\n`;
+
       return guidance;
     }
-    
-    // Analyze the task and provide intelligent routing for non-administrative tasks
-    if (taskLower.includes('create') || taskLower.includes('implement') || taskLower.includes('build') || 
-        taskLower.includes('write') || taskLower.includes('add') || taskLower.includes('code') ||
-        taskLower.includes('function') || taskLower.includes('class') || taskLower.includes('component')) {
-      guidance += `## 💻 CODE GENERATION TASK DETECTED\n\n`;
-      guidance += `**MANDATORY Steps (in order)**:\n`;
-      guidance += `1. ⚡ FIRST: \`check_project_rules("${task}")\` - Get critical coding standards\n`;
-      guidance += `2. 🔍 SEARCH for existing patterns:\n`;
-      
-      // Extract likely search terms
-      const searchTerms = this.extractSearchTerms(task);
-      searchTerms.forEach(term => {
-        guidance += `   - \`search_documentation("${term}")\`\n`;
-      });
-      
-      guidance += `3. 📚 EXPLORE: If APIs found, use \`explore_api()\` for complete details\n`;
-      guidance += `4. ✅ IMPLEMENT: Generate code following ALL discovered patterns\n\n`;
-      guidance += `⚠️ **CRITICAL**: Never skip step 1 - project rules are mandatory!\n\n`;
-    } else if (taskLower.includes('how') || taskLower.includes('what') || taskLower.includes('why') || 
-               taskLower.includes('understand') || taskLower.includes('explain') || taskLower.includes('architecture')) {
-      guidance += `## 🔍 KNOWLEDGE/UNDERSTANDING TASK DETECTED\n\n`;
-      guidance += `**Recommended Flow**:\n`;
-      guidance += `1. 📖 START with searches for technical terms:\n`;
-      
-      const searchTerms = this.extractSearchTerms(task);
-      searchTerms.forEach(term => {
-        guidance += `   - \`search_documentation("${term}")\`\n`;
-      });
-      
-      guidance += `2. 📋 CONTEXT: \`get_global_rules()\` for project philosophy\n`;
-      guidance += `3. 📄 DETAILS: Use \`read_specific_document()\` on relevant results\n`;
-      guidance += `4. 🔬 DEEP DIVE: \`explore_api()\` for framework/class details\n\n`;
-    } else if (taskLower.includes('document') || taskLower.includes('capture') || taskLower.includes('learned') ||
-               taskLower.includes('pattern') || taskLower.includes('convention')) {
-      guidance += `## 📝 DOCUMENTATION TASK DETECTED\n\n`;
-      guidance += `**To capture new knowledge**:\n`;
-      guidance += `Use \`create_or_update_rule()\` with:\n`;
-      guidance += `- fileName: descriptive-name.md\n`;
-      guidance += `- title: Clear, searchable title\n`;
-      guidance += `- content: Full markdown documentation\n`;
-      guidance += `- alwaysApply: true/false (is this a global rule?)\n\n`;
-    } else if (taskLower.includes('file') || taskLower.includes('working on') || taskLower.includes('modify')) {
-      guidance += `## 📁 FILE-SPECIFIC TASK DETECTED\n\n`;
-      guidance += `**File Context Flow**:\n`;
-      guidance += `1. 📂 GET CONTEXT: \`get_file_docs("${task}")\` for file-specific patterns\n`;
-      guidance += `2. 🔍 SEARCH: Look for related components/patterns\n`;
-      guidance += `3. ✅ CHECK: \`check_project_rules()\` before modifications\n\n`;
+
+    // For coding/general tasks: Return mandatory rules + tool catalog
+    let response = `# Mandatory Project Standards\n\n`;
+
+    if (!mandatoryRules || mandatoryRules.length === 0) {
+      response += `*No mandatory rules defined for this project.*\n\n`;
     } else {
-      guidance += `## 🎯 GENERAL TASK GUIDANCE\n\n`;
-      guidance += `**Intelligent Routing Based on Your Request**:\n`;
-      guidance += `1. 🏁 START: \`get_global_rules()\` - Understand the project\n`;
-      guidance += `2. 🔍 DISCOVER: \`search_documentation()\` with key terms from your request\n`;
-      guidance += `3. 📋 REQUIREMENTS: \`check_project_rules("${task}")\` if generating any output\n`;
-      guidance += `4. 📚 EXPLORE: \`explore_api()\` for any frameworks/APIs mentioned\n\n`;
+      response += `These rules apply to ALL code in this project:\n\n`;
+      mandatoryRules.forEach((rule, index) => {
+        response += `## ${index + 1}. ${rule.metadata?.title || rule.fileName}\n\n`;
+        response += `${rule.content}\n\n`;
+        if (index < mandatoryRules.length - 1) {
+          response += `---\n\n`;
+        }
+      });
     }
-    
-    guidance += `## 🔑 Search Tips for Maximum Effectiveness:\n\n`;
-    guidance += `✅ **DO**: Search for class names, API names, technical terms\n`;
-    guidance += `   Examples: "Widget", "URLSession", "Authentication", "CoreData"\n\n`;
-    guidance += `❌ **DON'T**: Search with questions or descriptions\n`;
-    guidance += `   Avoid: "how to create", "new features", "iOS 18 widgets"\n\n`;
-    guidance += `🎯 **Best Practice**: Think like you're searching an API index, not Google!\n\n`;
-    guidance += `## 💡 Remember:\n`;
-    guidance += `- Project documentation ALWAYS overrides general knowledge\n`;
-    guidance += `- When in doubt, search first\n`;
-    guidance += `- Use \`explore_api()\` after finding relevant APIs\n`;
-    guidance += `- Document new patterns with \`create_or_update_rule()\`\n`;
-    
-    return guidance;
-  }
-  
-  extractSearchTerms(task) {
-    // Extract potential API/class names from the task
-    const terms = [];
-    
-    // Common patterns to extract
-    const patterns = {
-      'widget': ['Widget', 'WidgetKit'],
-      'auth': ['Authentication', 'Auth', 'Login'],
-      'database': ['Database', 'CoreData', 'SQLite'],
-      'network': ['URLSession', 'Network', 'API'],
-      'cache': ['Cache', 'Caching', 'Redis'],
-      'ui': ['UIKit', 'SwiftUI', 'View'],
-      'react': ['React', 'Component', 'Hook'],
-      'api': ['API', 'REST', 'GraphQL'],
-      'test': ['Test', 'Jest', 'XCTest']
-    };
-    
-    const taskLower = task.toLowerCase();
-    Object.keys(patterns).forEach(key => {
-      if (taskLower.includes(key)) {
-        terms.push(...patterns[key]);
-      }
-    });
-    
-    // Also extract capitalized words as potential class names
-    const capitalizedWords = task.match(/[A-Z][a-zA-Z]+/g) || [];
-    terms.push(...capitalizedWords);
-    
-    // Remove duplicates and limit to 3-4 terms
-    return [...new Set(terms)].slice(0, 4);
+
+    response += `---\n\n`;
+    response += `## Additional Documentation Tools Available\n\n`;
+    response += `You have access to these tools for finding contextual information:\n\n`;
+
+    response += `**\`search_documentation(query)\`**\n`;
+    response += `- Search project docs for patterns, examples, conventions\n`;
+    response += `- Use when: You need to understand how something is implemented in this codebase\n`;
+    response += `- Examples: \`search_documentation("authentication")\`, \`search_documentation("validation")\`\n`;
+    response += `- Tip: Use technical terms (class names, API names), not descriptions\n\n`;
+
+    response += `**\`get_file_docs(filePath)\`**\n`;
+    response += `- Get file-specific or directory-specific documentation\n`;
+    response += `- Use when: Working with specific files and need conventions for that area\n`;
+    response += `- Examples: \`get_file_docs("src/components/Auth.tsx")\`, \`get_file_docs("services/**")\`\n\n`;
+
+    response += `**\`explore_api(apiName)\`**\n`;
+    response += `- Deep-dive into framework/API documentation (all methods, properties, examples)\n`;
+    response += `- Use when: Using frameworks or APIs you're unfamiliar with\n`;
+    response += `- Examples: \`explore_api("URLSession")\`, \`explore_api("React.Component")\`\n\n`;
+
+    response += `**\`read_specific_document(fileName)\`**\n`;
+    response += `- Read full content of a specific documentation file\n`;
+    response += `- Use when: Search results show a relevant doc and you need complete details\n`;
+    response += `- Examples: \`read_specific_document("api-patterns.md")\`\n\n`;
+
+    response += `**\`get_global_rules()\`**\n`;
+    response += `- Get complete project philosophy and engineering principles\n`;
+    response += `- Use when: Making architectural decisions or need comprehensive context\n\n`;
+
+    response += `---\n\n`;
+    response += `## Your Task: "${task}"\n\n`;
+    response += `**You now have:**\n`;
+    response += `✅ Mandatory project standards (above)\n`;
+    response += `✅ Tools to explore codebase-specific patterns (listed above)\n\n`;
+
+    response += `**Your decision:**\n`;
+    response += `- If you understand how to implement this correctly with the standards above → proceed\n`;
+    response += `- If you need to understand existing patterns in this codebase → use the tools above\n\n`;
+
+    response += `Remember: You know the codebase context best. Use additional tools only if you need them.\n`;
+
+    return response;
   }
 
   async createOrUpdateRule({ fileName, title, description, keywords, alwaysApply, content }) {

@@ -60,21 +60,24 @@ describe('Doc-Bot Basic Tests', () => {
       expect(server.unifiedSearch).toBeDefined();
     });
 
-    it('should extract search terms', () => {
+    it('should return intelligent gatekeeper response with mandatory rules', async () => {
       const server = new DocsServer({
         docsPath: docsPath,
         verbose: false,
         watch: false
       });
-      
-      const terms = server.extractSearchTerms('How to test React components?');
-      expect(Array.isArray(terms)).toBe(true);
-      expect(terms.length).toBeGreaterThan(0);
-      // Check that we got meaningful terms (may be capitalized)
-      const lowerTerms = terms.map(t => t.toLowerCase());
-      expect(lowerTerms.some(t => t.includes('test'))).toBe(true);
-      expect(lowerTerms.some(t => t.includes('react'))).toBe(true);
-      expect(lowerTerms.some(t => t.includes('component'))).toBe(true);
+
+      await server.docService.reload();
+      const mandatoryRules = await server.docService.getGlobalRules();
+      const response = server.getIntelligentGatekeeperResponse('create REST API', mandatoryRules);
+
+      expect(response).toBeDefined();
+      expect(typeof response).toBe('string');
+      expect(response).toContain('Mandatory Project Standards');
+      expect(response).toContain('Additional Documentation Tools Available');
+      expect(response).toContain('search_documentation');
+      expect(response).toContain('get_file_docs');
+      expect(response).toContain('explore_api');
     });
   });
 });
