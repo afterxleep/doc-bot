@@ -69,7 +69,7 @@ describe('Doc-Bot Basic Tests', () => {
 
       await server.docService.reload();
       const mandatoryRules = await server.docService.getGlobalRules();
-      const response = server.getIntelligentGatekeeperResponse('create REST API', mandatoryRules);
+      const response = server.getIntelligentGatekeeperResponse('create REST API', mandatoryRules, 1);
 
       expect(response).toBeDefined();
       expect(typeof response).toBe('string');
@@ -78,6 +78,25 @@ describe('Doc-Bot Basic Tests', () => {
       expect(response).toContain('search_documentation');
       expect(response).toContain('get_file_docs');
       expect(response).toContain('explore_api');
+    });
+
+    it('should support pagination for large rule sets', async () => {
+      const server = new DocsServer({
+        docsPath: docsPath,
+        verbose: false,
+        watch: false
+      });
+
+      await server.docService.reload();
+      const mandatoryRules = await server.docService.getGlobalRules();
+
+      // Test page 1
+      const page1Response = server.getIntelligentGatekeeperResponse('create REST API', mandatoryRules, 1);
+      expect(page1Response).toBeDefined();
+      expect(typeof page1Response).toBe('string');
+
+      // Should always contain tool catalog
+      expect(page1Response).toContain('Additional Documentation Tools Available');
     });
   });
 });

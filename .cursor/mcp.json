@@ -1,6 +1,6 @@
 {
 "mcpServers": {
-      "doc-bot-dev9": {
+      "doc-bot-dev10": {
         "command": "node",
         "args": ["/Users/afterxleep/Developer/doc-bot/bin/doc-bot.js"]
       }

@@ -364,13 +364,17 @@ class DocsServer {
           },
           {
             name: 'doc_bot',
-            description: 'ALWAYS call this first for any task. Returns mandatory project standards (alwaysApply rules) that must be followed, plus a catalog of available documentation tools. Provides intelligent guidance while trusting your judgment on what additional context you need based on your familiarity with the codebase.',
+            description: 'ALWAYS call this first for any task. Returns mandatory project standards (alwaysApply rules) that must be followed, plus a catalog of available documentation tools. Provides intelligent guidance while trusting your judgment on what additional context you need based on your familiarity with the codebase. Supports pagination for large rule sets.',
             inputSchema: {
               type: 'object',
               properties: {
                 task: {
                   type: 'string',
                   description: 'What do you need help with? Examples: "create REST API", "understand auth flow", "document this pattern", "find database models"'
+                },
+                page: {
+                  type: 'number',
+                  description: 'Page number for paginated results (default: 1). Use this when the response indicates more pages are available.'
                 }
               },
               required: ['task']
@@ -702,11 +706,12 @@ class DocsServer {
             
           case 'doc_bot': {
             const assistantTask = args?.task || '';
+            const docBotPage = args?.page || 1;
             const docBotMandatoryRules = await this.docService.getGlobalRules();
             return {
               content: [{
                 type: 'text',
-                text: this.getIntelligentGatekeeperResponse(assistantTask, docBotMandatoryRules)
+                text: this.getIntelligentGatekeeperResponse(assistantTask, docBotMandatoryRules, docBotPage)
               }]
             };
           }
@@ -1249,13 +1254,13 @@ Try:
     return output;
   }
 
-  getIntelligentGatekeeperResponse(task, mandatoryRules) {
+  getIntelligentGatekeeperResponse(task, mandatoryRules, page = 1) {
     // Check for administrative/management tasks first
     const isDocsetManagement = /add.*docset|remove.*docset|list.*docset|install.*docset/i.test(task);
     const isRuleManagement = /add.*rule|create.*rule|update.*rule|document.*pattern|capture.*pattern/i.test(task);
     const isDocumentManagement = /refresh.*doc|reload.*doc|index.*doc|get.*index/i.test(task);
 
-    // Handle administrative tasks with direct action guidance
+    // Handle administrative tasks with direct action guidance (no pagination needed)
     if (isDocsetManagement) {
       let guidance = `# 📦 Docset Management\n\n`;
 
@@ -1308,64 +1313,101 @@ Try:
       return guidance;
     }
 
-    // For coding/general tasks: Return mandatory rules + tool catalog
-    let response = `# Mandatory Project Standards\n\n`;
+    // For coding/general tasks: Use smart pagination for mandatory rules
+    const TOKEN_LIMIT = 24000; // Keep under 25K with buffer for tool catalog
+    const toolCatalog = this.getToolCatalog(task);
+    const toolCatalogTokens = TokenEstimator.estimateTokens(toolCatalog);
 
-    if (!mandatoryRules || mandatoryRules.length === 0) {
-      response += `*No mandatory rules defined for this project.*\n\n`;
-    } else {
-      response += `These rules apply to ALL code in this project:\n\n`;
-      mandatoryRules.forEach((rule, index) => {
-        response += `## ${index + 1}. ${rule.metadata?.title || rule.fileName}\n\n`;
-        response += `${rule.content}\n\n`;
-        if (index < mandatoryRules.length - 1) {
-          response += `---\n\n`;
-        }
-      });
+    // Reserve tokens for tool catalog and headers
+    const availableTokensForRules = TOKEN_LIMIT - toolCatalogTokens - 500;
+
+    // Format rules with pagination
+    const formatRuleContent = (rules) => {
+      let content = `# Mandatory Project Standards\n\n`;
+
+      if (!rules || rules.length === 0) {
+        content += `*No mandatory rules defined for this project.*\n\n`;
+      } else {
+        content += `These rules apply to ALL code in this project:\n\n`;
+        rules.forEach((rule, index) => {
+          content += `## ${index + 1}. ${rule.metadata?.title || rule.fileName}\n\n`;
+          content += `${rule.content}\n\n`;
+          if (index < rules.length - 1) {
+            content += `---\n\n`;
+          }
+        });
+      }
+
+      return content;
+    };
+
+    // Use smart pagination service
+    const paginatedResult = this.paginationService.smartPaginate(
+      mandatoryRules || [],
+      formatRuleContent,
+      page,
+      availableTokensForRules
+    );
+
+    let response = paginatedResult.content;
+
+    // Add pagination info if there are multiple pages
+    if (paginatedResult.hasMore) {
+      response += `\n---\n\n`;
+      response += `📄 **Page ${paginatedResult.page} of ${paginatedResult.totalPages}**\n\n`;
+      response += `⚠️ **More mandatory rules available**: Call \`doc_bot(task: "${task}", page: ${paginatedResult.page + 1})\` to see the next page.\n\n`;
+      response += `💡 You must review ALL pages before proceeding to ensure compliance with all project standards.\n\n`;
     }
 
-    response += `---\n\n`;
-    response += `## Additional Documentation Tools Available\n\n`;
-    response += `You have access to these tools for finding contextual information:\n\n`;
-
-    response += `**\`search_documentation(query)\`**\n`;
-    response += `- Search project docs for patterns, examples, conventions\n`;
-    response += `- Use when: You need to understand how something is implemented in this codebase\n`;
-    response += `- Examples: \`search_documentation("authentication")\`, \`search_documentation("validation")\`\n`;
-    response += `- Tip: Use technical terms (class names, API names), not descriptions\n\n`;
-
-    response += `**\`get_file_docs(filePath)\`**\n`;
-    response += `- Get file-specific or directory-specific documentation\n`;
-    response += `- Use when: Working with specific files and need conventions for that area\n`;
-    response += `- Examples: \`get_file_docs("src/components/Auth.tsx")\`, \`get_file_docs("services/**")\`\n\n`;
-
-    response += `**\`explore_api(apiName)\`**\n`;
-    response += `- Deep-dive into framework/API documentation (all methods, properties, examples)\n`;
-    response += `- Use when: Using frameworks or APIs you're unfamiliar with\n`;
-    response += `- Examples: \`explore_api("URLSession")\`, \`explore_api("React.Component")\`\n\n`;
-
-    response += `**\`read_specific_document(fileName)\`**\n`;
-    response += `- Read full content of a specific documentation file\n`;
-    response += `- Use when: Search results show a relevant doc and you need complete details\n`;
-    response += `- Examples: \`read_specific_document("api-patterns.md")\`\n\n`;
-
-    response += `**\`get_global_rules()\`**\n`;
-    response += `- Get complete project philosophy and engineering principles\n`;
-    response += `- Use when: Making architectural decisions or need comprehensive context\n\n`;
-
-    response += `---\n\n`;
-    response += `## Your Task: "${task}"\n\n`;
-    response += `**You now have:**\n`;
-    response += `✅ Mandatory project standards (above)\n`;
-    response += `✅ Tools to explore codebase-specific patterns (listed above)\n\n`;
-
-    response += `**Your decision:**\n`;
-    response += `- If you understand how to implement this correctly with the standards above → proceed\n`;
-    response += `- If you need to understand existing patterns in this codebase → use the tools above\n\n`;
-
-    response += `Remember: You know the codebase context best. Use additional tools only if you need them.\n`;
+    // Add tool catalog
+    response += toolCatalog;
 
     return response;
+  }
+
+  getToolCatalog(task) {
+    let catalog = `---\n\n`;
+    catalog += `## Additional Documentation Tools Available\n\n`;
+    catalog += `You have access to these tools for finding contextual information:\n\n`;
+
+    catalog += `**\`search_documentation(query)\`**\n`;
+    catalog += `- Search project docs for patterns, examples, conventions\n`;
+    catalog += `- Use when: You need to understand how something is implemented in this codebase\n`;
+    catalog += `- Examples: \`search_documentation("authentication")\`, \`search_documentation("validation")\`\n`;
+    catalog += `- Tip: Use technical terms (class names, API names), not descriptions\n\n`;
+
+    catalog += `**\`get_file_docs(filePath)\`**\n`;
+    catalog += `- Get file-specific or directory-specific documentation\n`;
+    catalog += `- Use when: Working with specific files and need conventions for that area\n`;
+    catalog += `- Examples: \`get_file_docs("src/components/Auth.tsx")\`, \`get_file_docs("services/**")\`\n\n`;
+
+    catalog += `**\`explore_api(apiName)\`**\n`;
+    catalog += `- Deep-dive into framework/API documentation (all methods, properties, examples)\n`;
+    catalog += `- Use when: Using frameworks or APIs you're unfamiliar with\n`;
+    catalog += `- Examples: \`explore_api("URLSession")\`, \`explore_api("React.Component")\`\n\n`;
+
+    catalog += `**\`read_specific_document(fileName)\`**\n`;
+    catalog += `- Read full content of a specific documentation file\n`;
+    catalog += `- Use when: Search results show a relevant doc and you need complete details\n`;
+    catalog += `- Examples: \`read_specific_document("api-patterns.md")\`\n\n`;
+
+    catalog += `**\`get_global_rules()\`**\n`;
+    catalog += `- Get complete project philosophy and engineering principles\n`;
+    catalog += `- Use when: Making architectural decisions or need comprehensive context\n\n`;
+
+    catalog += `---\n\n`;
+    catalog += `## Your Task: "${task}"\n\n`;
+    catalog += `**You now have:**\n`;
+    catalog += `✅ Mandatory project standards (above)\n`;
+    catalog += `✅ Tools to explore codebase-specific patterns (listed above)\n\n`;
+
+    catalog += `**Your decision:**\n`;
+    catalog += `- If you understand how to implement this correctly with the standards above → proceed\n`;
+    catalog += `- If you need to understand existing patterns in this codebase → use the tools above\n\n`;
+
+    catalog += `Remember: You know the codebase context best. Use additional tools only if you need them.\n`;
+
+    return catalog;
   }
 
   async createOrUpdateRule({ fileName, title, description, keywords, alwaysApply, content }) {
