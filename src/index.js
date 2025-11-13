@@ -166,7 +166,7 @@ class DocsServer {
         tools: [
           {
             name: 'check_project_rules',
-            description: 'Get mandatory coding standards for your task. Always call before writing code. Returns architecture patterns, security requirements, and performance guidelines specific to this codebase. Critical for maintaining code quality and consistency.',
+            description: 'Get mandatory coding standards for your task. Call BEFORE writing code AND whenever you start a new component/feature/file. Returns architecture patterns, security requirements, and performance guidelines specific to this codebase. Prevents rework by catching violations early. Use this repeatedly: before each major code block, when switching contexts, or when unsure about approach.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -180,7 +180,7 @@ class DocsServer {
           },
           {
             name: 'search_documentation',
-            description: 'Search codebase documentation and API references. Searches project patterns, architecture decisions, and API docs. Best results with technical terms like class names, not descriptions. Examples: search "Widget" not "iOS 18 features". Supports pagination for large result sets.',
+            description: 'Search codebase documentation and API references - use THROUGHOUT your work, not just at the start. Call whenever you encounter unfamiliar code patterns, before implementing any feature, when debugging issues, or when you need examples. Searches project patterns, architecture decisions, and API docs. Best results with technical terms (class names, API names), not natural language descriptions. Example: search "Widget" NOT "iOS 18 features". If your first search doesn\'t help, search again with different terms - the docs are there to help you continuously.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -210,7 +210,7 @@ class DocsServer {
           },
           {
             name: 'get_global_rules',
-            description: 'Get comprehensive coding standards and architecture guidelines. Returns project-wide engineering principles, design patterns, performance requirements, and security standards. Essential reading for understanding the codebase philosophy.',
+            description: 'Get comprehensive coding standards and architecture guidelines - reference this when making ANY architectural decision, not just at project start. Returns project-wide engineering principles, design patterns, performance requirements, and security standards that override general best practices. Call when: starting work, making design decisions, resolving conflicts between approaches, or when implementation feels uncertain. These rules represent hard-learned lessons specific to THIS codebase.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -224,7 +224,7 @@ class DocsServer {
           },
           {
             name: 'get_file_docs',
-            description: 'Get file-specific coding patterns and conventions. Returns contextual guidelines, performance considerations, and architectural decisions for specific files or directories. Use before modifying existing code.',
+            description: 'Get file-specific coding patterns and conventions for ANY file you work with. Call BEFORE modifying code AND when you encounter a new file during implementation. Returns contextual guidelines, performance considerations, and architectural decisions for specific files or directories. Each file/directory may have unique rules that override general patterns. Use whenever: editing existing files, creating files in a new directory, implementing features that touch multiple files, or debugging file-specific issues.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -238,7 +238,7 @@ class DocsServer {
           },
           {
             name: 'read_specific_document',
-            description: 'Read full documentation file content. Use after search_documentation to get complete implementation details, code examples, and architectural decisions. Only for project docs, not API docs.',
+            description: 'Read full documentation file content - dive deep WHENEVER search results point you here. Use after search_documentation identifies relevant docs, when you need complete context before implementing, or when revisiting a topic mid-work. Returns complete implementation details, code examples, and architectural decisions. Don\'t just skim search results - read the full docs to avoid missing critical details. Project docs contain battle-tested patterns; API docs show framework usage.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -256,7 +256,7 @@ class DocsServer {
           },
           {
             name: 'explore_api',
-            description: 'Deep dive into any API, framework, or class. Returns all methods, properties, protocols, and usage examples. Essential for understanding how to implement features correctly. Much faster than multiple searches.',
+            description: 'Deep dive into any API, framework, or class - check this EVERY time you use an unfamiliar API, not just once. Returns all methods, properties, protocols, and usage examples. Essential when: implementing features with new frameworks, encountering unknown classes mid-work, choosing between similar APIs, or verifying correct API usage. Much faster than multiple searches. If you\'re writing import statements or instantiating classes you haven\'t used before, explore them first to avoid misuse.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -274,7 +274,7 @@ class DocsServer {
           },
           {
             name: 'create_or_update_rule',
-            description: 'Document new coding patterns or architectural decisions. Captures lessons learned, design patterns, and team conventions as searchable knowledge. Great for preserving tribal knowledge.',
+            description: 'Document new coding patterns or architectural decisions AS YOU DISCOVER THEM during work. Call this when: you solve a tricky problem, establish a new pattern, learn a gotcha, make an architectural decision, or implement something that should be standardized. Captures lessons learned, design patterns, and team conventions as searchable knowledge for future work. Don\'t wait until the end - document insights immediately while context is fresh.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -309,7 +309,7 @@ class DocsServer {
           },
           {
             name: 'refresh_documentation',
-            description: 'Reload all project documentation from disk. Use when documentation files have been modified outside of this session. Re-indexes all documents and updates search index.',
+            description: 'Reload all project documentation from disk when docs are updated externally. Call when: documentation files are modified outside this session, after creating new docs manually, when search results seem stale, or if you suspect docs have changed. Re-indexes all documents and updates search index. If you created new documentation and it\'s not appearing in searches, refresh first.',
             inputSchema: {
               type: 'object',
               properties: {},
@@ -318,7 +318,7 @@ class DocsServer {
           },
           {
             name: 'get_document_index',
-            description: 'List all available project documentation files. Returns index with titles, descriptions, and metadata. Use to see what documentation exists without searching.',
+            description: 'List all available project documentation files - check periodically to discover new docs added during your work. Returns index with titles, descriptions, and metadata. Use when: starting work (to see what\'s available), search fails to find what you need (browse instead), exploring unfamiliar codebases, or checking if docs exist for a topic. Helps you discover documentation you didn\'t know existed.',
             inputSchema: {
               type: 'object',
               properties: {},
@@ -364,7 +364,7 @@ class DocsServer {
           },
           {
             name: 'doc_bot',
-            description: 'ALWAYS call this first for any task. Returns mandatory project standards (alwaysApply rules) that must be followed, plus a catalog of available documentation tools. Provides intelligent guidance while trusting your judgment on what additional context you need based on your familiarity with the codebase. Supports pagination for large rule sets.',
+            description: 'ALWAYS call this FIRST for ANY task, AND consult again when switching contexts or starting new features. Returns mandatory project standards (alwaysApply rules) that must be followed, plus a catalog of documentation tools. This is your entry point - it tells you what rules are non-negotiable AND which other tools to use for deeper dives. Call whenever: beginning any task, switching to a different feature/component, facing uncertainty, or needing to verify compliance. Think of this as your "project compass" - use it repeatedly to stay aligned.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -408,10 +408,7 @@ class DocsServer {
             }
             const searchPage = args?.page || 1;
             const searchLimit = args?.limit || 20;
-            
-            // Calculate offset for pagination
-            const searchOffset = (searchPage - 1) * searchLimit;
-            
+
             const unifiedOptions = {
               limit: searchLimit * 3, // Get more results for pagination
               docsetId: args?.docsetId,
