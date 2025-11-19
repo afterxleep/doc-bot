@@ -166,7 +166,7 @@ class DocsServer {
         tools: [
           {
             name: 'check_project_rules',
-            description: 'Get mandatory coding standards for your task. Call BEFORE writing code AND whenever you start a new component/feature/file. Returns architecture patterns, security requirements, and performance guidelines specific to this codebase. Prevents rework by catching violations early. Use this repeatedly: before each major code block, when switching contexts, or when unsure about approach.',
+            description: 'Get mandatory coding standards for your task. Call BEFORE writing ANY code AND whenever you start a new component/feature/file. Returns architecture patterns, security requirements, and performance guidelines specific to this codebase. Prevents rework by catching violations early. Use this repeatedly: before each major code block, when switching contexts, or when unsure about approach. CRITICAL: This gives you task-specific rules, but you should ALSO call doc_bot() for complete project context and checkpoint guidance. Think of check_project_rules as "what rules apply to this task" and doc_bot as "am I still aligned with the project".',
             inputSchema: {
               type: 'object',
               properties: {
@@ -364,13 +364,13 @@ class DocsServer {
           },
           {
             name: 'doc_bot',
-            description: 'ALWAYS call this FIRST for ANY task, AND consult again when switching contexts or starting new features. Returns mandatory project standards (alwaysApply rules) that must be followed, plus a catalog of documentation tools. This is your entry point - it tells you what rules are non-negotiable AND which other tools to use for deeper dives. Call whenever: beginning any task, switching to a different feature/component, facing uncertainty, or needing to verify compliance. Think of this as your "project compass" - use it repeatedly to stay aligned.',
+            description: 'Your continuous project compass - call at EVERY major decision point, not just once. REQUIRED at: (1) Before starting any task, (2) Before each new component/file, (3) When uncertain about approach, (4) After errors/blockers, (5) When switching contexts, (6) Before architectural decisions. Returns mandatory standards PLUS checkpoint reminders for what you might be missing. This is NOT a one-time initialization - it\'s your continuous compliance guardian. Agents who skip regular check-ins often violate standards or miss critical patterns. Think "check in before committing" not "check in once at start". Each call validates you\'re still aligned with project requirements.',
             inputSchema: {
               type: 'object',
               properties: {
                 task: {
                   type: 'string',
-                  description: 'What do you need help with? Examples: "create REST API", "understand auth flow", "document this pattern", "find database models"'
+                  description: 'What do you need help with? Examples: "create REST API", "modify auth.js", "debug auth error", "review completion", "understand auth flow"'
                 },
                 page: {
                   type: 'number',
@@ -954,9 +954,18 @@ Try:
     if (localResults.length > 0) {
       output += `- Read project docs with \`read_specific_document\`\n`;
     }
-    
+
     output += `- Use \`explore_api\` to see all methods/properties for a class\n`;
-    
+
+    // Add engagement hooks for continuous investigation
+    output += '\n## 🔍 Continue Your Investigation:\n';
+    output += 'This search gave you starting points, but consider:\n';
+    output += `- Did you check file-specific docs with \`get_file_docs\`? Files often have unique conventions\n`;
+    output += `- Have you explored the full API surface with \`explore_api\`? You might be missing key methods\n`;
+    output += `- Are there related patterns? Try searching for variations or related terms\n`;
+    output += `\n⚠️ **Working without complete context increases error risk**\n`;
+    output += `\n🔄 **Checkpoint reminder**: Before writing code, return to \`doc_bot()\` to verify compliance with project standards\n`;
+
     return output;
   }
   
@@ -1085,7 +1094,19 @@ Try:
       output += `- Review the code samples for implementation examples\n`;
     }
     output += `- Import the framework and start using these APIs\n`;
-    
+
+    // Add "what you're missing" section
+    output += `\n## ⚠️ What This Response Doesn't Include:\n`;
+    output += `- **Project-specific usage patterns**: Your codebase may use ${apiName} differently than shown here\n`;
+    output += `- **Forbidden patterns**: Some methods might be banned by project rules\n`;
+    output += `- **Performance gotchas**: File-specific docs might have critical performance notes\n`;
+    output += `- **Team conventions**: How your team prefers to use this API\n`;
+    output += `\n💡 **Recommended next actions**:\n`;
+    output += `1. Run \`search_documentation("${apiName}")\` to find how THIS project uses ${apiName}\n`;
+    output += `2. Before implementing, call \`doc_bot(task="implement ${apiName}")\` to check project standards\n`;
+    output += `3. Use \`get_file_docs(filePath)\` for the specific file you'll modify\n`;
+    output += `\n🔄 **Checkpoint reminder**: This is generic API documentation. Return to \`doc_bot()\` before writing code to ensure project compliance.\n`;
+
     return output;
   }
 
@@ -1185,9 +1206,9 @@ Try:
     if (!fileDocs || fileDocs.length === 0) {
       return `No specific documentation found for file: ${filePath}`;
     }
-    
+
     let output = `# Documentation for ${filePath}\n\n`;
-    
+
     fileDocs.forEach(doc => {
       output += `## ${doc.metadata?.title || doc.fileName}\n`;
       if (doc.metadata?.description) {
@@ -1196,7 +1217,16 @@ Try:
       output += `${doc.content}\n\n`;
       output += '---\n\n';
     });
-    
+
+    // Add checkpoint reminder
+    output += `## ⚠️ Important Context:\n`;
+    output += `This shows file/directory-specific rules for **${filePath}**.\n\n`;
+    output += `**Remember**:\n`;
+    output += `- These rules are IN ADDITION to global project rules\n`;
+    output += `- If there's a conflict, ask via \`doc_bot()\` which takes precedence\n`;
+    output += `- Other files in different directories may have different conventions\n`;
+    output += `\n🔄 **Next checkpoint**: Before modifying this file, return to \`doc_bot(task="modify ${filePath}")\` to get a complete compliance check.\n`;
+
     return output;
   }
   
@@ -1204,25 +1234,37 @@ Try:
     if (!doc) {
       return 'Document not found';
     }
-    
+
     let output = `# ${doc.metadata?.title || doc.fileName}\n\n`;
-    
+
     if (doc.metadata?.description) {
       output += `**Description:** ${doc.metadata.description}\n\n`;
     }
-    
+
     if (doc.metadata?.keywords) {
       output += `**Keywords:** ${Array.isArray(doc.metadata.keywords) ? doc.metadata.keywords.join(', ') : doc.metadata.keywords}\n\n`;
     }
-    
+
     if (doc.metadata?.alwaysApply !== undefined) {
       output += `**Always Apply:** ${doc.metadata.alwaysApply ? 'Yes (Global Rule)' : 'No (Contextual Rule)'}\n\n`;
     }
-    
+
     output += `**File:** ${doc.fileName}\n\n`;
     output += '---\n\n';
     output += doc.content;
-    
+
+    // Add cross-reference suggestions
+    output += `\n\n---\n\n`;
+    output += `## 🔍 Related Documentation:\n`;
+    if (doc.metadata?.keywords && doc.metadata.keywords.length > 0) {
+      output += `Consider searching for related topics:\n`;
+      const keywords = Array.isArray(doc.metadata.keywords) ? doc.metadata.keywords : [doc.metadata.keywords];
+      keywords.slice(0, 3).forEach(keyword => {
+        output += `- \`search_documentation("${keyword}")\`\n`;
+      });
+    }
+    output += `\n💡 **Before implementing**: Return to \`doc_bot()\` to verify this guidance aligns with current project state and your specific task.\n`;
+
     return output;
   }
 
@@ -1393,16 +1435,32 @@ Try:
     catalog += `- Use when: Making architectural decisions or need comprehensive context\n\n`;
 
     catalog += `---\n\n`;
+    catalog += `## 🔄 MANDATORY CHECKPOINTS - Return to doc_bot()\n\n`;
+    catalog += `You MUST call doc_bot() again when you:\n\n`;
+    catalog += `1. **Before file operations**: About to Write/Edit a new file? → \`doc_bot(task="modify [filepath]")\`\n`;
+    catalog += `2. **Context switches**: Moving to a different component/feature? → \`doc_bot(task="[new context]")\`\n`;
+    catalog += `3. **Errors encountered**: Hit an unexpected error? → \`doc_bot(task="debug [error]")\`\n`;
+    catalog += `4. **Decision points**: Multiple valid approaches? → \`doc_bot(task="decide [decision]")\`\n`;
+    catalog += `5. **Section completion**: Finished a major part? → \`doc_bot(task="review [what completed]")\`\n\n`;
+    catalog += `⚠️ **Failure to checkpoint leads to**:\n`;
+    catalog += `- Violating file-specific conventions you didn't know about\n`;
+    catalog += `- Using patterns that were recently deprecated\n`;
+    catalog += `- Missing performance/security requirements for that area\n\n`;
+
+    catalog += `---\n\n`;
     catalog += `## Your Task: "${task}"\n\n`;
     catalog += `**You now have:**\n`;
     catalog += `✅ Mandatory project standards (above)\n`;
-    catalog += `✅ Tools to explore codebase-specific patterns (listed above)\n\n`;
+    catalog += `✅ Tools to explore codebase-specific patterns (listed above)\n`;
+    catalog += `✅ Checkpoint requirements for continuous compliance\n\n`;
 
-    catalog += `**Your decision:**\n`;
-    catalog += `- If you understand how to implement this correctly with the standards above → proceed\n`;
-    catalog += `- If you need to understand existing patterns in this codebase → use the tools above\n\n`;
+    catalog += `**Your immediate next steps:**\n`;
+    catalog += `1. Review the mandatory standards above\n`;
+    catalog += `2. Use additional tools if needed for this specific task\n`;
+    catalog += `3. Begin implementation\n`;
+    catalog += `4. **REMEMBER**: Return to doc_bot() at each checkpoint listed above\n\n`;
 
-    catalog += `Remember: You know the codebase context best. Use additional tools only if you need them.\n`;
+    catalog += `Remember: Continuous check-ins = Continuous correctness.\n`;
 
     return catalog;
   }
