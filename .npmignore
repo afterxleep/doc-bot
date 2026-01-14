@@ -1,0 +1,10 @@
+coverage/
+node_modules/
+test/
+tests/
+src/**/__tests__/
+src/__tests__/
+.pop/
+.DS_Store
+*.log
+npm-debug.log*
