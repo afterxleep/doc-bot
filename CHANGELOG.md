@@ -5,6 +5,24 @@ All notable changes to doc-bot will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [2.0.0] - 2026-01-14
+
+### Breaking
+- Removed `alwaysApply` and rule enforcement behavior in favor of documentation-first guidance
+- Removed mandatory rules tooling (`check_project_rules`, `get_global_rules`)
+
+### Changed
+- Repositioned doc_bot guidance toward documentation discovery and updates
+- Removed mandatory rule enforcement language from prompts and docs
+- Simplified documentation metadata to focus on titles, keywords, topics, and file patterns
+- Added a real MCP end-to-end test that exercises core tools
+- CLI now accepts `--docsets` to configure the docset storage path
+
+### Removed
+- Agent integration rule enforcement artifacts
+
 ## [1.17.0] - 2025-01-25
 
 ### Added

@@ -1,5 +1,4 @@
 ---
-alwaysApply: false
 title: "Doc-Bot Architecture"
 description: "Technical architecture and components of the doc-bot MCP server"
 keywords: ["architecture", "mcp", "server", "components", "design", "docsets", "search"]
@@ -27,9 +26,9 @@ The main server class that implements the MCP protocol:
 
 - **DocsServer**: Main class extending `Server` from `@modelcontextprotocol/sdk`
 - Handles resource listing and reading
-- Implements 10 different tool operations
+- Implements 11 different tool operations
 - Supports file watching for hot reloading
-- Loads prompt templates for agent optimization
+- Loads prompt templates for consistent responses
 - Initializes all service components
 
 ### 2. Documentation Service (`src/services/DocumentationService.js`)
@@ -129,7 +128,7 @@ Creates sophisticated indexing for fast retrieval:
 2. MCP Server → Tool Handler
 3. Tool Handler → Service Layer
    ├─→ UnifiedSearchService (for searches)
-   ├─→ InferenceEngine (for rule checking)
+   ├─→ InferenceEngine (for relevance ranking)
    ├─→ DocumentationService (for direct access)
    └─→ DocsetService (for docset management)
 4. Service → Indices/Caches/Databases
@@ -157,19 +156,17 @@ Query → UnifiedSearchService
 
 ## Available Tools
 
-1. **`doc_bot`**: Intelligent assistant that analyzes requests and provides optimal tool routing
-2. **`check_project_rules`**: Get project-specific coding rules
-3. **`search_documentation`**: Unified search across all documentation
-4. **`get_global_rules`**: Get always-apply rules
-5. **`get_file_docs`**: Get file-specific documentation
-6. **`read_specific_document`**: Read a specific doc file
-7. **`create_or_update_rule`**: Create/update documentation
-8. **`refresh_documentation`**: Refresh documentation index
-9. **`get_document_index`**: List all available documents
-10. **`add_docset`**: Install new documentation sets
-11. **`remove_docset`**: Remove installed docsets
-12. **`list_docsets`**: List installed docsets
-13. **`explore_api`**: Explore API documentation comprehensively
+1. **`doc_bot`**: Documentation guidance and suggested next steps
+2. **`search_documentation`**: Unified search across all documentation
+3. **`get_file_docs`**: Get file-specific documentation
+4. **`read_specific_document`**: Read a specific doc file
+5. **`create_or_update_rule`**: Create/update documentation
+6. **`refresh_documentation`**: Refresh documentation index
+7. **`get_document_index`**: List all available documents
+8. **`add_docset`**: Install new documentation sets
+9. **`remove_docset`**: Remove installed docsets
+10. **`list_docsets`**: List installed docsets
+11. **`explore_api`**: Explore API documentation comprehensively
 
 ## File Structure
 
@@ -188,7 +185,7 @@ doc-bot/
 │           └── ParallelSearchManager.js # Parallel search
 ├── bin/
 │   └── doc-bot.js                  # CLI executable
-├── prompts/                        # Agent optimization templates
+├── prompts/                        # Prompt templates
 ├── doc-bot/                        # Documentation
 └── test-fixtures/                  # Test files
 ```
@@ -204,7 +201,6 @@ description: Brief description
 keywords: [keyword1, keyword2]
 topics: [topic1, topic2]
 filePatterns: ["*.js", "src/**/*.ts"]
-alwaysApply: false
 confidence: 0.9
 ---
 
@@ -221,43 +217,15 @@ confidence: 0.9
 5. **Relevance Filtering**: Low-quality results filtered early
 6. **Deduplication**: Duplicate results removed efficiently
 
-## Agent Integration Architecture
+## Agent-Driven Documentation
 
-### Simplified Integration Approach
+Doc-bot is designed for agents to keep documentation current as they work:
 
-Doc-bot v1.15.0 introduces a revolutionary single-entry-point architecture for AI agent integration:
+- Use `search_documentation`, `read_specific_document`, and `get_file_docs` to find relevant context
+- Capture new knowledge or changes with `create_or_update_rule`
+- Refresh indexes with `refresh_documentation` after manual edits
 
-1. **Single Rule**: Agents only need one simple rule that calls `doc_bot` first
-2. **Intelligent Routing**: The `doc_bot` tool analyzes requests and provides exact tool sequences
-3. **Context-Aware**: Different workflows for code generation, understanding, documentation, etc.
-4. **Self-Updating**: Central intelligence can be updated without changing agent configurations
-
-### The doc_bot Tool
-
-The `doc_bot` tool serves as an intelligent assistant that:
-- Classifies the type of request (code generation, architecture query, documentation, etc.)
-- Extracts relevant search terms from natural language
-- Provides step-by-step tool execution guidance
-- Enforces best practices (e.g., checking rules before generating code)
-- Teaches effective search strategies (API names vs descriptions)
-
-### Integration Rule Psychology
-
-The integration rule uses advanced prompt engineering principles:
-- **Cognitive Tunneling**: Single execution path prevents deviation
-- **Visual Salience**: Box formatting creates unavoidable hierarchy
-- **Triadic Structure**: Three memorable laws
-- **Code-as-Enforcement**: Makes violations feel like syntax errors
-- **Ego Suppression**: "You're not here to be creative" prevents improvisation
-
-### Agent Optimization
-
-Doc-bot includes sophisticated prompt templates to ensure AI agents:
-- Always call `doc_bot` first for ANY task
-- Follow the exact tool sequence provided
-- Trust project documentation over general knowledge
-- Search efficiently using API names, not descriptions
-- Never skip mandatory steps like rule checking
+The `doc_bot` tool provides optional guidance and suggested searches; it does not enforce tool usage.
 
 ## Hot Reloading
 

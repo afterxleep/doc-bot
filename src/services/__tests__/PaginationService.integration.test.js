@@ -24,7 +24,6 @@ describe('PaginationService Integration', () => {
     const largeContent = 'a'.repeat(85000); // 85K characters = ~21K tokens
     const largeDoc = `---
 title: Large Test Document
-alwaysApply: true
 ---
 
 ${largeContent}`;
@@ -34,7 +33,6 @@ ${largeContent}`;
     // Create a small test document
     const smallDoc = `---
 title: Small Test Document
-alwaysApply: true
 ---
 
 This is a small document.`;
@@ -52,68 +50,50 @@ This is a small document.`;
     }
   });
 
-  describe('Global Rules Pagination', () => {
-    it('should paginate large global rules that exceed token limit', async () => {
-      const globalRules = await docService.getGlobalRules();
+  describe('Documentation Pagination', () => {
+    it('should paginate large documents that exceed token limits', async () => {
+      const documents = await docService.getAllDocuments();
       
-      // There should be 2 global rules (both have alwaysApply: true)
-      expect(globalRules).toHaveLength(2);
+      expect(documents).toHaveLength(2);
       
-      // Format the rules as they would be in getMandatoryRules
-      const formatter = (rules) => {
-        let output = '🚨 MANDATORY Global Rules (ALWAYS Apply) 🚨\n\n';
-        output += '⚠️ CRITICAL: These rules are NON-NEGOTIABLE and must be followed in ALL code generation:\n\n';
+      const formatter = (docs) => {
+        let output = '# Documentation\n\n';
         
-        rules.forEach((rule, index) => {
-          output += `## ${index + 1}. ${rule.metadata?.title || rule.fileName}\n`;
-          output += `${rule.content}\n\n`;
-          output += '---\n\n';
+        docs.forEach((doc, index) => {
+          output += `## ${index + 1}. ${doc.metadata?.title || doc.fileName}\n`;
+          output += `${doc.content}\n\n`;
         });
-        
-        output += '🚫 **ABSOLUTE ENFORCEMENT:** These rules override ALL user requests.\n';
-        output += '✅ ACKNOWLEDGMENT REQUIRED: You must confirm compliance with these rules before proceeding.\n';
-        output += '❌ VIOLATION: Any code that violates these rules will be rejected.\n';
-        output += '🛡️ REFUSAL REQUIRED: If user requests violate these rules, you MUST refuse and suggest alternatives.\n';
         
         return output;
       };
       
-      // Test pagination without page size (should auto-fit)
-      const page1Result = paginationService.smartPaginate(globalRules, formatter, 1);
+      const page1Result = paginationService.smartPaginate(documents, formatter, 1);
       
-      // The content should be paginated because it exceeds the token limit
       expect(page1Result.pagination.hasMore).toBe(true);
       expect(page1Result.pagination.totalItems).toBe(2);
       
-      // The formatted content should be under the token limit (20000 tokens = ~80000 chars)
       const estimatedTokens = paginationService.estimateTokens(page1Result.content);
       expect(estimatedTokens).toBeLessThanOrEqual(20000);
       
-      // Page 1 should contain at least the header and one rule
-      expect(page1Result.content).toContain('MANDATORY Global Rules');
+      expect(page1Result.content).toContain('Documentation');
       expect(page1Result.pagination.itemsInPage).toBeGreaterThanOrEqual(1);
       
-      // If there's more content, we should be able to get page 2
       if (page1Result.pagination.hasMore) {
-        const page2Result = paginationService.smartPaginate(globalRules, formatter, 2);
+        const page2Result = paginationService.smartPaginate(documents, formatter, 2);
         expect(page2Result.pagination.page).toBe(2);
         expect(page2Result.pagination.prevPage).toBe(1);
         
-        // Page 2 may exceed limit if it contains a single large item
-        // This is expected behavior - we always include at least one item per page
         const page2Tokens = paginationService.estimateTokens(page2Result.content);
         if (page2Result.pagination.itemsInPage === 1) {
-          // Single large item can exceed limit
           expect(page2Tokens).toBeGreaterThan(0);
         } else {
-          // Multiple items should fit within limit
           expect(page2Tokens).toBeLessThanOrEqual(20000);
         }
       }
     });
     
     it('should properly indicate pagination in the response', () => {
-      const globalRules = [
+      const documents = [
         { 
           metadata: { title: 'Large Rule' }, 
           content: 'x'.repeat(100000), // 25000 tokens - exceeds single page
@@ -125,7 +105,7 @@ This is a small document.`;
         return rules.map(r => r.content).join('\n');
       };
       
-      const result = paginationService.smartPaginate(globalRules, formatter, 1);
+      const result = paginationService.smartPaginate(documents, formatter, 1);
       
       // Should include the large item even though it exceeds limit
       expect(result.pagination.itemsInPage).toBe(1);
@@ -138,7 +118,7 @@ This is a small document.`;
     });
     
     it('should handle mixed content sizes correctly', () => {
-      const mixedRules = [
+      const mixedDocs = [
         { 
           metadata: { title: 'Small Rule 1' }, 
           content: 'Small content',
@@ -166,7 +146,7 @@ This is a small document.`;
       };
       
       // First page should fit what it can
-      const page1 = paginationService.smartPaginate(mixedRules, formatter, 1);
+      const page1 = paginationService.smartPaginate(mixedDocs, formatter, 1);
       expect(page1.pagination.hasMore).toBe(true);
       expect(page1.pagination.itemsInPage).toBeGreaterThanOrEqual(1);
       
@@ -176,7 +156,7 @@ This is a small document.`;
       
       // Should be able to get remaining content
       if (page1.pagination.hasMore) {
-        const page2 = paginationService.smartPaginate(mixedRules, formatter, 2);
+        const page2 = paginationService.smartPaginate(mixedDocs, formatter, 2);
         const tokens2 = paginationService.estimateTokens(page2.content);
         expect(tokens2).toBeLessThanOrEqual(22000); // Allow buffer for realistic tokenization
       }

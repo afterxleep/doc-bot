@@ -6,10 +6,10 @@
 export const EXPECTED_BEHAVIORS = {
   quickFix: {
     maxTimeSeconds: 30,
-    useDocBot: true,  // Changed: Must check rules for code changes
-    maxTools: 1,      // Changed: check_project_rules for non-trivial fixes
+    useDocBot: false,
+    maxTools: 0,
     strategy: 'FAST_PATH',
-    description: 'Simple fixes that still need rule compliance for code changes'
+    description: 'Simple fixes that usually do not need documentation lookup'
   },
   
   trivialFix: {
@@ -31,9 +31,9 @@ export const EXPECTED_BEHAVIORS = {
   featureImplementation: {
     maxTimeSeconds: 180,
     useDocBot: true,
-    maxTools: 3,
+    maxTools: 2,
     strategy: 'HYBRID_PATH',
-    description: 'Building new features that should follow project patterns'
+    description: 'Building new features with help from project documentation'
   },
   
   generalQuestion: {
@@ -81,7 +81,7 @@ export const TOOL_PATTERNS = {
     'general questions'
   ],
   
-  alwaysUseFor: [
+  recommendedFor: [
     'project patterns',
     'architecture decisions',
     'coding standards',
@@ -100,17 +100,11 @@ export const TOOL_PATTERNS = {
  * Decision rules for the analyzer
  */
 export const DECISION_RULES = {
-  // Only skip ALL doc-bot tools for these truly trivial tasks
-  skipAllDocBotTriggers: [
+  // Skip doc-bot tools for truly trivial tasks
+  skipDocBotTriggers: [
     'typo in comment', 'typo in string', 
     'rename variable', 'rename function',
     'remove comment', 'remove dead code'
-  ],
-  
-  // These still need check_project_rules but no other doc-bot tools
-  needsRulesOnly: [
-    'add null check', 'add error handling', 'add validation',
-    'fix undefined', 'fix syntax error', 'add logging'
   ],
   
   // If query contains these, use doc-bot

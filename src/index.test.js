@@ -20,15 +20,15 @@ describe('DocumentationService get_document_index functionality', () => {
     const testDocs = [
       {
         fileName: 'react-guide.md',
-        content: '---\nalwaysApply: false\ntitle: "React Component Guide"\ndescription: "Learn how to build React components"\nkeywords: ["react", "components", "jsx"]\n---\n\n# React Components\n\nThis guide covers React components.'
+        content: '---\ntitle: "React Component Guide"\ndescription: "Learn how to build React components"\nkeywords: ["react", "components", "jsx"]\n---\n\n# React Components\n\nThis guide covers React components.'
       },
       {
         fileName: 'testing-standards.md',
-        content: '---\nalwaysApply: true\ntitle: "Testing Standards"\ndescription: "Project testing requirements"\nkeywords: ["testing", "jest", "standards"]\n---\n\n# Testing Standards\n\nAll code must have tests.'
+        content: '---\ntitle: "Testing Standards"\ndescription: "Project testing requirements"\nkeywords: ["testing", "jest", "standards"]\n---\n\n# Testing Standards\n\nAll code must have tests.'
       },
       {
         fileName: 'api-design.md',
-        content: '---\nalwaysApply: false\ntitle: "API Design Guidelines"\ndescription: "REST API design patterns"\nkeywords: ["api", "rest", "design"]\n---\n\n# API Design\n\nFollow REST principles.'
+        content: '---\ntitle: "API Design Guidelines"\ndescription: "REST API design patterns"\nkeywords: ["api", "rest", "design"]\n---\n\n# API Design\n\nFollow REST principles.'
       }
     ];
 

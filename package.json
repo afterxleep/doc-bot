@@ -1,6 +1,6 @@
 {
   "name": "@afterxleep/doc-bot",
-  "version": "1.23.1",
+  "version": "2.0.0",
   "description": "Generic MCP server for intelligent documentation access in any project",
   "type": "module",
   "main": "src/index.js",
@@ -68,7 +68,6 @@
     "bin/",
     "prompts/",
     "README.md",
-    "LICENSE",
-    "AGENT_INTEGRATION_RULE.txt"
+    "LICENSE"
   ]
 }

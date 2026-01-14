@@ -1,5 +1,4 @@
 ---
-alwaysApply: false
 title: "Doc-Bot Development"
 description: "Internal development documentation for the doc-bot project"
 keywords: ["development", "internal", "implementation", "code", "architecture"]

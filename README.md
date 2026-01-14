@@ -9,16 +9,17 @@ An intelligent MCP (Model Context Protocol) server that gives AI assistants like
 
 doc-bot is a documentation server that enhances AI coding assistants by providing:
 - 🧠 **Smart search** through your project documentation
-- 📖 **Contextual rules** that apply based on what you're working on
+- 📖 **Contextual docs** that surface guidance based on what you're working on
 - 🔄 **Live updates** as your documentation changes
 - 📚 **API references** from official documentation (via Docsets)
 - 🤖 **MCP tools** for AI agents to query and understand your project
+- ✍️ **Agent-driven updates** so new knowledge is captured in docs
 
 ## Why doc-bot?
 
 Traditional AI assistants have limited context windows and no understanding of your specific project. doc-bot solves this by:
 
-1. **Providing project-specific knowledge** - Your conventions, patterns, and rules
+1. **Providing project-specific knowledge** - Your conventions, patterns, and decisions
 2. **Searching intelligently** - AI finds exactly what it needs without cluttering context
 3. **Scaling infinitely** - Thousands of docs without token limits
 4. **Staying current** - Live reload ensures AI always has latest information
@@ -32,10 +33,10 @@ Your Project Documentation → doc-bot → MCP Protocol → AI Assistant (Claude
 ```
 
 When you ask your AI assistant to write code, it can:
-1. Check your project's coding standards
-2. Search for relevant documentation
+1. Search for relevant documentation
+2. Read project docs for patterns and examples
 3. Find API references and examples
-4. Follow your team's specific patterns
+4. Update documentation when new patterns are discovered
 
 ## Quick Start
 
@@ -78,17 +79,47 @@ your-project/
 └── package.json
 ```
 
-### 3. Add the custom Agent Rule
-
-Replace all rules and instructions for your Agent (cursor.mdc, CLAUDE.md, etc) with Doc Bot Core Rule [AGENT INTEGRATION RULE](https://github.com/afterxleep/doc-bot/blob/main/AGENT_INTEGRATION_RULE.txt).
-
-### 4. Test it!
+### 3. Test it!
 
 Ask your AI assistant: "What are the coding standards for this project?"
+
+## Versioning and Compatibility
+
+doc-bot 2.0 is a breaking change. Rule enforcement and `alwaysApply` behavior are removed in favor of documentation-first guidance.
+
+- If you need the legacy rule enforcement flow, pin to `@afterxleep/doc-bot@1` or build from the `1.x` branch.
+- New installs should use the latest 2.x line (`@afterxleep/doc-bot@latest`).
 
 ## Project Documentation
 
 doc-bot treats your project documentation as a searchable knowledge base for AI assistants.
+
+### Agent-Driven Updates
+
+doc-bot is designed for agents to keep documentation current as they work. When an assistant discovers a new pattern or a change, it can add or update docs directly:
+
+```json
+{
+  "fileName": "auth-flow.md",
+  "title": "Auth Flow",
+  "description": "OAuth flow and token handling",
+  "keywords": ["auth", "oauth", "tokens"],
+  "filePatterns": ["src/auth/**"],
+  "content": "# Auth Flow\n\nDocument the new flow here."
+}
+```
+
+### Agent Documentation Loop
+
+Use this fast loop to extend project knowledge and keep docs current:
+
+1. **Orient quickly**: call `doc_bot(task)` or `get_document_index()` when the project is unfamiliar.
+2. **Find specifics**: use `search_documentation` with concrete terms (API names, class names, errors).
+3. **Read the full context**: open matches with `read_specific_document` or `get_file_docs`.
+4. **Capture new knowledge**: when behavior changes or new patterns emerge, write it with `create_or_update_rule`.
+5. **Refresh when needed**: if docs are edited manually, run `refresh_documentation()`.
+
+Keep docs short, scoped, and searchable with clear titles, keywords, and `filePatterns`.
 
 ### Documentation Format
 
@@ -116,7 +147,7 @@ keywords: ["react", "components", "frontend", "jsx"]
 | `title` | string | Document title (required) | "API Guidelines" |
 | `description` | string | Brief description | "REST API design patterns" |
 | `keywords` | array | Search keywords | ["api", "rest", "http"] |
-| `alwaysApply` | boolean | Apply to all queries | true/false |
+| `topics` | array | Optional topical tags | ["architecture", "backend"] |
 | `filePatterns` | array | Apply to specific files | ["*.test.js", "**/*.spec.ts"] |
 
 ### How Search Works
@@ -126,15 +157,16 @@ keywords: ["react", "components", "frontend", "jsx"]
 3. **Relevance Scoring** - Results ranked by relevance (exact matches score highest)
 4. **Context Extraction** - Returns snippets showing matched content
 
+doc-bot surfaces documentation for agents; it does not enforce rules. Agents should update docs when new patterns or changes appear.
+
 ### Types of Documentation
 
-#### Global Rules (Always Apply)
+#### General Documentation
 ```markdown
 ---
 title: "Coding Standards"
-alwaysApply: true
 ---
-Rules that apply to every file in your project
+Project-wide guidance and conventions
 ```
 
 #### Contextual Documentation
@@ -227,10 +259,13 @@ doc-bot provides these tools to AI assistants:
 
 | Tool | Purpose | Example Use |
 |------|---------|-------------|
-| `check_project_rules` | Get rules before writing code | "What patterns should I follow?" |
+| `doc_bot` | Get documentation guidance | "How should I approach auth?" |
 | `search_documentation` | Search all documentation | "How do I implement auth?" |
-| `get_global_rules` | Get always-apply rules | "What are the coding standards?" |
-| `get_file_docs` | Get file-specific docs | "Rules for Button.test.jsx" |
+| `get_file_docs` | Get file-specific docs | "Docs for Button.test.jsx" |
+| `read_specific_document` | Read full docs by file name | "Open coding-standards.md" |
+| `get_document_index` | List all docs | "Show documentation index" |
+| `create_or_update_rule` | Add/update documentation | "Capture auth flow update" |
+| `refresh_documentation` | Reload docs from disk | "Refresh the doc store" |
 | `explore_api` | Explore API documentation | "Show me URLSession methods" |
 | `add_docset` | Install new docset | "Add Swift docs from URL" |
 | `remove_docset` | Remove installed docset | "Remove docset abc123" |
@@ -291,7 +326,7 @@ Options:
    ---
    ```
 
-2. **Apply rules contextually**
+2. **Use file patterns for contextual docs**
    ```markdown
    ---
    filePatterns: ["**/auth/**", "*.auth.js"]
@@ -308,7 +343,7 @@ Options:
 - Use clear section headers for better snippet extraction
 - Add descriptions to improve search relevance
 
-## Why MCP over Static Rules?
+## Why MCP over Static Instruction Files?
 
 Unlike static `.cursorrules` or `.github/copilot-instructions.md` files:
 

@@ -1,5 +1,4 @@
 ---
-alwaysApply: false
 title: "Publishing Guide"
 description: "How to publish doc-bot to npm"
 keywords: ["publishing", "npm", "release", "deployment", "versioning"]
@@ -77,10 +76,9 @@ npm publish --dry-run
 Expected files to be published:
 - `src/` - All source files
 - `bin/` - CLI executables
-- `prompts/` - Agent optimization templates
+- `prompts/` - Prompt templates
 - `README.md` - Package documentation
 - `LICENSE` - MIT license
-- `AGENT_INTEGRATION_RULE.txt` - Agent enforcement rules
 - `package.json` - Package manifest
 
 ### 5. Publish to npm

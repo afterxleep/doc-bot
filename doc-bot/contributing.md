@@ -1,5 +1,4 @@
 ---
-alwaysApply: false
 title: "Contributing to Doc-Bot"
 description: "Guidelines for contributing to the doc-bot project"
 keywords: ["contributing", "development", "pull-request", "github", "open-source"]

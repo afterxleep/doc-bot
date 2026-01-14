@@ -1,5 +1,4 @@
 ---
-alwaysApply: false
 title: "Doc-Bot Services Reference"
 description: "Detailed documentation of all service classes and their methods"
 keywords: ["services", "api", "classes", "methods", "documentation", "search", "docsets"]
@@ -65,9 +64,6 @@ Returns all loaded documents.
 #### `getDocument(fileName)`
 Gets a specific document by filename.
 
-#### `getGlobalRules()`
-Returns documents with `alwaysApply: true`.
-
 #### `getContextualDocs(filePath)`
 Returns documents matching file patterns.
 
@@ -130,17 +126,11 @@ new InferenceEngine(documentationService)
 #### `initialize()`
 Builds document index for inference.
 
-#### `checkProjectRules(task)`
-Infers relevant rules for a coding task.
-- **Parameters**: `task` (string)
-- **Returns**: Global rules, task-specific rules, relevant docs
-
-#### `inferRelevantDocs(query, fileContext)`
+#### `getRelevantDocumentation(context)`
 Infers relevant documentation based on context.
 - **Parameters**:
-  - `query`: Search query or task
-  - `fileContext`: Optional file path/extension
-- **Returns**: Sorted array of relevant documents
+  - `context`: Object with `query`, `filePath`, and/or `codeSnippet`
+- **Returns**: Contextual docs, inferred docs, and confidence score
 
 #### `extractKeywords(text)`
 Extracts keywords from text.
@@ -329,24 +319,20 @@ UnifiedSearchService.search()
         └→ ParallelSearchManager (if >3 docsets)
 ```
 
-### Rule Checking Flow
+### Documentation Guidance Flow
 ```
-check_project_rules(task)
+doc_bot(task)
     ↓
-InferenceEngine.checkProjectRules()
-    ├→ DocumentationService.getGlobalRules()
-    └→ inferRelevantDocs()
-        └→ DocumentIndex.searchByKeywords()
+InferenceEngine.getRelevantDocumentation()
+    ├→ DocumentationService.getContextualDocs()
+    └→ DocumentIndex.searchByKeywords()
 ```
 
 ### File Documentation Flow
 ```
 get_file_docs(filePath)
     ↓
-InferenceEngine + DocumentationService
-    ├→ getGlobalRules()
-    ├→ getContextualDocs()
-    └→ inferRelevantDocs()
+DocumentationService.getContextualDocs()
 ```
 
 ## Error Handling

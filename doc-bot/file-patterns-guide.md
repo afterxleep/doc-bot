@@ -1,5 +1,4 @@
 ---
-alwaysApply: false
 title: "File Patterns Guide"
 description: "Comprehensive guide for using file patterns in doc-bot"
 keywords: ["filePatterns", "patterns", "glob", "contextual", "documentation", "matching"]
@@ -22,7 +21,6 @@ Add the `filePatterns` field to your documentation's frontmatter:
 title: React Hooks Guide
 keywords: [react, hooks, useState, useEffect]
 filePatterns: ["*.jsx", "*.tsx", "src/hooks/**/*.js"]
-alwaysApply: false
 ---
 
 # React Hooks Best Practices
@@ -202,13 +200,9 @@ filePatterns: ["routes/**/*.js", "controllers/**/*.js", "api/**/*.js"]
 ---
 ```
 
-### 5. Combine with alwaysApply
+### 5. Keep Non-Pattern Docs General
 
-Set `alwaysApply: false` to ensure patterns are used:
-```yaml
-filePatterns: ["*.test.js"]
-alwaysApply: false  # Only show for test files
-```
+Docs without `filePatterns` are treated as general documentation and show up in search results instead of file-specific lookups.
 
 ## Pattern Matching Behavior
 
@@ -233,8 +227,8 @@ If your patterns aren't matching:
    - Patterns match against full paths
    - Include directory separators as needed
 
-4. **Check alwaysApply**
-   - Ensure `alwaysApply: false` for pattern-based docs
+4. **Check filePatterns**
+   - Ensure `filePatterns` are present and correctly formatted
 
 ## Examples by Framework
 
@@ -283,7 +277,7 @@ File patterns work seamlessly with other doc-bot features:
 
 1. **Keyword Search**: Documents are still searchable by keywords
 2. **Inference Engine**: AI can still infer relevant docs beyond patterns
-3. **Global Rules**: Use `alwaysApply: true` for universal documentation
+3. **General Docs**: Documents without `filePatterns` are treated as general guidance
 4. **Confidence Scores**: Combine with confidence for prioritization
 
 Remember: File patterns provide deterministic, author-controlled matching for contextual documentation, ensuring the right documentation appears at the right time.

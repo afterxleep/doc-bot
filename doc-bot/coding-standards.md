@@ -1,5 +1,4 @@
 ---
-alwaysApply: true
 title: "Coding Standards"
 description: "Core coding standards that apply to all code"
 keywords: ["coding", "standards", "style", "conventions", "best practices"]
@@ -126,7 +125,6 @@ title: Document Title        # Required
 keywords: [key1, key2]       # Optional but recommended
 topics: [topic1, topic2]     # Optional
 filePatterns: ["*.js"]       # Optional
-alwaysApply: false          # Optional (default: false)
 confidence: 0.9             # Optional (default: 1.0)
 ---
 ```

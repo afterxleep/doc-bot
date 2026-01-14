@@ -1,5 +1,4 @@
 ---
-alwaysApply: false
 title: "Doc-Bot Project Architecture"
 description: "Overall architecture and design patterns for doc-bot"
 keywords: ["architecture", "design", "patterns", "structure", "mcp", "services"]

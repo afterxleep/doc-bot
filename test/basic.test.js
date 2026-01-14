@@ -40,11 +40,6 @@ describe('Doc-Bot Basic Tests', () => {
       expect(Array.isArray(index)).toBe(true);
       expect(index.length).toBeGreaterThan(0);
     });
-
-    it('should get global rules', async () => {
-      const rules = await docService.getGlobalRules();
-      expect(Array.isArray(rules)).toBe(true);
-    });
   });
 
   describe('DocsServer', () => {
@@ -60,7 +55,7 @@ describe('Doc-Bot Basic Tests', () => {
       expect(server.unifiedSearch).toBeDefined();
     });
 
-    it('should return intelligent gatekeeper response with mandatory rules', async () => {
+    it('should return documentation guidance for a task', async () => {
       const server = new DocsServer({
         docsPath: docsPath,
         verbose: false,
@@ -68,19 +63,18 @@ describe('Doc-Bot Basic Tests', () => {
       });
 
       await server.docService.reload();
-      const mandatoryRules = await server.docService.getGlobalRules();
-      const response = server.getIntelligentGatekeeperResponse('create REST API', mandatoryRules, 1);
+      const response = await server.getDocumentationGuidance('create REST API', 1);
 
       expect(response).toBeDefined();
       expect(typeof response).toBe('string');
-      expect(response).toContain('Mandatory Project Standards');
-      expect(response).toContain('Additional Documentation Tools Available');
+      expect(response).toContain('Documentation Guidance');
+      expect(response).toContain('Documentation Tools');
       expect(response).toContain('search_documentation');
       expect(response).toContain('get_file_docs');
       expect(response).toContain('explore_api');
     });
 
-    it('should support pagination for large rule sets', async () => {
+    it('should support pagination for documentation guidance', async () => {
       const server = new DocsServer({
         docsPath: docsPath,
         verbose: false,
@@ -88,15 +82,14 @@ describe('Doc-Bot Basic Tests', () => {
       });
 
       await server.docService.reload();
-      const mandatoryRules = await server.docService.getGlobalRules();
 
       // Test page 1
-      const page1Response = server.getIntelligentGatekeeperResponse('create REST API', mandatoryRules, 1);
+      const page1Response = await server.getDocumentationGuidance('create REST API', 1);
       expect(page1Response).toBeDefined();
       expect(typeof page1Response).toBe('string');
 
       // Should always contain tool catalog
-      expect(page1Response).toContain('Additional Documentation Tools Available');
+      expect(page1Response).toContain('Documentation Tools');
     });
   });
 });

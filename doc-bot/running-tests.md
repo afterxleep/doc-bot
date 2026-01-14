@@ -1,5 +1,4 @@
 ---
-alwaysApply: false
 title: Running Tests Guide
 description: Complete guide for running the doc-bot test suite
 keywords: ["testing", "jest", "coverage", "e2e", "unit-tests", "test-suite"]
@@ -60,9 +59,9 @@ Automatically re-runs tests when files change. Great for development.
 npm run test:e2e
 ```
 This command:
-1. Creates test fixtures (63 sample documents)
-2. Runs E2E tests against the real MCP server
-3. Tests all tools and resources with actual data
+1. Creates sample documentation fixtures
+2. Runs E2E tests against the real MCP server using a temp docs folder
+3. Exercises core tools end-to-end (search, file docs, doc updates)
 
 ### Run Unit Tests Only
 ```bash
@@ -78,11 +77,11 @@ Creates sample documentation and prompt templates for testing. This is automatic
 
 ## Test Fixtures
 
-The test suite uses comprehensive fixtures located in `test/fixtures/`:
+The test suite uses fixtures located in `test/fixtures/`:
 
-- **63 sample documents** covering various scenarios:
-  - Global rules (alwaysApply: true)
-  - Contextual rules (with file patterns)
+- Sample documents covering various scenarios:
+  - General docs (project-wide guidance)
+  - Contextual docs (with file patterns)
   - Tutorials and guides
   - API references
   - Architecture documentation

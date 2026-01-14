@@ -400,34 +400,19 @@ class DocumentationService {
     return matched;
   }
   
-  async getGlobalRules() {
-    const globalRules = [];
-    
-    // Find all documents with alwaysApply: true in frontmatter
-    for (const doc of this.documents.values()) {
-      if (doc.metadata?.alwaysApply === true) {
-        globalRules.push(doc);
-      }
-    }
-    
-    return globalRules;
-  }
-  
   async getContextualDocs(filePath) {
     const matchingDocs = [];
     
-    // Find documents with alwaysApply: false and matching patterns
+    // Find documents with matching patterns
     for (const doc of this.documents.values()) {
-      if (doc.metadata?.alwaysApply === false || doc.metadata?.alwaysApply === undefined) {
-        // Check if document has file patterns in frontmatter
-        const patterns = doc.metadata?.filePatterns || doc.metadata?.applies || [];
-        const patternArray = Array.isArray(patterns) ? patterns : [patterns];
-        
-        for (const pattern of patternArray) {
-          if (pattern && this.matchesPattern(filePath, pattern)) {
-            matchingDocs.push(doc);
-            break; // Don't add the same doc multiple times
-          }
+      // Check if document has file patterns in frontmatter
+      const patterns = doc.metadata?.filePatterns || doc.metadata?.applies || [];
+      const patternArray = Array.isArray(patterns) ? patterns : [patterns];
+      
+      for (const pattern of patternArray) {
+        if (pattern && this.matchesPattern(filePath, pattern)) {
+          matchingDocs.push(doc);
+          break; // Don't add the same doc multiple times
         }
       }
     }

@@ -109,7 +109,6 @@ Building REST APIs with Express.js.
     // Create mock DocumentationService
     mockDocService = {
       getAllDocuments: jest.fn().mockResolvedValue(mockDocuments),
-      getGlobalRules: jest.fn().mockResolvedValue([]),
       getContextualDocs: jest.fn().mockResolvedValue([])
     };
 
@@ -133,7 +132,6 @@ Building REST APIs with Express.js.
 
       const result = await inferenceEngine.getRelevantDocumentation(context);
 
-      expect(result.globalRules).toEqual([]);
       expect(result.contextualDocs).toEqual([]);
       expect(result.inferredDocs.length).toBeGreaterThan(0);
       
@@ -204,7 +202,6 @@ Building REST APIs with Express.js.
       const context = {};
       const result = await inferenceEngine.getRelevantDocumentation(context);
 
-      expect(result.globalRules).toEqual([]);
       expect(result.contextualDocs).toEqual([]);
       expect(result.inferredDocs).toEqual([]);
       expect(result.confidence).toBeLessThan(0.5);
@@ -245,7 +242,6 @@ Building REST APIs with Express.js.
       // Create engine with failing doc service
       const failingDocService = {
         getAllDocuments: jest.fn().mockRejectedValue(new Error('Failed to load')),
-        getGlobalRules: jest.fn().mockResolvedValue([]),
         getContextualDocs: jest.fn().mockResolvedValue([])
       };
 
@@ -258,7 +254,6 @@ Building REST APIs with Express.js.
       const result = await fallbackEngine.getRelevantDocumentation(context);
 
       // Should still return a valid result structure
-      expect(result).toHaveProperty('globalRules');
       expect(result).toHaveProperty('contextualDocs');
       expect(result).toHaveProperty('inferredDocs');
       expect(result).toHaveProperty('confidence');

@@ -26,14 +26,12 @@ class InferenceEngine {
   
   async getRelevantDocumentation(context) {
     try {
-      const globalRules = await this.docService.getGlobalRules();
       const contextualDocs = await this.getContextualDocs(context);
       const inferredDocs = await this.getInferredDocs(context);
       
       const confidence = this.calculateConfidence(context, contextualDocs, inferredDocs);
       
       return {
-        globalRules: globalRules || [],
         contextualDocs,
         inferredDocs,
         confidence
@@ -41,7 +39,6 @@ class InferenceEngine {
     } catch (error) {
       console.error('Error getting relevant documentation:', error);
       return {
-        globalRules: [],
         contextualDocs: [],
         inferredDocs: [],
         confidence: 0

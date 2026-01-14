@@ -1,5 +1,4 @@
 ---
-alwaysApply: false
 title: "Testing Guide"
 description: "How to write and run tests"
 keywords: ["testing", "jest", "unit tests", "integration tests", "test coverage"]

@@ -22,13 +22,12 @@ await fs.ensureDir(path.join(docsPath, 'reference'));
 
 // Create various test documents with different configurations
 
-// Global rules (alwaysApply: true)
+// General standards docs
 const globalDocs = [
   {
     name: 'coding-standards.md',
     folder: 'standards',
     content: `---
-alwaysApply: true
 title: Coding Standards
 description: Global coding standards for all project files
 keywords: ["standards", "code-quality", "best-practices"]
@@ -61,7 +60,6 @@ All code in this project must follow these standards:
     name: 'security-guidelines.md',
     folder: 'standards',
     content: `---
-alwaysApply: true
 title: Security Guidelines
 description: Security best practices for all development
 keywords: ["security", "authentication", "encryption"]
@@ -80,13 +78,12 @@ category: security
   }
 ];
 
-// Contextual rules (with file patterns)
+// Contextual docs (with file patterns)
 const contextualDocs = [
   {
     name: 'react-components.md',
     folder: 'guides',
     content: `---
-alwaysApply: false
 title: React Component Guidelines
 description: Best practices for React components
 keywords: ["react", "components", "jsx", "hooks"]
@@ -112,7 +109,6 @@ category: frontend
     name: 'api-development.md',
     folder: 'api',
     content: `---
-alwaysApply: false
 title: API Development Guide
 description: RESTful API design and implementation
 keywords: ["api", "rest", "http", "endpoints"]
@@ -147,7 +143,6 @@ category: backend
     name: 'database-patterns.md',
     folder: 'guides',
     content: `---
-alwaysApply: false
 title: Database Patterns
 description: Database design and query patterns
 keywords: ["database", "sql", "orm", "migrations"]
@@ -465,10 +460,10 @@ async function createPrompts() {
 
 You are analyzing the file: {file_path}
 
-## Mandatory Rules:
+## Relevant Documentation:
 {mandatory_rules}
 
-Please follow all the rules above when working with this file.`,
+Please use the guidance above when working with this file.`,
 
     'search.md': `# Search Results
 
@@ -485,11 +480,11 @@ Type: {type}
 ## Results:
 {results}`,
 
-    'check_rules.md': `# Project Rules Check
+    'check_rules.md': `# Project Documentation Check
 
 File: {file_path}
 
-## Applicable Rules:
+## Applicable Docs:
 {rules}`,
 
     'doc_bot_guidance.md': `# Intelligent Guidance
@@ -511,9 +506,9 @@ Total: {count} documents found`,
     'system-prompt.md': `# System Context
 
 Working with: {file_path}
-Rules to follow: {mandatory_rules}`,
+Docs to review: {mandatory_rules}`,
 
-    'global-rules.md': `# Global Project Rules
+    'global-rules.md': `# Project Documentation Notes
 
 {rules}`,
 

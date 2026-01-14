@@ -65,7 +65,7 @@ export class SystemPromptAnalyzer {
           intent: 'FEATURE_IMPLEMENTATION',
           strategy: 'HYBRID_PATH',
           useDocBot: true,
-          expectedTools: ['check_project_rules'],
+          expectedTools: ['doc_bot'],
           maxSearchAttempts: 1,
           expectedTime: 120,
           reasoning: 'New feature needs project patterns'
@@ -88,7 +88,7 @@ export class SystemPromptAnalyzer {
         intent: 'FEATURE_IMPLEMENTATION',
         strategy: 'HYBRID_PATH',
         useDocBot: true,
-        expectedTools: ['check_project_rules'],
+        expectedTools: ['doc_bot'],
         maxSearchAttempts: 1,
         expectedTime: 90,
         reasoning: 'Feature implementation - checking patterns'

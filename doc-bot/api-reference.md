@@ -1,5 +1,4 @@
 ---
-alwaysApply: false
 title: "Doc-Bot API Reference"
 description: "Complete API reference for all MCP tools exposed by doc-bot"
 keywords: ["api", "mcp", "tools", "reference", "documentation", "search", "docsets"]
@@ -13,20 +12,20 @@ This document provides a complete reference for all MCP tools exposed by the doc
 
 ### 1. `doc_bot`
 
-**Purpose**: Intelligent assistant that analyzes ANY request and provides optimal tool routing.
+**Purpose**: Lightweight documentation guidance and tool recommendations.
 
-**Description**: This is the primary entry point for all interactions with doc-bot. It analyzes your request, classifies the task type, extracts relevant search terms, and provides a step-by-step execution plan using other doc-bot tools. ALWAYS call this first.
+**Description**: Provides suggested documentation to review, search hints, and next steps. Use this frequently for quick orientation and to keep docs up to date.
 
 **Parameters**:
 - `task` (string, required): What you need help with
   - Examples: "create REST API", "understand auth flow", "document this pattern", "find database models"
 
 **Returns**: Structured guidance containing:
-- Task classification (code generation, understanding, documentation, etc.)
-- Exact tool sequence to execute
-- Specific search terms to use
-- Best practices and tips
-- Search strategy guidance
+- Suggested documentation to review
+- Search hints and relevant keywords
+- Recommended next steps
+- A fast documentation loop for keeping project knowledge current
+- Best practices for using doc-bot tools
 
 **Example**:
 ```json
@@ -37,39 +36,22 @@ This document provides a complete reference for all MCP tools exposed by the doc
 
 **Response Example**:
 ```
-## 💻 CODE GENERATION TASK DETECTED
+## Documentation Guidance
 
-**MANDATORY Steps (in order)**:
-1. ⚡ FIRST: `check_project_rules("authentication service")` - Get critical coding standards
-2. 🔍 SEARCH for existing patterns:
-   - `search_documentation("Authentication")`
-   - `search_documentation("Auth")`
-   - `search_documentation("Login")`
-3. 📚 EXPLORE: If APIs found, use `explore_api()` for complete details
-4. ✅ IMPLEMENT: Generate code following ALL discovered patterns
-```
+## Fast Documentation Loop
+1. Start with `doc_bot(task)` or `get_document_index()`
+2. Use `search_documentation` with concrete terms
+3. Open details with `read_specific_document` or `get_file_docs`
+4. Capture new knowledge with `create_or_update_rule`
 
-### 2. `check_project_rules`
+Suggested docs:
+- "Auth Flow" (auth-flow.md)
+- "API Development Guide" (api-development.md)
 
-**Purpose**: Retrieve project-specific coding rules and constraints that MUST be followed.
-
-**Description**: This tool should be called before generating any code. It returns mandatory patterns, forbidden practices, and project conventions that override standard programming practices.
-
-**Parameters**:
-- `task` (string, required): The specific coding task to be performed
-  - Examples: "create singleton class", "implement REST endpoint", "add authentication"
-
-**Returns**: Object containing:
-- `global_rules`: Array of rules that always apply
-- `task_specific_rules`: Rules specific to the requested task
-- `relevant_documentation`: Documentation relevant to the task
-- `forbidden_patterns`: Patterns that must not be used
-
-**Example**:
-```json
-{
-  "task": "implement user authentication"
-}
+Recommended actions:
+- search_documentation("authentication")
+- read_specific_document("auth-flow.md")
+- create_or_update_rule(...) if you discover new patterns
 ```
 
 ### 2. `search_documentation`
@@ -100,20 +82,7 @@ This document provides a complete reference for all MCP tools exposed by the doc
 }
 ```
 
-### 3. `get_global_rules`
-
-**Purpose**: Retrieve all global rules that should always apply to the project.
-
-**Description**: Returns documentation marked with `alwaysApply: true` in frontmatter. These are rules that apply universally across the entire project.
-
-**Parameters**: None
-
-**Returns**: Array of global rule documents containing:
-- `fileName`: Name of the documentation file
-- `content`: Full content of the document
-- `metadata`: Frontmatter metadata
-
-### 4. `get_file_docs`
+### 3. `get_file_docs`
 
 **Purpose**: Get documentation specific to a particular file or file type.
 
@@ -124,10 +93,7 @@ This document provides a complete reference for all MCP tools exposed by the doc
   - Can be absolute or relative path
   - File extension and path structure are used for matching
 
-**Returns**: Object containing:
-- `global_rules`: Always-apply rules
-- `contextual_docs`: Documentation matching the file pattern
-- `inferred_docs`: Documentation inferred from file type and context
+**Returns**: Formatted documentation text for matching file patterns.
 
 **Example**:
 ```json
@@ -136,7 +102,7 @@ This document provides a complete reference for all MCP tools exposed by the doc
 }
 ```
 
-### 5. `read_specific_document`
+### 4. `read_specific_document`
 
 **Purpose**: Read the complete content of a specific documentation file.
 
@@ -159,9 +125,9 @@ This document provides a complete reference for all MCP tools exposed by the doc
 }
 ```
 
-### 6. `create_or_update_rule`
+### 5. `create_or_update_rule`
 
-**Purpose**: Create or update a documentation rule dynamically.
+**Purpose**: Create or update documentation dynamically.
 
 **Description**: Allows creating new documentation or updating existing documentation programmatically.
 
@@ -169,9 +135,10 @@ This document provides a complete reference for all MCP tools exposed by the doc
 - `fileName` (string, required): Name for the documentation file
 - `title` (string, required): Title for the document
 - `content` (string, required): Markdown content for the document
-- `alwaysApply` (boolean, optional): Whether rule always applies (default: false)
 - `keywords` (array, optional): Keywords for search indexing
 - `filePatterns` (array, optional): File patterns this doc applies to
+- `topics` (array, optional): Topical tags
+- `category` (string, optional): Category label
 - `description` (string, optional): Brief description of the document
 
 **Returns**: Success confirmation with the created/updated file details
@@ -183,11 +150,11 @@ This document provides a complete reference for all MCP tools exposed by the doc
   "title": "New API Guidelines",
   "content": "# API Guidelines\n\nContent here...",
   "keywords": ["api", "rest", "guidelines"],
-  "alwaysApply": false
+  "filePatterns": ["**/api/**"]
 }
 ```
 
-### 7. `refresh_documentation`
+### 6. `refresh_documentation`
 
 **Purpose**: Manually refresh the documentation index.
 
@@ -197,7 +164,7 @@ This document provides a complete reference for all MCP tools exposed by the doc
 
 **Returns**: Confirmation message with number of documents loaded
 
-### 8. `get_document_index`
+### 7. `get_document_index`
 
 **Purpose**: List all available documentation with metadata.
 
@@ -210,10 +177,8 @@ This document provides a complete reference for all MCP tools exposed by the doc
 - `description`: Document description
 - `fileName`: File name
 - `lastUpdated`: Last modification timestamp
-- `keywords`: Associated keywords
-- `alwaysApply`: Whether globally applied
 
-### 9. `add_docset`
+### 8. `add_docset`
 
 **Purpose**: Install a new documentation set (docset) for API reference.
 
@@ -236,7 +201,7 @@ This document provides a complete reference for all MCP tools exposed by the doc
 }
 ```
 
-### 10. `remove_docset`
+### 9. `remove_docset`
 
 **Purpose**: Remove an installed documentation set.
 
@@ -255,7 +220,7 @@ This document provides a complete reference for all MCP tools exposed by the doc
 }
 ```
 
-### 11. `list_docsets`
+### 10. `list_docsets`
 
 **Purpose**: List all installed documentation sets (docsets).
 
@@ -269,7 +234,7 @@ This document provides a complete reference for all MCP tools exposed by the doc
 - `path`: File system path to docset
 - `downloadedAt`: Installation timestamp
 
-### 12. `explore_api`
+### 11. `explore_api`
 
 **Purpose**: Explore API documentation for a specific framework or class.
 
@@ -324,13 +289,13 @@ All tools return responses in a consistent format:
 
 ## Best Practices
 
-1. **ALWAYS call `doc_bot` first** for ANY task - it provides optimal routing
-2. **Follow the exact tool sequence** provided by `doc_bot` without deviation
+1. **Treat doc-bot as a documentation MCP**: reference it frequently to stay aligned with current project knowledge
+2. **Start with `doc_bot` or `search_documentation`** to find relevant context fast
 3. **Search using API/class names** not descriptions (e.g., "Widget" not "iOS widgets")
-4. **Call `check_project_rules` before generating code** as directed by `doc_bot`
-5. **Use `explore_api` for deep dives** into frameworks and classes
-6. **Trust project documentation** over general programming knowledge
-7. **Document new patterns** using `create_or_update_rule` for future reference
+4. **Use `explore_api` for deep dives** into frameworks and classes
+5. **Read full docs** with `read_specific_document` when you need complete context
+6. **Document new patterns** using `create_or_update_rule` for future reference
+7. **Refresh indexes** with `refresh_documentation` after manual edits
 
 ## Rate Limiting and Performance
 

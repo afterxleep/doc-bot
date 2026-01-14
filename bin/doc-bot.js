@@ -16,6 +16,7 @@ program
   .description('Generic MCP server for intelligent documentation access')
   .version(packageJson.version)
   .option('-d, --docs <path>', 'Path to docs folder', 'doc-bot')
+  .option('-s, --docsets <path>', 'Path to docsets folder')
   .option('-v, --verbose', 'Enable verbose logging')
   .option('-w, --watch', 'Watch for file changes')
   .parse();
@@ -32,11 +33,12 @@ async function main() {
     console.log('📖 To get started, create your documentation folder:');
     console.log('');
     console.log(`  mkdir ${path.basename(docsPath)}`);
-    console.log(`  echo "---\nalwaysApply: true\ntitle: Getting Started\n---\n# Getting Started\nThis is your project documentation." > ${path.basename(docsPath)}/getting-started.md`);
+    console.log(`  echo "---\ntitle: Getting Started\n---\n# Getting Started\nThis is your project documentation." > ${path.basename(docsPath)}/getting-started.md`);
     console.log('');
     console.log('📋 Use frontmatter in your markdown files:');
-    console.log('   alwaysApply: true   (for global rules)');
-    console.log('   alwaysApply: false  (for contextual rules)');
+    console.log('   title: "Doc Title"  (required)');
+    console.log('   keywords: ["term"]  (optional)');
+    console.log('   filePatterns: ["**/*.test.js"]  (optional)');
     console.log('');
     console.log('💡 Tip: By default, doc-bot looks for a doc-bot folder.');
     console.log('   Use --docs to specify a different folder.');
@@ -45,6 +47,7 @@ async function main() {
   
   const server = new DocsServer({
     docsPath,
+    docsetsPath: options.docsets ? path.resolve(options.docsets) : undefined,
     verbose: options.verbose,
     watch: options.watch
   });
@@ -52,6 +55,9 @@ async function main() {
   if (options.verbose) {
     console.error('🚀 Starting doc-bot...');
     console.error(`📁 Documentation: ${docsPath}`);
+    if (options.docsets) {
+      console.error(`📚 Docsets: ${path.resolve(options.docsets)}`);
+    }
     console.error(`⚙️  Configuration: Frontmatter-based`);
     
     if (options.watch) {

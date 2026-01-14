@@ -1,5 +1,4 @@
 ---
-alwaysApply: false
 title: Alpha Version Expiration Security & Implementation
 description: Comprehensive security documentation for alpha version expiration with hash verification
 keywords: ["alpha","expiration","security","hash","SHA-256","tamper","verification","30-day","timer","globalState"]
