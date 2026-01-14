@@ -2,6 +2,7 @@ import { jest } from '@jest/globals';
 import { InferenceEngine } from '../InferenceEngine.js';
 import { DocumentationService } from '../DocumentationService.js';
 import fs from 'fs-extra';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -16,8 +17,7 @@ describe('InferenceEngine Integration', () => {
 
   beforeEach(async () => {
     // Create temporary directory for test documents
-    tempDir = path.join(__dirname, '../../../temp-test-docs');
-    await fs.ensureDir(tempDir);
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doc-bot-inference-'));
 
     // Create mock documents
     const mockDocuments = [

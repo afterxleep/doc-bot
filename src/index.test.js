@@ -1,5 +1,6 @@
 import { DocumentationService } from './services/DocumentationService.js';
 import fs from 'fs-extra';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -13,8 +14,7 @@ describe('DocumentationService get_document_index functionality', () => {
 
   beforeEach(async () => {
     // Create a temporary directory for test documents
-    tempDocsPath = path.join(__dirname, '../test-docs');
-    await fs.ensureDir(tempDocsPath);
+    tempDocsPath = await fs.mkdtemp(path.join(os.tmpdir(), 'doc-bot-test-docs-'));
     
     // Create test documents
     const testDocs = [

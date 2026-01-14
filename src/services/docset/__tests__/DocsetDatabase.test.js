@@ -1,6 +1,7 @@
 import { DocsetDatabase, MultiDocsetDatabase } from '../database.js';
 import Database from 'better-sqlite3';
 import fs from 'fs-extra';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -16,8 +17,7 @@ describe('DocsetDatabase', () => {
 
   beforeEach(async () => {
     // Create temporary directory and test database
-    tempDir = path.join(__dirname, 'temp-db-' + Date.now());
-    await fs.ensureDir(tempDir);
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doc-bot-docset-db-'));
     
     // Create docset structure
     const docsetPath = path.join(tempDir, 'Test.docset');
@@ -188,8 +188,7 @@ describe('MultiDocsetDatabase', () => {
 
   beforeEach(async () => {
     multiDb = new MultiDocsetDatabase();
-    tempDir = path.join(__dirname, 'temp-multi-' + Date.now());
-    await fs.ensureDir(tempDir);
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doc-bot-docset-multi-'));
     
     // Create two test docsets
     const createDocset = async (name, entries) => {

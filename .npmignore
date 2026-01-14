@@ -4,6 +4,7 @@ test/
 tests/
 src/**/__tests__/
 src/__tests__/
+src/**/temp-*
 .pop/
 .DS_Store
 *.log

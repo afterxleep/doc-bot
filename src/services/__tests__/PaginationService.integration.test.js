@@ -1,5 +1,6 @@
 import { PaginationService } from '../PaginationService.js';
 import { DocumentationService } from '../DocumentationService.js';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs-extra';
@@ -16,8 +17,7 @@ describe('PaginationService Integration', () => {
     paginationService = new PaginationService();
     
     // Create temp directory for test docs
-    tempDir = path.join(__dirname, 'temp-test-docs');
-    await fs.ensureDir(tempDir);
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doc-bot-pagination-'));
     
     // Create the large test document
     // Need 80K+ characters to exceed 20K token limit (80K/4 = 20K tokens)

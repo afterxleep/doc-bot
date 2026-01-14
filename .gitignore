@@ -130,3 +130,5 @@ coverage/
 # Test artifacts
 test-*.md
 e2e-test-*.md
+src/__tests__/temp-*
+src/services/**/temp-*

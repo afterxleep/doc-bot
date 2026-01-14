@@ -1,9 +1,9 @@
 import { DocsetService } from '../index.js';
 import fs from 'fs-extra';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -14,8 +14,7 @@ describe('DocsetService', () => {
 
   beforeEach(async () => {
     // Create a temporary directory for test docsets
-    tempStoragePath = path.join(__dirname, 'temp-docsets-' + Date.now());
-    await fs.ensureDir(tempStoragePath);
+    tempStoragePath = await fs.mkdtemp(path.join(os.tmpdir(), 'doc-bot-docsets-'));
     
     docsetService = new DocsetService(tempStoragePath);
   });
