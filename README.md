@@ -367,6 +367,10 @@ MIT - See [LICENSE](LICENSE) for details.
 - **Issues**: [GitHub Issues](https://github.com/afterxleep/doc-bot/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/afterxleep/doc-bot/discussions)
 
+## Releases
+
+We publish from the `stable` branch via GitHub Actions. Use the `Publish to npm` workflow (manual trigger) or merge to `stable` to release.
+
 ## Legacy Agent Enforcement (Optional)
 
 This is not the primary workflow; doc-bot focuses on documentation-first guidance and agent-driven updates. If you still need the legacy "always apply" flow enforced by your agent host, copy `templates/AGENTS.md` into your project's `AGENTS.md`. This forces the agent to call `doc_bot()` first and follow doc-bot's tool sequence, ensuring `alwaysApply` docs are surfaced before work begins.
