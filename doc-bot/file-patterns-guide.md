@@ -12,6 +12,20 @@ This guide explains how to use file patterns in doc-bot to create contextual doc
 
 The `filePatterns` feature allows you to specify which files your documentation applies to. When AI assistants request documentation for a specific file using the `get_file_docs` tool, only documents with matching patterns are returned.
 
+## Always-Apply Docs
+
+If a document should apply to every task, set `alwaysApply: true` in the frontmatter. These docs are surfaced in the system prompt and included in `get_file_docs` results for any file.
+
+```markdown
+---
+title: "Project Rules"
+alwaysApply: true
+---
+
+# Project Rules
+...
+```
+
 ## Basic Usage
 
 Add the `filePatterns` field to your documentation's frontmatter:

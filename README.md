@@ -85,7 +85,7 @@ Ask your AI assistant: "What are the coding standards for this project?"
 
 ## Versioning and Compatibility
 
-doc-bot 2.0 is a breaking change. Rule enforcement and `alwaysApply` behavior are removed in favor of documentation-first guidance.
+doc-bot 2.0 is a breaking change. Rule enforcement is removed in favor of documentation-first guidance. As a legacy fallback, docs marked `alwaysApply: true` (or `always_apply: true`) are surfaced in the system prompt and `get_file_docs` results.
 
 - If you need the legacy rule enforcement flow, pin to `@afterxleep/doc-bot@1` or build from the `1.x` branch.
 - New installs should use the latest 2.x line (`@afterxleep/doc-bot@latest`).
@@ -149,6 +149,7 @@ keywords: ["react", "components", "frontend", "jsx"]
 | `keywords` | array | Search keywords | ["api", "rest", "http"] |
 | `topics` | array | Optional topical tags | ["architecture", "backend"] |
 | `filePatterns` | array | Apply to specific files | ["*.test.js", "**/*.spec.ts"] |
+| `alwaysApply` | boolean | Always include this doc in system prompt + file docs (alias: `always_apply`) | true |
 
 ### How Search Works
 
@@ -157,7 +158,7 @@ keywords: ["react", "components", "frontend", "jsx"]
 3. **Relevance Scoring** - Results ranked by relevance (exact matches score highest)
 4. **Context Extraction** - Returns snippets showing matched content
 
-doc-bot surfaces documentation for agents; it does not enforce rules. Agents should update docs when new patterns or changes appear.
+doc-bot surfaces documentation for agents; it does not enforce rules. Docs marked `alwaysApply: true` are always surfaced for agents. Agents should update docs when new patterns or changes appear.
 
 ### Types of Documentation
 
@@ -365,6 +366,12 @@ MIT - See [LICENSE](LICENSE) for details.
 
 - **Issues**: [GitHub Issues](https://github.com/afterxleep/doc-bot/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/afterxleep/doc-bot/discussions)
+
+## Legacy Agent Enforcement (Optional)
+
+This is not the primary workflow; doc-bot focuses on documentation-first guidance and agent-driven updates. If you still need the legacy "always apply" flow enforced by your agent host, copy `templates/AGENTS.md` into your project's `AGENTS.md`. This forces the agent to call `doc_bot()` first and follow doc-bot's tool sequence, ensuring `alwaysApply` docs are surfaced before work begins.
+
+Note: doc-bot does not enforce rules. Your agent host must honor `AGENTS.md` for this to work.
 
 ---
 

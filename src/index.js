@@ -275,6 +275,10 @@ class DocsServer {
                   type: 'string',
                   description: 'Optional category label for this document'
                 },
+                alwaysApply: {
+                  type: 'boolean',
+                  description: 'Mark this doc as always-apply guidance for every task'
+                },
                 content: {
                   type: 'string',
                   description: 'Full markdown content of the documentation'
@@ -1171,7 +1175,8 @@ Try:
       guidance += `  description: "Brief summary",\n`;
       guidance += `  filePatterns: ["**/*.test.js"], // optional\n`;
       guidance += `  topics: ["testing"], // optional\n`;
-      guidance += `  category: "qa" // optional\n`;
+      guidance += `  category: "qa", // optional\n`;
+      guidance += `  alwaysApply: true // optional\n`;
       guidance += `}\n`;
       guidance += `\`\`\`\n`;
       return guidance;
@@ -1310,7 +1315,7 @@ Try:
       .sort((a, b) => (b.inferenceScore || 0) - (a.inferenceScore || 0));
   }
 
-  async createOrUpdateRule({ fileName, title, description, keywords, filePatterns, topics, category, content }) {
+  async createOrUpdateRule({ fileName, title, description, keywords, filePatterns, topics, category, alwaysApply, content }) {
     try {
       // Ensure the docs directory exists
       await fsExtra.ensureDir(this.options.docsPath);
@@ -1332,6 +1337,9 @@ Try:
       }
       if (category) {
         frontmatter += `category: "${category}"\n`;
+      }
+      if (alwaysApply === true) {
+        frontmatter += 'alwaysApply: true\n';
       }
       if (filePatterns && filePatterns.length > 0) {
         frontmatter += `filePatterns: [${filePatterns.map(p => `"${p}"`).join(', ')}]\n`;
@@ -1358,6 +1366,7 @@ Try:
              (keywords && keywords.length > 0 ? `**Keywords**: ${keywords.join(', ')}\n` : '') +
              (topics && topics.length > 0 ? `**Topics**: ${topics.join(', ')}\n` : '') +
              (category ? `**Category**: ${category}\n` : '') +
+             (alwaysApply === true ? '**Always Apply**: true\n' : '') +
              (filePatterns && filePatterns.length > 0 ? `**File Patterns**: ${filePatterns.join(', ')}\n` : '') +
              `\n**Content**:\n${content}`;
              
@@ -1366,8 +1375,32 @@ Try:
     }
   }
 
+  formatProjectRulesSection(alwaysApplyDocs) {
+    if (!alwaysApplyDocs || alwaysApplyDocs.length === 0) {
+      return '';
+    }
+    
+    let section = '## Project Rules (Always Apply)\n';
+    section += 'These docs are marked `alwaysApply` and should be considered for every task.\n\n';
+    
+    alwaysApplyDocs.forEach(doc => {
+      const title = doc.metadata?.title || doc.fileName;
+      section += `- ${title} (${doc.fileName})`;
+      if (doc.metadata?.description) {
+        section += `: ${doc.metadata.description}`;
+      }
+      section += '\n';
+    });
+    
+    section += '\nUse `read_specific_document` when you need full details.\n\n';
+    
+    return section;
+  }
+
   async generateSystemPrompt() {
     const allDocs = await this.docService.getAllDocuments();
+    const alwaysApplyDocs = this.docService.getAlwaysApplyDocs();
+    const projectRulesSection = this.formatProjectRulesSection(alwaysApplyDocs);
     
     const template = await this.loadPromptTemplate('system-prompt');
     if (!template) {
@@ -1375,6 +1408,11 @@ Try:
       let prompt = '# Project Documentation Guidance\n\n';
       
       prompt += 'doc-bot is a documentation MCP server for project context and API references.\n\n';
+      
+      if (projectRulesSection) {
+        prompt += projectRulesSection;
+      }
+      
       prompt += '## ✅ Recommended Usage\n';
       prompt += '- Reference doc-bot frequently to stay aligned with current docs\n';
       prompt += '- Search docs for patterns and examples\n';
@@ -1415,7 +1453,7 @@ Try:
     
     return template
       .replace('${documentationTopics}', documentationTopics)
-      .replace('${projectRulesSection}', '');
+      .replace('${projectRulesSection}', projectRulesSection);
   }
 
   extractDocumentationTopics(docs) {

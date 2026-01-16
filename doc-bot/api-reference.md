@@ -139,6 +139,7 @@ Recommended actions:
 - `filePatterns` (array, optional): File patterns this doc applies to
 - `topics` (array, optional): Topical tags
 - `category` (string, optional): Category label
+- `alwaysApply` (boolean, optional): Mark as always-apply guidance for every task
 - `description` (string, optional): Brief description of the document
 
 **Returns**: Success confirmation with the created/updated file details

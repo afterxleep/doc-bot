@@ -399,19 +399,53 @@ class DocumentationService {
     
     return matched;
   }
+
+  isAlwaysApplyDoc(doc) {
+    const metadata = doc?.metadata;
+    if (!metadata) {
+      return false;
+    }
+    const flags = [metadata.alwaysApply, metadata.always_apply, metadata.always];
+    return flags.some(value => value === true || value === 'true');
+  }
+
+  getAlwaysApplyDocs() {
+    const results = [];
+    
+    for (const doc of this.documents.values()) {
+      if (this.isAlwaysApplyDoc(doc)) {
+        results.push(doc);
+      }
+    }
+    
+    return results;
+  }
   
   async getContextualDocs(filePath) {
     const matchingDocs = [];
+    const seen = new Set();
+    
+    const addDoc = (doc) => {
+      if (!seen.has(doc.fileName)) {
+        matchingDocs.push(doc);
+        seen.add(doc.fileName);
+      }
+    };
     
     // Find documents with matching patterns
     for (const doc of this.documents.values()) {
+      if (this.isAlwaysApplyDoc(doc)) {
+        addDoc(doc);
+        continue;
+      }
+      
       // Check if document has file patterns in frontmatter
       const patterns = doc.metadata?.filePatterns || doc.metadata?.applies || [];
       const patternArray = Array.isArray(patterns) ? patterns : [patterns];
       
       for (const pattern of patternArray) {
         if (pattern && this.matchesPattern(filePath, pattern)) {
-          matchingDocs.push(doc);
+          addDoc(doc);
           break; // Don't add the same doc multiple times
         }
       }
