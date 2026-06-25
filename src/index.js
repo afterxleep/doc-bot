@@ -86,6 +86,22 @@ class DocsServer {
     }
     return this.promptTemplates[templateName];
   }
+
+  normalizeLimit(value, defaultValue, maxValue) {
+    const limit = Number.parseInt(value, 10);
+    if (!Number.isFinite(limit) || limit < 1) {
+      return defaultValue;
+    }
+    return Math.min(limit, maxValue);
+  }
+
+  compactText(value, maxLength = 240) {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return `${text.slice(0, maxLength - 3).trimEnd()}...`;
+  }
   
   setupHandlers() {
     // List available resources
@@ -95,7 +111,7 @@ class DocsServer {
           {
             uri: 'docs://search',
             name: 'Documentation Store',
-            description: 'All project documentation entries with metadata and content',
+            description: 'All project documentation entries with titles, paths, and descriptions',
             mimeType: 'application/json'
           },
           {
@@ -120,7 +136,7 @@ class DocsServer {
       
       switch (uri) {
         case 'docs://search':
-          const allDocs = await this.docService.getAllDocuments();
+          const allDocs = await this.docService.getDocumentIndex();
           return {
             contents: [{
               uri,
@@ -170,7 +186,7 @@ class DocsServer {
                 },
                 limit: {
                   type: 'number',
-                  description: 'Maximum results per page. Default: 20'
+                  description: 'Maximum compact results per page. Default: 8, maximum: 10'
                 },
                 page: {
                   type: 'number',
@@ -376,7 +392,7 @@ class DocsServer {
               throw new Error('Query parameter is required');
             }
             const searchPage = args?.page || 1;
-            const searchLimit = args?.limit || 20;
+            const searchLimit = this.normalizeLimit(args?.limit, 8, 10);
 
             const unifiedOptions = {
               limit: searchLimit * 3, // Get more results for pagination
@@ -600,6 +616,7 @@ class DocsServer {
 
           case 'refresh_documentation':
             await this.docService.reload();
+            await this.inferenceEngine.buildDocumentIndex();
             const docCount = this.docService.documents.size;
             
             return {
@@ -647,16 +664,35 @@ class DocsServer {
   setupWatcher() {
     const watcher = chokidar.watch(this.options.docsPath, {
       ignored: /(^|[\/\\])\../, // ignore dotfiles
-      persistent: true
+      persistent: true,
+      ignoreInitial: true, // don't re-index once per existing file at startup
+      awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 50 } // don't read half-written files
     });
-    
-    watcher.on('change', async (filePath) => {
+
+    // A single save can emit several events (add + change), and bulk edits emit
+    // many in quick succession. Debounce so a burst collapses into one reload,
+    // which avoids overlapping reloads racing each other.
+    let pendingReindex = null;
+    const scheduleReindex = (event, filePath) => {
       if (this.options.verbose) {
-        console.error(`📄 Documentation updated: ${path.relative(process.cwd(), filePath)}`);
+        console.error(`📄 Documentation ${event}: ${path.relative(process.cwd(), filePath)}`);
       }
-      
-      // Reload docs if documentation changed
-      await this.docService.reload();
+      clearTimeout(pendingReindex);
+      pendingReindex = setTimeout(async () => {
+        // Reload the doc store and rebuild the inference index together so both
+        // layers stay in sync with what's on disk.
+        await this.docService.reload();
+        await this.inferenceEngine.buildDocumentIndex();
+      }, 150);
+    };
+
+    // Added and removed files matter as much as edits.
+    watcher.on('add', (filePath) => scheduleReindex('added', filePath));
+    watcher.on('change', (filePath) => scheduleReindex('changed', filePath));
+    watcher.on('unlink', (filePath) => scheduleReindex('removed', filePath));
+    watcher.on('error', async (error) => {
+      console.error(`⚠️  Documentation watcher disabled: ${error.message}`);
+      await watcher.close();
     });
   }
   
@@ -753,54 +789,24 @@ Try:
     }
     
     let output = `# Search Results for "${query}"\n\n`;
-    output += `Found ${results.length} relevant result(s):\n\n`;
+    output += `Found ${results.length} compact result(s). Search returns metadata only; use \`read_specific_document\` for full project docs.\n\n`;
     
     // Group results by source
     const localResults = results.filter(r => r.type === 'local');
     const docsetResults = results.filter(r => r.type === 'docset');
     
-    // Highlight the most relevant results
-    if (results.length > 0 && results[0].relevanceScore > 90) {
-      output += `## 🎯 Highly Relevant:\n\n`;
-      const topResults = results.filter(r => r.relevanceScore > 90).slice(0, 3);
-      topResults.forEach(doc => {
-        if (doc.type === 'local') {
-          output += `- **${doc.title}** (Project Doc)\n`;
-          if (doc.description) {
-            output += `  ${doc.description}\n`;
-          }
-        } else {
-          output += `- **${doc.title}** (${doc.entryType})\n`;
-          // Provide context hints based on entry type
-          if (doc.entryType === 'Framework') {
-            output += `  📦 Import this framework to access its APIs\n`;
-          } else if (doc.entryType === 'Sample') {
-            output += `  📝 Example code demonstrating usage\n`;
-          } else if (doc.entryType === 'Class' || doc.entryType === 'Struct') {
-            output += `  🔧 Core type for ${doc.title.replace(/Kit$/, '')} functionality\n`;
-          } else if (doc.entryType === 'Type' && doc.title.includes('Usage')) {
-            output += `  ⚠️ Required for Info.plist permissions\n`;
-          }
-        }
-      });
-      output += '\n';
-    }
-    
     // Show remaining results grouped by type
     if (localResults.length > 0) {
       output += `## 📁 Project Documentation (${localResults.length})\n`;
       localResults.forEach(doc => {
-        output += `- **${doc.title}**`;
+        output += `- **${this.compactText(doc.title, 120)}**`;
+        output += ` (${doc.path})`;
         if (doc.matchedTerms && doc.matchedTerms.length > 0) {
-          output += ` [matches: ${doc.matchedTerms.join(', ')}]`;
+          output += ` [matches: ${doc.matchedTerms.slice(0, 5).join(', ')}]`;
         }
         output += '\n';
-        
-        // Show snippet or description
-        if (doc.snippet) {
-          output += `  > ${doc.snippet}\n`;
-        } else if (doc.description && doc.description !== doc.snippet) {
-          output += `  > ${doc.description}\n`;
+        if (doc.description) {
+          output += `  ${this.compactText(doc.description)}\n`;
         }
       });
       output += '\n';
@@ -822,7 +828,7 @@ Try:
       if (apiByType['Framework']) {
         output += `### Frameworks:\n`;
         apiByType['Framework'].forEach(doc => {
-          output += `- **${doc.title}** - Import to use this API\n`;
+          output += `- **${this.compactText(doc.title, 120)}** - ${this.compactText(doc.description, 160)}\n`;
         });
         delete apiByType['Framework'];
       }
@@ -831,7 +837,7 @@ Try:
       if (apiByType['Sample']) {
         output += `### Code Samples:\n`;
         apiByType['Sample'].forEach(doc => {
-          output += `- ${doc.title}\n`;
+          output += `- ${this.compactText(doc.title, 140)}\n`;
         });
         delete apiByType['Sample'];
       }
@@ -841,7 +847,7 @@ Try:
         if (docs.length > 0) {
           output += `### ${type}s:\n`;
           docs.forEach(doc => {
-            output += `- ${doc.title}\n`;
+            output += `- ${this.compactText(doc.title, 140)}\n`;
           });
         }
       });
@@ -873,12 +879,6 @@ Try:
     }
 
     output += `- Use \`explore_api\` to see all methods/properties for a class\n`;
-
-    // Add engagement hooks for continuous investigation
-    output += '\n## 🔍 Keep Exploring:\n';
-    output += `- Check file-specific docs with \`get_file_docs\` when you know the file path\n`;
-    output += `- Explore the full API surface with \`explore_api\` if needed\n`;
-    output += `- If you discover new patterns or changes, capture them with \`create_or_update_rule\`\n`;
 
     return output;
   }
@@ -1358,6 +1358,7 @@ Try:
       
       // Reload the documentation service to pick up the new/updated file
       await this.docService.reload();
+      await this.inferenceEngine.buildDocumentIndex();
       
       return `✅ Documentation ${action} successfully: ${fileName}\n\n` +
              `**Title**: ${title}\n` +
@@ -1368,7 +1369,7 @@ Try:
              (category ? `**Category**: ${category}\n` : '') +
              (alwaysApply === true ? '**Always Apply**: true\n' : '') +
              (filePatterns && filePatterns.length > 0 ? `**File Patterns**: ${filePatterns.join(', ')}\n` : '') +
-             `\n**Content**:\n${content}`;
+             `\nContent saved. Use \`read_specific_document(fileName: "${fileName}")\` when full content is needed.`;
              
     } catch (error) {
       throw new Error(`Failed to ${fileName.includes('/') ? 'create' : 'update'} documentation: ${error.message}`);
@@ -1572,10 +1573,19 @@ Try:
       }
     }
     
+    // Surface what actually got indexed — a silent empty index is the usual
+    // reason agents fall back to reading raw markdown.
+    const docCount = this.docService.documents.size;
+    if (docCount === 0) {
+      console.error(`⚠️  doc-bot indexed 0 documents from ${this.options.docsPath}. Tools will return no project docs until files are added.`);
+    } else if (this.options.verbose) {
+      console.error(`📚 Indexed ${docCount} document(s) from ${this.options.docsPath}`);
+    }
+
     // Start server
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    
+
     if (this.options.verbose) {
       console.error('🔧 Server initialized with MCP transport');
       console.error('🚀 Using frontmatter-based configuration');

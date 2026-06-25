@@ -6,7 +6,16 @@ class DocumentIndex {
     this.extensionIndex = new Map();
   }
 
+  clear() {
+    this.keywordIndex.clear();
+    this.topicIndex.clear();
+    this.patternIndex.clear();
+    this.extensionIndex.clear();
+  }
+
   async buildIndexes(documents) {
+    this.clear();
+
     for (const document of documents) {
       await this.indexDocument(document);
     }

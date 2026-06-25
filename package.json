@@ -1,6 +1,6 @@
 {
   "name": "@afterxleep/doc-bot",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Generic MCP server for intelligent documentation access in any project",
   "type": "module",
   "main": "src/index.js",
@@ -9,9 +9,9 @@
   },
   "scripts": {
     "start": "node bin/doc-bot.js --verbose",
-    "start:watch": "node bin/doc-bot.js --verbose --watch",
+    "start:no-watch": "node bin/doc-bot.js --verbose --no-watch",
     "start:examples": "node bin/doc-bot.js --docs ./samples --verbose",
-    "dev": "node bin/doc-bot.js --verbose --watch",
+    "dev": "node bin/doc-bot.js --verbose",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",

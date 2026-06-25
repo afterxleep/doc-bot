@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-06-25
+
+### Changed
+- Search results now return compact metadata only instead of document bodies or snippets
+- Reduced the default `search_documentation` page size and capped result pages to keep MCP responses small
+- `docs://search` now exposes the compact document index instead of full markdown content
+- `create_or_update_rule` no longer echoes full saved document content back to agents
+- CLI documentation path resolution now auto-detects a project `doc-bot` folder and starts with an empty index instead of exiting when docs are missing
+- File watching is enabled by default, debounced, and keeps the inference index in sync on add, change, and remove events
+
+### Fixed
+- Documentation reloads now swap indexes atomically so agents do not see partial or stale document maps
+- Rebuilding the document index now clears stale entries from previous loads
+
 ## [2.0.1] - 2026-01-16
 
 ### Added

@@ -1,6 +1,8 @@
 import { DocsServer } from '../src/index.js';
 import { DocumentationService } from '../src/services/DocumentationService.js';
 import path from 'path';
+import os from 'os';
+import fs from 'fs-extra';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -39,6 +41,60 @@ describe('Doc-Bot Basic Tests', () => {
       const index = await docService.getDocumentIndex();
       expect(Array.isArray(index)).toBe(true);
       expect(index.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('DocumentationService reload reflects disk atomically', () => {
+    let tempDocsPath;
+    let service;
+
+    const writeDoc = (name, title) =>
+      fs.writeFile(
+        path.join(tempDocsPath, name),
+        `---\ntitle: "${title}"\nkeywords: ["${title.toLowerCase()}"]\n---\n# ${title}\n`,
+        'utf8'
+      );
+
+    beforeEach(async () => {
+      tempDocsPath = await fs.mkdtemp(path.join(os.tmpdir(), 'doc-bot-reload-'));
+      await writeDoc('first.md', 'First');
+      service = new DocumentationService(tempDocsPath);
+      await service.initialize();
+    });
+
+    afterEach(async () => {
+      await fs.remove(tempDocsPath);
+    });
+
+    it('picks up newly added files on reload', async () => {
+      expect(service.documents.size).toBe(1);
+      await writeDoc('second.md', 'Second');
+      await service.reload();
+      expect(service.documents.size).toBe(2);
+      expect(service.getDocument('second.md')).toBeDefined();
+    });
+
+    it('drops removed files on reload', async () => {
+      await fs.remove(path.join(tempDocsPath, 'first.md'));
+      await service.reload();
+      expect(service.documents.size).toBe(0);
+      expect(service.getDocument('first.md')).toBeUndefined();
+    });
+
+    it('never exposes a partially-populated map during concurrent reloads', async () => {
+      await writeDoc('second.md', 'Second');
+      await writeDoc('third.md', 'Third');
+
+      // Kick off several reloads at once (as rapid watch events would) while
+      // repeatedly reading. The atomic swap means every read sees a complete
+      // set — never the transient empty/partial state of a non-atomic clear.
+      const reloads = Array.from({ length: 5 }, () => service.reload());
+      for (let i = 0; i < 20; i++) {
+        const size = service.documents.size;
+        expect(size === 3 || size === 1).toBe(true); // full set, never partial
+      }
+      await Promise.all(reloads);
+      expect(service.documents.size).toBe(3);
     });
   });
 

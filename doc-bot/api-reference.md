@@ -68,12 +68,13 @@ Recommended actions:
 
 **Returns**: Array of search results containing:
 - `title`: Document or API entry title
-- `description`: Brief description or context
+- `description`: Brief metadata description
 - `relevance`: Relevance score (0-100)
 - `type`: "local" (project doc) or "docset" (API doc)
 - `source`: Source name (project name or docset name)
-- `snippet`: Relevant text excerpt
 - `matchedTerms`: Terms from query that matched
+
+Search results are intentionally metadata-only. Use `read_specific_document` when full project documentation content is needed.
 
 **Example**:
 ```json

@@ -16,20 +16,26 @@ class DocumentationService {
   }
   
   async reload() {
-    this.documents.clear();
-    this.lastScanned = null;
     await this.loadDocuments();
   }
-  
+
   async loadDocuments() {
+    // Build into a fresh map and swap it in atomically at the end. Readers and
+    // overlapping reloads (e.g. rapid file-watch events) therefore always see a
+    // complete, consistent set of documents instead of a half-cleared map.
+    const documents = new Map();
+
     try {
       if (!await fs.pathExists(this.docsPath)) {
-        // Silently return if path doesn't exist - this is normal for MCP servers
+        // Path doesn't exist yet - publish an empty set. This is normal for MCP
+        // servers and lets a later reload pick the folder up once it's created.
+        this.documents = documents;
+        this.lastScanned = new Date();
         return;
       }
-      
+
       const pattern = path.join(this.docsPath, '**/*.{md,mdx,mdc}');
-      
+
       // Use explicit glob options to ensure recursive scanning
       const files = glob.sync(pattern, {
         absolute: true,     // Return absolute paths
@@ -38,19 +44,20 @@ class DocumentationService {
         nodir: true,        // Only return files, not directories
         ignore: ['**/node_modules/**', '**/.git/**']  // Ignore common non-doc folders
       });
-      
+
       // Log scanning info if verbose mode is enabled
       if (process.env.DOC_BOT_VERBOSE === 'true') {
         console.log(`[DocumentationService] Scanning pattern: ${pattern}`);
         console.log(`[DocumentationService] Found ${files.length} document(s)`);
       }
-      
+
       for (const filePath of files) {
-        await this.loadDocument(filePath);
+        await this.loadDocument(filePath, documents);
       }
-      
+
+      this.documents = documents;
       this.lastScanned = new Date();
-      
+
       // Log final loaded count if verbose
       if (process.env.DOC_BOT_VERBOSE === 'true') {
         console.log(`[DocumentationService] Successfully loaded ${this.documents.size} document(s)`);
@@ -59,15 +66,15 @@ class DocumentationService {
       console.error('Error loading documents:', error);
     }
   }
-  
-  async loadDocument(filePath) {
+
+  async loadDocument(filePath, target = this.documents) {
     try {
       const content = await fs.readFile(filePath, 'utf8');
       const relativePath = path.relative(this.docsPath, filePath);
-      
+
       // Parse frontmatter if present
       const { metadata, content: documentContent } = this.parseFrontmatter(content);
-      
+
       const document = {
         fileName: relativePath,
         filePath: filePath,
@@ -75,9 +82,9 @@ class DocumentationService {
         metadata: metadata || {},
         lastModified: (await fs.stat(filePath)).mtime
       };
-      
-      this.documents.set(relativePath, document);
-      
+
+      target.set(relativePath, document);
+
       // Log individual document loading if verbose
       if (process.env.DOC_BOT_VERBOSE === 'true') {
         const folderPath = path.dirname(relativePath);
@@ -487,7 +494,7 @@ class DocumentationService {
     for (const doc of this.documents.values()) {
       index.push({
         title: doc.metadata?.title || doc.fileName,
-        description: doc.metadata?.description || '',
+        description: this.compactText(doc.metadata?.description || ''),
         fileName: doc.fileName,
         lastUpdated: doc.lastModified.toISOString()
       });
@@ -495,6 +502,14 @@ class DocumentationService {
     
     // Sort by title for consistent ordering
     return index.sort((a, b) => a.title.localeCompare(b.title));
+  }
+
+  compactText(value, maxLength = 240) {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return `${text.slice(0, maxLength - 3).trimEnd()}...`;
   }
   
 }

@@ -63,6 +63,19 @@ describe('MCP server e2e', () => {
       'utf8'
     );
 
+    await fs.writeFile(
+      path.join(docsPath, 'large-token-heavy.md'),
+      `---\n` +
+        `title: \"Compact Token Search\"\n` +
+        `description: \"Compact token budget result\"\n` +
+        `keywords: [\"compact\", \"token\", \"budget\"]\n` +
+        `---\n\n` +
+        `# Compact Token Search\n\n` +
+        `compact token budget should not return LEAK_THIS_LARGE_BODY.\n\n` +
+        `${'LEAK_THIS_LARGE_BODY '.repeat(2000)}\n`,
+      'utf8'
+    );
+
     mockDocsetPath = await createMockDocset(tempRoot);
 
     const serverPath = path.resolve(process.cwd(), 'bin', 'doc-bot.js');
@@ -119,6 +132,24 @@ describe('MCP server e2e', () => {
     expect(getText(searchResult)).toContain('Auth Flow');
   });
 
+  it('keeps search and documentation resource output metadata-only', async () => {
+    const searchResult = await client.callTool({
+      name: 'search_documentation',
+      arguments: { query: 'compact token budget' }
+    });
+    const searchText = getText(searchResult);
+
+    expect(searchText).toContain('Compact Token Search');
+    expect(searchText).toContain('Compact token budget result');
+    expect(searchText).not.toContain('LEAK_THIS_LARGE_BODY');
+
+    const resourceResult = await client.readResource({ uri: 'docs://search' });
+    const resourceText = resourceResult.contents?.[0]?.text || '';
+    expect(resourceText).toContain('Compact Token Search');
+    expect(resourceText).not.toContain('LEAK_THIS_LARGE_BODY');
+    expect(resourceText).not.toContain('"content"');
+  });
+
   it('should return contextual docs, update documentation, and refresh', async () => {
     const fileDocs = await client.callTool({
       name: 'get_file_docs',
@@ -150,6 +181,12 @@ describe('MCP server e2e', () => {
       arguments: { query: 'e2e' }
     });
     expect(getText(searchResult)).toContain('E2E Update Doc');
+
+    const guidanceResult = await client.callTool({
+      name: 'doc_bot',
+      arguments: { task: 'e2e doc update' }
+    });
+    expect(getText(guidanceResult)).toContain('E2E Update Doc');
   });
 
   it('should manage docsets and explore APIs', async () => {

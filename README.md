@@ -156,7 +156,7 @@ keywords: ["react", "components", "frontend", "jsx"]
 1. **Intelligent Parsing** - Queries are parsed, stop words removed
 2. **Multi-field Matching** - Searches title, description, keywords, and content
 3. **Relevance Scoring** - Results ranked by relevance (exact matches score highest)
-4. **Context Extraction** - Returns snippets showing matched content
+4. **Compact Results** - Returns titles, paths, descriptions, scores, and matched terms only
 
 doc-bot surfaces documentation for agents; it does not enforce rules. Docs marked `alwaysApply: true` are always surfaced for agents. Agents should update docs when new patterns or changes appear.
 
@@ -341,8 +341,8 @@ Options:
 ### Optimizing Search
 
 - Include synonyms in keywords: `["test", "testing", "spec", "jest"]`
-- Use clear section headers for better snippet extraction
-- Add descriptions to improve search relevance
+- Use clear section headers so matching stays accurate
+- Add concise descriptions because search results show descriptions, not body content
 
 ## Why MCP over Static Instruction Files?
 

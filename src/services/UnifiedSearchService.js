@@ -54,13 +54,20 @@ export class UnifiedSearchService {
       return [];
     }
 
-    // Perform searches in parallel
-    const [localResults, docsetResults] = await Promise.all([
-      // Search local documentation (unless searching specific docset)
-      docsetId ? [] : this.searchLocalDocs(query, searchTerms, Math.ceil(limit / 2)),
-      // Search docsets
-      this.searchDocsets(searchTerms, { type, docsetId, limit: Math.ceil(limit / 2) })
-    ]);
+    const localLimit = Math.ceil(limit / 2);
+    const docsetLimit = Math.ceil(limit / 2);
+    let localResults = [];
+    let docsetResults = [];
+
+    if (docsetId || type) {
+      docsetResults = await this.searchDocsets(searchTerms, { type, docsetId, limit: docsetLimit });
+    } else {
+      localResults = await this.searchLocalDocs(query, searchTerms, localLimit);
+
+      if (!this.hasStrongLocalResults(localResults)) {
+        docsetResults = await this.searchDocsets(searchTerms, { type, limit: docsetLimit });
+      }
+    }
 
     // Combine and normalize results
     const combinedResults = [
@@ -127,6 +134,10 @@ export class UnifiedSearchService {
     }
   }
 
+  hasStrongLocalResults(results) {
+    return results.some(result => (result.relevanceScore || 0) >= 5);
+  }
+
   /**
    * Normalize local documentation results to unified format
    */
@@ -134,15 +145,12 @@ export class UnifiedSearchService {
     return results.map(doc => ({
       id: doc.fileName,
       title: doc.metadata?.title || doc.fileName,
-      description: doc.metadata?.description || doc.snippet || '',
+      description: this.compactText(doc.metadata?.description || ''),
       type: 'local',
       source: 'project',
       path: doc.fileName,
       url: doc.fileName,
       relevanceScore: doc.relevanceScore || 0,
-      metadata: doc.metadata,
-      content: doc.content,
-      snippet: doc.snippet,
       matchedTerms: doc.matchedTerms || []
     }));
   }
@@ -155,7 +163,7 @@ export class UnifiedSearchService {
     const normalized = results.map(doc => ({
       id: `${doc.docsetId}:${doc.name}`,
       title: doc.name,
-      description: `${doc.type} in ${doc.docsetName}`,
+      description: this.compactText(`${doc.type} in ${doc.docsetName}`),
       type: 'docset',
       source: doc.docsetName,
       path: doc.path || doc.url,
@@ -190,6 +198,14 @@ export class UnifiedSearchService {
     }
     
     return Array.from(dedupMap.values());
+  }
+
+  compactText(value, maxLength = 240) {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return `${text.slice(0, maxLength - 3).trimEnd()}...`;
   }
 
   /**

@@ -49,6 +49,27 @@ describe('DocumentIndex', () => {
       expect(documentIndex.topicIndex.size).toBeGreaterThan(0);
     });
 
+    it('should replace existing index state when rebuilding', async () => {
+      const firstDocument = {
+        fileName: 'react-guide.md',
+        metadata: { keywords: ['react'] }
+      };
+      const secondDocument = {
+        fileName: 'testing-guide.md',
+        metadata: { keywords: ['testing'] }
+      };
+
+      await documentIndex.buildIndexes([firstDocument]);
+      await documentIndex.buildIndexes([secondDocument]);
+
+      const staleResult = documentIndex.findRelevantDocs({ query: 'react' });
+      const currentResult = documentIndex.findRelevantDocs({ query: 'testing' });
+
+      expect(staleResult).toEqual([]);
+      expect(currentResult).toHaveLength(1);
+      expect(currentResult[0].document.fileName).toBe('testing-guide.md');
+    });
+
     it('should handle empty document array', async () => {
       await documentIndex.buildIndexes([]);
       
