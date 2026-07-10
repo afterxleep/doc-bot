@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.3] - 2026-07-10
+
+### Fixed
+- Documentation discovery no longer traverses symlinked directories, keeping startup and reload scans bounded to the configured docs tree
+- File watching now avoids following symlinks, matching documentation discovery behavior
+- Large single-item paginated responses are split into token-budgeted chunks instead of returning oversized pages
+
 ## [2.0.2] - 2026-06-25
 
 ### Changed
