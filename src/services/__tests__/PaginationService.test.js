@@ -334,9 +334,12 @@ describe('PaginationService', () => {
       const formatter = (items) => items.map(i => i.content).join('');
       const result = paginationService.smartPaginate(items, formatter, 1);
       
-      // Should still include the item even if it exceeds limit
+      // Should keep the item available while splitting it into budgeted chunks.
       expect(result.pagination.itemsInPage).toBe(1);
-      expect(result.pagination.hasMore).toBe(false);
+      expect(result.pagination.hasMore).toBe(true);
+      expect(result.pagination.isChunked).toBe(true);
+      expect(result.pagination.estimatedTotalPages).toBeGreaterThan(1);
+      expect(paginationService.estimateTokens(result.content)).toBeLessThanOrEqual(20000);
     });
 
     it('should handle unicode characters correctly', () => {

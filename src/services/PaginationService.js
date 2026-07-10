@@ -107,7 +107,7 @@ export class PaginationService {
       let needsChunking = false;
       
       if (tokens > 20000) {
-        chunks = this.chunkText(singleContent, 80000); // ~20k tokens
+        chunks = this.chunkText(singleContent, 20000);
         needsChunking = chunks.length > 1;
       }
       
@@ -208,6 +208,7 @@ export class PaginationService {
     if (pagination.isChunked) {
       info += `📄 **Content Chunk ${pagination.chunkIndex} of ${pagination.totalChunks}** (Large document split for readability)\n`;
       info += `📊 Document ${pagination.startIndex + 1} of ${pagination.totalItems} total items\n`;
+      info += `📊 Showing 1 of ${pagination.totalItems} items\n`;
     } else if (pagination.itemsInPage !== undefined) {
       info += `📊 Showing ${pagination.itemsInPage} of ${pagination.totalItems} items\n`;
     } else if (pagination.pageSize) {
@@ -298,7 +299,7 @@ export class PaginationService {
     }
     
     // Estimate characters per token for this specific text
-    const targetChars = TokenEstimator.estimateCharsForTokens(text, targetTokens);
+    const targetChars = TokenEstimator.estimateCharsForTokens(text, Math.floor(targetTokens * 0.95));
 
     const chunks = [];
     
@@ -326,8 +327,14 @@ export class PaginationService {
               if (wordChunkTokens > targetTokens) {
                 if (wordChunk) {
                   chunks.push(wordChunk.trim());
+                  wordChunk = '';
                 }
-                wordChunk = word + ' ';
+
+                if (this.estimateTokens(word) > targetTokens) {
+                  for (let i = 0; i < word.length; i += targetChars) {
+                    chunks.push(word.slice(i, i + targetChars));
+                  }
+                }
               } else {
                 wordChunk = testWordChunk;
               }

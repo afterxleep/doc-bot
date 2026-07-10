@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { glob } from 'glob';
 import yaml from 'yaml';
 
 class DocumentationService {
@@ -34,20 +33,11 @@ class DocumentationService {
         return;
       }
 
-      const pattern = path.join(this.docsPath, '**/*.{md,mdx,mdc}');
-
-      // Use explicit glob options to ensure recursive scanning
-      const files = glob.sync(pattern, {
-        absolute: true,     // Return absolute paths
-        dot: true,          // Include hidden files/folders
-        follow: true,       // Follow symbolic links
-        nodir: true,        // Only return files, not directories
-        ignore: ['**/node_modules/**', '**/.git/**']  // Ignore common non-doc folders
-      });
+      const files = await this.discoverDocumentFiles();
 
       // Log scanning info if verbose mode is enabled
       if (process.env.DOC_BOT_VERBOSE === 'true') {
-        console.log(`[DocumentationService] Scanning pattern: ${pattern}`);
+        console.log(`[DocumentationService] Scanning docs path: ${this.docsPath}`);
         console.log(`[DocumentationService] Found ${files.length} document(s)`);
       }
 
@@ -65,6 +55,46 @@ class DocumentationService {
     } catch (error) {
       console.error('Error loading documents:', error);
     }
+  }
+
+  async discoverDocumentFiles() {
+    const files = [];
+    const docExtensions = new Set(['.md', '.mdx', '.mdc']);
+    const ignoredDirectories = new Set(['.git', 'node_modules']);
+
+    const walk = async (directoryPath) => {
+      let entries;
+      try {
+        entries = await fs.readdir(directoryPath, { withFileTypes: true });
+      } catch (error) {
+        console.error(`Error reading documentation directory ${directoryPath}:`, error);
+        return;
+      }
+
+      entries.sort((a, b) => a.name.localeCompare(b.name));
+
+      for (const entry of entries) {
+        const entryPath = path.join(directoryPath, entry.name);
+
+        if (entry.isSymbolicLink()) {
+          continue;
+        }
+
+        if (entry.isDirectory()) {
+          if (!ignoredDirectories.has(entry.name)) {
+            await walk(entryPath);
+          }
+          continue;
+        }
+
+        if (entry.isFile() && docExtensions.has(path.extname(entry.name).toLowerCase())) {
+          files.push(entryPath);
+        }
+      }
+    };
+
+    await walk(this.docsPath);
+    return files;
   }
 
   async loadDocument(filePath, target = this.documents) {

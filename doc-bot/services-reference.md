@@ -28,7 +28,9 @@ new DocumentationService(docsPath, manifestLoader = null)
 ### Methods
 
 #### `initialize()`
-Loads all documentation files from the configured directory.
+Loads all documentation files from the configured directory. Discovery walks
+real directories only and skips symlinked directories to avoid indexing outside
+the configured docs tree.
 
 #### `reload()`
 Clears cache and reloads all documentation.
@@ -109,6 +111,25 @@ Normalizes and deduplicates docset results.
 
 #### `getSources()`
 Returns summary of available documentation sources.
+
+## PaginationService
+
+**Location**: `src/services/PaginationService.js`
+
+**Purpose**: Keeps large MCP responses under token budgets by paginating arrays
+and splitting oversized single items into chunks.
+
+### Methods
+
+#### `smartPaginate(items, formatter, page, requestedPageSize)`
+Builds logical response pages from formatted items.
+- Items estimated above 20,000 tokens are split with `chunkText()`
+- Each chunk is exposed as a follow-up page using the normal pagination fields
+- Pagination info preserves item counts while also reporting chunk position
+
+#### `chunkText(text, targetTokens)`
+Splits large text around the requested token budget, including long unbroken
+strings that have no whitespace boundaries.
 
 ## InferenceEngine
 

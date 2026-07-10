@@ -36,6 +36,8 @@ The main server class that implements the MCP protocol:
 Manages project documentation loading and parsing:
 
 - Loads markdown files (`.md`, `.mdx`, `.mdc`) from specified directory
+- Recursively walks real directories only; symlinked directories are skipped so
+  indexing stays bounded to the configured documentation tree
 - Parses frontmatter metadata using YAML
 - Caches documents in memory for fast access
 - Supports hot reloading via file watching

@@ -665,6 +665,7 @@ class DocsServer {
     const watcher = chokidar.watch(this.options.docsPath, {
       ignored: /(^|[\/\\])\../, // ignore dotfiles
       persistent: true,
+      followSymlinks: false,
       ignoreInitial: true, // don't re-index once per existing file at startup
       awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 50 } // don't read half-written files
     });

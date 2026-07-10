@@ -46,6 +46,7 @@ describe('Doc-Bot Basic Tests', () => {
 
   describe('DocumentationService reload reflects disk atomically', () => {
     let tempDocsPath;
+    let externalDocsPath;
     let service;
 
     const writeDoc = (name, title) =>
@@ -57,6 +58,7 @@ describe('Doc-Bot Basic Tests', () => {
 
     beforeEach(async () => {
       tempDocsPath = await fs.mkdtemp(path.join(os.tmpdir(), 'doc-bot-reload-'));
+      externalDocsPath = await fs.mkdtemp(path.join(os.tmpdir(), 'doc-bot-external-'));
       await writeDoc('first.md', 'First');
       service = new DocumentationService(tempDocsPath);
       await service.initialize();
@@ -64,6 +66,7 @@ describe('Doc-Bot Basic Tests', () => {
 
     afterEach(async () => {
       await fs.remove(tempDocsPath);
+      await fs.remove(externalDocsPath);
     });
 
     it('picks up newly added files on reload', async () => {
@@ -95,6 +98,21 @@ describe('Doc-Bot Basic Tests', () => {
       }
       await Promise.all(reloads);
       expect(service.documents.size).toBe(3);
+    });
+
+    it('does not traverse symlinked directories while discovering documents', async () => {
+      await fs.writeFile(
+        path.join(externalDocsPath, 'external.md'),
+        '---\ntitle: "External"\n---\n# External\n',
+        'utf8'
+      );
+      await fs.symlink(externalDocsPath, path.join(tempDocsPath, 'linked-docs'), 'dir');
+
+      await service.reload();
+
+      expect(service.documents.size).toBe(1);
+      expect(service.getDocument('first.md')).toBeDefined();
+      expect(service.getDocument('linked-docs/external.md')).toBeUndefined();
     });
   });
 
