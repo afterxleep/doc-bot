@@ -30,6 +30,9 @@ class DocsServer {
     this.docsWatcher = null;
     this.watcherRetryTimer = null;
     this.watcherSetupPromise = null;
+    this.searchCleanupInterval = null;
+    this.stdinCloseHandler = null;
+    this.shutdownPromise = null;
     
     // Cache for prompt templates
     this.promptTemplates = {};
@@ -666,7 +669,7 @@ class DocsServer {
   }
   
   async setupWatcher() {
-    if (this.docsWatcher) {
+    if (this.shutdownPromise || this.docsWatcher) {
       return;
     }
 
@@ -715,7 +718,7 @@ class DocsServer {
   }
 
   scheduleWatcherRetry() {
-    if (this.watcherRetryTimer) {
+    if (this.shutdownPromise || this.watcherRetryTimer) {
       return;
     }
 
@@ -1571,6 +1574,15 @@ Try:
   }
   
   async start() {
+    this.stdinCloseHandler = () => {
+      this.stop().catch((error) => {
+        console.error(`❌ Failed to stop doc-bot: ${error.message}`);
+        process.exitCode = 1;
+      });
+    };
+    process.stdin.once('end', this.stdinCloseHandler);
+    process.stdin.once('close', this.stdinCloseHandler);
+
     // Initialize services
     await this.docService.initialize();
     await this.inferenceEngine.initialize();
@@ -1622,6 +1634,40 @@ Try:
       console.error('🔧 Server initialized with MCP transport');
       console.error('🚀 Using frontmatter-based configuration');
     }
+  }
+
+  async stop() {
+    if (!this.shutdownPromise) {
+      this.shutdownPromise = this.performStop();
+    }
+    return this.shutdownPromise;
+  }
+
+  async performStop() {
+    if (this.stdinCloseHandler) {
+      process.stdin.off('end', this.stdinCloseHandler);
+      process.stdin.off('close', this.stdinCloseHandler);
+      this.stdinCloseHandler = null;
+    }
+
+    if (this.searchCleanupInterval) {
+      clearInterval(this.searchCleanupInterval);
+      this.searchCleanupInterval = null;
+    }
+
+    if (this.watcherRetryTimer) {
+      clearTimeout(this.watcherRetryTimer);
+      this.watcherRetryTimer = null;
+    }
+
+    if (this.docsWatcher) {
+      const watcher = this.docsWatcher;
+      this.docsWatcher = null;
+      await watcher.close();
+    }
+
+    this.multiDocsetDb.closeAll();
+    await this.server.close();
   }
 }
 
