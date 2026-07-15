@@ -26,6 +26,10 @@ class DocsServer {
       watch: options.watch || false,
       ...options
     };
+    this.watcherRetryDelay = options.watcherRetryDelay ?? 1000;
+    this.docsWatcher = null;
+    this.watcherRetryTimer = null;
+    this.watcherSetupPromise = null;
     
     // Cache for prompt templates
     this.promptTemplates = {};
@@ -61,7 +65,7 @@ class DocsServer {
     this.setupHandlers();
     
     if (this.options.watch) {
-      this.setupWatcher();
+      this.watcherSetupPromise = this.setupWatcher();
     }
   }
 
@@ -661,7 +665,16 @@ class DocsServer {
     });
   }
   
-  setupWatcher() {
+  async setupWatcher() {
+    if (this.docsWatcher) {
+      return;
+    }
+
+    if (!await fsExtra.pathExists(this.options.docsPath)) {
+      this.scheduleWatcherRetry();
+      return;
+    }
+
     const watcher = chokidar.watch(this.options.docsPath, {
       ignored: /(^|[\/\\])\../, // ignore dotfiles
       persistent: true,
@@ -669,6 +682,7 @@ class DocsServer {
       ignoreInitial: true, // don't re-index once per existing file at startup
       awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 50 } // don't read half-written files
     });
+    this.docsWatcher = watcher;
 
     // A single save can emit several events (add + change), and bulk edits emit
     // many in quick succession. Debounce so a burst collapses into one reload,
@@ -694,7 +708,24 @@ class DocsServer {
     watcher.on('error', async (error) => {
       console.error(`⚠️  Documentation watcher disabled: ${error.message}`);
       await watcher.close();
+      if (this.docsWatcher === watcher) {
+        this.docsWatcher = null;
+      }
     });
+  }
+
+  scheduleWatcherRetry() {
+    if (this.watcherRetryTimer) {
+      return;
+    }
+
+    // Chokidar scans the nearest existing parent for a missing path. Polling the
+    // exact docs path avoids recursively scanning large temporary directories.
+    this.watcherRetryTimer = setTimeout(() => {
+      this.watcherRetryTimer = null;
+      this.watcherSetupPromise = this.setupWatcher();
+    }, this.watcherRetryDelay);
+    this.watcherRetryTimer.unref?.();
   }
   
   async formatSearchResults(results, query) {
