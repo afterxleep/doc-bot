@@ -46,6 +46,7 @@ describe('DocsServer documentation watcher', () => {
 
     await fs.ensureDir(docsPath);
     await jest.advanceTimersByTimeAsync(100);
+    await server.watcherSetupPromise;
 
     expect(watch).toHaveBeenCalledTimes(1);
     expect(watch).toHaveBeenCalledWith(docsPath, expect.any(Object));
